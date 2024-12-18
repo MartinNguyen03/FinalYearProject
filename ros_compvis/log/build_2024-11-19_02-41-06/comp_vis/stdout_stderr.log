@@ -1,0 +1,16 @@
+running develop
+running egg_info
+writing comp_vis.egg-info/PKG-INFO
+writing dependency_links to comp_vis.egg-info/dependency_links.txt
+writing entry points to comp_vis.egg-info/entry_points.txt
+writing requirements to comp_vis.egg-info/requires.txt
+writing top-level names to comp_vis.egg-info/top_level.txt
+reading manifest file 'comp_vis.egg-info/SOURCES.txt'
+writing manifest file 'comp_vis.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp-vis.egg-link (link to .)
+Installing camSub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis
+Installing imSub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis
+
+Installed /home/martin_ngn/ros_compvis/build/comp_vis
+running symlink_data

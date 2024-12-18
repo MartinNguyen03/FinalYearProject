@@ -1,0 +1,542 @@
+[0.000000] (-) TimerEvent: {}
+[0.000134] (OpenCV) JobQueued: {'identifier': 'OpenCV', 'dependencies': OrderedDict()}
+[0.000168] (comp_vis) JobQueued: {'identifier': 'comp_vis', 'dependencies': OrderedDict()}
+[0.000196] (OpenCV) JobStarted: {'identifier': 'OpenCV'}
+[0.004878] (comp_vis) JobStarted: {'identifier': 'comp_vis'}
+[0.008866] (OpenCV) JobProgress: {'identifier': 'OpenCV', 'progress': 'cmake'}
+[0.009928] (OpenCV) JobProgress: {'identifier': 'OpenCV', 'progress': 'build'}
+[0.011090] (OpenCV) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/martin_ngn/ros_compvis/build/OpenCV', '--', '-j16', '-l16'], 'cwd': '/home/martin_ngn/ros_compvis/build/OpenCV', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('CONDA_PROMPT_MODIFIER', '(base)'), ('USER', 'martin_ngn'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/usr/local/cuda-12.4/lib64/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('WT_PROFILE_ID', '{4ff56d04-d9cf-57ea-bae2-ad396374e7e3}'), ('HOME', '/home/martin_ngn'), ('CONDA_SHLVL', '1'), ('OLDPWD', '/home/martin_ngn'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_CE_M', ''), ('WSL_DISTRO_NAME', 'Ubuntu-22.04'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/martin_ngn/ros_compvis/install:/home/martin_ngn/ros_open_cv/install:/home/martin_ngn/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'martin_ngn'), ('NAME', 'DESKTOP-D5IC6L0'), ('WSL_INTEROP', '/run/WSL/46080_interop'), ('PULSE_SERVER', 'unix:/mnt/wslg/PulseServer'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm-256color'), ('_CE_CONDA', ''), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/martin_ngn/.local/bin:/home/martin_ngn/miniconda3/bin:/home/martin_ngn/miniconda3/condabin:/usr/local/cuda-12.4/bin/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Python312/Scripts:/mnt/c/Python312:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Git/cmd:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/nodejs:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Program Files/usbipd-win:/mnt/c/Users/Martin Nguyen/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Martin Nguyen/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/Martin Nguyen/AppData/Roaming/npm:/snap/bin:/opt/ros/humble/bin'), ('WT_SESSION', '90d97262-656d-40fd-8807-9bbdaad56066'), ('XDG_RUNTIME_DIR', '/run/user/1000/'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/martin_ngn/ros_compvis/install/comp_vis:/home/martin_ngn/ros_open_cv/install/open_cv:/home/martin_ngn/ros2_ws/install/my_robot_controller:/opt/ros/humble'), ('CONDA_PYTHON_EXE', '/home/martin_ngn/miniconda3/bin/python'), ('SHELL', '/bin/bash'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CONDA_DEFAULT_ENV', 'base'), ('PWD', '/home/martin_ngn/ros_compvis/build/OpenCV'), ('CONDA_EXE', '/home/martin_ngn/miniconda3/bin/conda'), ('XDG_DATA_DIRS', '/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:/home/martin_ngn/ros_open_cv/build/open_cv:/home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages:/home/martin_ngn/ros2_ws/build/my_robot_controller:/home/martin_ngn/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('CONDA_PREFIX', '/home/martin_ngn/miniconda3'), ('COLCON', '1'), ('WSL2_GUI_APPS_ENABLED', '1'), ('HOSTTYPE', 'x86_64'), ('WSLENV', 'WT_SESSION:WT_PROFILE_ID:')]), 'shell': False}
+[0.045722] (OpenCV) StdoutLine: {'line': b'[  0%] Built target opencv_highgui_plugins\n'}
+[0.046383] (OpenCV) StdoutLine: {'line': b'[  0%] Built target opencv_dnn_plugins\n'}
+[0.046642] (OpenCV) StdoutLine: {'line': b'[  0%] Built target opencv_videoio_plugins\n'}
+[0.048215] (OpenCV) StdoutLine: {'line': b'[  1%] Built target ittnotify\n'}
+[0.048367] (OpenCV) StdoutLine: {'line': b'[  2%] Built target ippiw\n'}
+[0.048648] (OpenCV) StdoutLine: {'line': b'[  3%] Built target libopenjp2\n'}
+[0.054034] (OpenCV) StdoutLine: {'line': b'[  4%] Built target ade\n'}
+[0.059921] (OpenCV) StdoutLine: {'line': b'[ 12%] Built target libwebp\n'}
+[0.061116] (OpenCV) StdoutLine: {'line': b'[ 15%] Built target libprotobuf\n'}
+[0.099527] (-) TimerEvent: {}
+[0.119701] (OpenCV) StdoutLine: {'line': b'[ 22%] Built target opencv_core\n'}
+[0.133672] (OpenCV) StdoutLine: {'line': b'[ 23%] Built target opencv_version\n'}
+[0.134805] (OpenCV) StdoutLine: {'line': b'[ 24%] Built target opencv_flann\n'}
+[0.143867] (OpenCV) StdoutLine: {'line': b'[ 25%] Built target opencv_ml\n'}
+[0.183956] (OpenCV) StdoutLine: {'line': b'[ 31%] Built target opencv_imgproc\n'}
+[0.199751] (-) TimerEvent: {}
+[0.206250] (OpenCV) StdoutLine: {'line': b'[ 32%] Built target opencv_photo\n'}
+[0.209245] (OpenCV) StdoutLine: {'line': b'[ 34%] Built target opencv_imgcodecs\n'}
+[0.213917] (OpenCV) StdoutLine: {'line': b'[ 36%] Built target opencv_features2d\n'}
+[0.230317] (OpenCV) StdoutLine: {'line': b'[ 37%] Built target opencv_videoio\n'}
+[0.247788] (OpenCV) StdoutLine: {'line': b'[ 37%] Built target opencv_highgui\n'}
+[0.254084] (OpenCV) StdoutLine: {'line': b'[ 47%] Built target opencv_calib3d\n'}
+[0.254288] (OpenCV) StdoutLine: {'line': b'[ 51%] Built target opencv_dnn\n'}
+[0.262297] (OpenCV) StdoutLine: {'line': b'[ 52%] Built target opencv_visualisation\n'}
+[0.262528] (OpenCV) StdoutLine: {'line': b'[ 52%] Built target opencv_annotation\n'}
+[0.269113] (OpenCV) StdoutLine: {'line': b'[ 53%] Built target opencv_model_diagnostics\n'}
+[0.269490] (OpenCV) StdoutLine: {'line': b'[ 53%] Built target opencv_ts\n'}
+[0.277039] (OpenCV) StdoutLine: {'line': b'[ 54%] Built target opencv_stitching\n'}
+[0.297749] (OpenCV) StdoutLine: {'line': b'[ 55%] Built target opencv_video\n'}
+[0.298117] (OpenCV) StdoutLine: {'line': b'[ 56%] Built target opencv_objdetect\n'}
+[0.299857] (OpenCV) StdoutLine: {'line': b'[ 56%] Built target opencv_test_flann\n'}
+[0.299980] (-) TimerEvent: {}
+[0.300825] (OpenCV) StdoutLine: {'line': b'[ 56%] Built target opencv_perf_photo\n'}
+[0.301147] (OpenCV) StdoutLine: {'line': b'[ 56%] Built target opencv_perf_features2d\n'}
+[0.302342] (OpenCV) StdoutLine: {'line': b'[ 58%] Built target opencv_perf_imgcodecs\n'}
+[0.302484] (OpenCV) StdoutLine: {'line': b'[ 58%] Built target opencv_test_photo\n'}
+[0.302655] (OpenCV) StdoutLine: {'line': b'[ 59%] Built target opencv_perf_dnn\n'}
+[0.304168] (OpenCV) StdoutLine: {'line': b'[ 60%] Built target opencv_test_imgcodecs\n'}
+[0.306232] (OpenCV) StdoutLine: {'line': b'[ 61%] Built target opencv_test_ml\n'}
+[0.308277] (OpenCV) StdoutLine: {'line': b'[ 62%] Built target opencv_test_dnn\n'}
+[0.309483] (OpenCV) StdoutLine: {'line': b'[ 64%] Built target opencv_test_features2d\n'}
+[0.318221] (OpenCV) StdoutLine: {'line': b'[ 66%] Built target opencv_perf_core\n'}
+[0.325299] (OpenCV) StdoutLine: {'line': b'[ 68%] Built target opencv_perf_imgproc\n'}
+[0.329502] (OpenCV) StdoutLine: {'line': b'[ 69%] Built target opencv_perf_videoio\n'}
+[0.331454] (OpenCV) StdoutLine: {'line': b'[ 70%] Built target opencv_perf_objdetect\n'}
+[0.332271] (OpenCV) StdoutLine: {'line': b'[ 70%] Built target opencv_test_highgui\n'}
+[0.333613] (OpenCV) StdoutLine: {'line': b'[ 71%] Built target opencv_perf_calib3d\n'}
+[0.334231] (OpenCV) StdoutLine: {'line': b'[ 71%] Built target opencv_perf_stitching\n'}
+[0.337555] (OpenCV) StdoutLine: {'line': b'[ 71%] Built target opencv_test_objdetect\n'}
+[0.340302] (OpenCV) StdoutLine: {'line': b'[ 72%] Built target opencv_perf_video\n'}
+[0.340613] (OpenCV) StdoutLine: {'line': b'[ 73%] Built target opencv_test_stitching\n'}
+[0.340890] (OpenCV) StdoutLine: {'line': b'[ 74%] Built target opencv_test_videoio\n'}
+[0.343485] (OpenCV) StdoutLine: {'line': b'[ 75%] Built target opencv_test_video\n'}
+[0.346170] (OpenCV) StdoutLine: {'line': b'[ 75%] Built target opencv_interactive-calibration\n'}
+[0.348020] (OpenCV) StdoutLine: {'line': b'[ 77%] Built target opencv_test_calib3d\n'}
+[0.355141] (OpenCV) StdoutLine: {'line': b'[ 80%] Built target opencv_test_core\n'}
+[0.361791] (OpenCV) StdoutLine: {'line': b'[ 84%] Built target opencv_test_imgproc\n'}
+[0.389638] (OpenCV) StdoutLine: {'line': b'[ 93%] Built target opencv_gapi\n'}
+[0.400153] (-) TimerEvent: {}
+[0.412205] (OpenCV) StdoutLine: {'line': b'[ 94%] Built target opencv_perf_gapi\n'}
+[0.441566] (OpenCV) StdoutLine: {'line': b'[100%] Built target opencv_test_gapi\n'}
+[0.450430] (OpenCV) CommandEnded: {'returncode': 0}
+[0.481147] (comp_vis) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/home/martin_ngn/ros_compvis/build/comp_vis/build', '--no-deps', 'symlink_data'], 'cwd': '/home/martin_ngn/ros_compvis/build/comp_vis', 'env': {'LESSOPEN': '| /usr/bin/lesspipe %s', 'CONDA_PROMPT_MODIFIER': '(base)', 'USER': 'martin_ngn', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/usr/local/cuda-12.4/lib64/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'WT_PROFILE_ID': '{4ff56d04-d9cf-57ea-bae2-ad396374e7e3}', 'HOME': '/home/martin_ngn', 'CONDA_SHLVL': '1', 'OLDPWD': '/home/martin_ngn', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', '_CE_M': '', 'WSL_DISTRO_NAME': 'Ubuntu-22.04', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/martin_ngn/ros_compvis/install:/home/martin_ngn/ros_open_cv/install:/home/martin_ngn/ros2_ws/install', 'ROS_DISTRO': 'humble', 'LOGNAME': 'martin_ngn', 'NAME': 'DESKTOP-D5IC6L0', 'WSL_INTEROP': '/run/WSL/46080_interop', 'PULSE_SERVER': 'unix:/mnt/wslg/PulseServer', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', '_CE_CONDA': '', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/home/martin_ngn/.local/bin:/home/martin_ngn/miniconda3/bin:/home/martin_ngn/miniconda3/condabin:/usr/local/cuda-12.4/bin/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Python312/Scripts:/mnt/c/Python312:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Git/cmd:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/nodejs:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Program Files/usbipd-win:/mnt/c/Users/Martin Nguyen/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Martin Nguyen/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/Martin Nguyen/AppData/Roaming/npm:/snap/bin:/opt/ros/humble/bin', 'WT_SESSION': '90d97262-656d-40fd-8807-9bbdaad56066', 'XDG_RUNTIME_DIR': '/run/user/1000/', 'DISPLAY': ':0', 'LANG': 'en_US.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'AMENT_PREFIX_PATH': '/home/martin_ngn/ros_compvis/install/comp_vis:/home/martin_ngn/ros_open_cv/install/open_cv:/home/martin_ngn/ros2_ws/install/my_robot_controller:/opt/ros/humble', 'CONDA_PYTHON_EXE': '/home/martin_ngn/miniconda3/bin/python', 'SHELL': '/bin/bash', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'CONDA_DEFAULT_ENV': 'base', 'PWD': '/home/martin_ngn/ros_compvis/build/comp_vis', 'CONDA_EXE': '/home/martin_ngn/miniconda3/bin/conda', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/martin_ngn/ros_compvis/build/comp_vis/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:/home/martin_ngn/ros_open_cv/build/open_cv:/home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages:/home/martin_ngn/ros2_ws/build/my_robot_controller:/home/martin_ngn/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'CONDA_PREFIX': '/home/martin_ngn/miniconda3', 'COLCON': '1', 'WSL2_GUI_APPS_ENABLED': '1', 'HOSTTYPE': 'x86_64', 'WSLENV': 'WT_SESSION:WT_PROFILE_ID:'}, 'shell': False}
+[0.500292] (-) TimerEvent: {}
+[0.511887] (OpenCV) JobProgress: {'identifier': 'OpenCV', 'progress': 'install'}
+[0.517270] (OpenCV) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/martin_ngn/ros_compvis/build/OpenCV'], 'cwd': '/home/martin_ngn/ros_compvis/build/OpenCV', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('CONDA_PROMPT_MODIFIER', '(base)'), ('USER', 'martin_ngn'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/usr/local/cuda-12.4/lib64/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('WT_PROFILE_ID', '{4ff56d04-d9cf-57ea-bae2-ad396374e7e3}'), ('HOME', '/home/martin_ngn'), ('CONDA_SHLVL', '1'), ('OLDPWD', '/home/martin_ngn'), ('ROS_PYTHON_VERSION', '3'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_CE_M', ''), ('WSL_DISTRO_NAME', 'Ubuntu-22.04'), ('WAYLAND_DISPLAY', 'wayland-0'), ('COLCON_PREFIX_PATH', '/home/martin_ngn/ros_compvis/install:/home/martin_ngn/ros_open_cv/install:/home/martin_ngn/ros2_ws/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'martin_ngn'), ('NAME', 'DESKTOP-D5IC6L0'), ('WSL_INTEROP', '/run/WSL/46080_interop'), ('PULSE_SERVER', 'unix:/mnt/wslg/PulseServer'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('TERM', 'xterm-256color'), ('_CE_CONDA', ''), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/martin_ngn/.local/bin:/home/martin_ngn/miniconda3/bin:/home/martin_ngn/miniconda3/condabin:/usr/local/cuda-12.4/bin/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Python312/Scripts:/mnt/c/Python312:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Git/cmd:/mnt/c/ProgramData/chocolatey/bin:/mnt/c/Program Files/nodejs:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA app/NvDLISR:/mnt/c/Program Files/usbipd-win:/mnt/c/Users/Martin Nguyen/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Martin Nguyen/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/Martin Nguyen/AppData/Roaming/npm:/snap/bin:/opt/ros/humble/bin'), ('WT_SESSION', '90d97262-656d-40fd-8807-9bbdaad56066'), ('XDG_RUNTIME_DIR', '/run/user/1000/'), ('DISPLAY', ':0'), ('LANG', 'en_US.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/martin_ngn/ros_compvis/install/comp_vis:/home/martin_ngn/ros_open_cv/install/open_cv:/home/martin_ngn/ros2_ws/install/my_robot_controller:/opt/ros/humble'), ('CONDA_PYTHON_EXE', '/home/martin_ngn/miniconda3/bin/python'), ('SHELL', '/bin/bash'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('CONDA_DEFAULT_ENV', 'base'), ('PWD', '/home/martin_ngn/ros_compvis/build/OpenCV'), ('CONDA_EXE', '/home/martin_ngn/miniconda3/bin/conda'), ('XDG_DATA_DIRS', '/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:/home/martin_ngn/ros_open_cv/build/open_cv:/home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages:/home/martin_ngn/ros2_ws/build/my_robot_controller:/home/martin_ngn/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('CONDA_PREFIX', '/home/martin_ngn/miniconda3'), ('COLCON', '1'), ('WSL2_GUI_APPS_ENABLED', '1'), ('HOSTTYPE', 'x86_64'), ('WSLENV', 'WT_SESSION:WT_PROFILE_ID:')]), 'shell': False}
+[0.521081] (OpenCV) StdoutLine: {'line': b'-- Install configuration: "Release"\n'}
+[0.521223] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippicv-readme.htm\n'}
+[0.521409] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippicv-EULA.txt\n'}
+[0.521505] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippicv-third-party-programs.txt\n'}
+[0.521609] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippiw-support.txt\n'}
+[0.521713] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippiw-third-party-programs.txt\n'}
+[0.521816] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ippiw-EULA.txt\n'}
+[0.521919] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/flatbuffers-LICENSE.txt\n'}
+[0.522022] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/opencl-headers-LICENSE.txt\n'}
+[0.522190] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ade-LICENSE\n'}
+[0.522284] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/cvconfig.h\n'}
+[0.522388] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/opencv_modules.hpp\n'}
+[0.522490] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/cmake/opencv4/OpenCVModules.cmake\n'}
+[0.522593] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/cmake/opencv4/OpenCVModules-release.cmake\n'}
+[0.522697] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/cmake/opencv4/OpenCVConfig-version.cmake\n'}
+[0.522800] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/cmake/opencv4/OpenCVConfig.cmake\n'}
+[0.522902] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/setup_vars_opencv4.sh\n'}
+[0.523005] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/valgrind.supp\n'}
+[0.523108] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/valgrind_3rdparty.supp\n'}
+[0.523211] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/libopenjp2-README.md\n'}
+[0.523314] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/libopenjp2-LICENSE\n'}
+[0.523424] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/protobuf-LICENSE\n'}
+[0.523597] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/protobuf-README.md\n'}
+[0.523642] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ittnotify-LICENSE.BSD\n'}
+[0.523678] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/ittnotify-LICENSE.GPL\n'}
+[0.523712] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/opencv.hpp\n'}
+[0.524246] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_core.so.4.10.0\n'}
+[0.524299] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_core.so.410\n'}
+[0.524371] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_core.so\n'}
+[0.524476] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core.hpp\n'}
+[0.524674] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/affine.hpp\n'}
+[0.524776] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/async.hpp\n'}
+[0.524880] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/base.hpp\n'}
+[0.524985] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/bindings_utils.hpp\n'}
+[0.525089] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/bufferpool.hpp\n'}
+[0.525192] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/check.hpp\n'}
+[0.525295] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/core.hpp\n'}
+[0.525398] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/core_c.h\n'}
+[0.525569] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda.hpp\n'}
+[0.525812] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda.inl.hpp\n'}
+[0.525950] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/block.hpp\n'}
+[0.526058] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/border_interpolate.hpp\n'}
+[0.526162] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/color.hpp\n'}
+[0.526265] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/common.hpp\n'}
+[0.526368] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/datamov_utils.hpp\n'}
+[0.526470] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/color_detail.hpp\n'}
+[0.526572] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/reduce.hpp\n'}
+[0.526783] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/reduce_key_val.hpp\n'}
+[0.526918] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/transform_detail.hpp\n'}
+[0.527024] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/type_traits_detail.hpp\n'}
+[0.527127] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/detail/vec_distance_detail.hpp\n'}
+[0.527229] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/dynamic_smem.hpp\n'}
+[0.527331] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/emulation.hpp\n'}
+[0.527435] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/filters.hpp\n'}
+[0.527540] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/funcattrib.hpp\n'}
+[0.527643] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/functional.hpp\n'}
+[0.527745] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/limits.hpp\n'}
+[0.527847] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/reduce.hpp\n'}
+[0.527950] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/saturate_cast.hpp\n'}
+[0.528052] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/scan.hpp\n'}
+[0.528158] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/simd_functions.hpp\n'}
+[0.528262] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/transform.hpp\n'}
+[0.528364] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/type_traits.hpp\n'}
+[0.528467] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/utility.hpp\n'}
+[0.528570] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/vec_distance.hpp\n'}
+[0.528673] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/vec_math.hpp\n'}
+[0.528776] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/vec_traits.hpp\n'}
+[0.528878] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/warp.hpp\n'}
+[0.528981] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/warp_reduce.hpp\n'}
+[0.529084] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda/warp_shuffle.hpp\n'}
+[0.529187] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda_stream_accessor.hpp\n'}
+[0.529289] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cuda_types.hpp\n'}
+[0.529391] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cv_cpu_dispatch.h\n'}
+[0.529493] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cv_cpu_helper.h\n'}
+[0.529595] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cvdef.h\n'}
+[0.529696] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cvstd.hpp\n'}
+[0.529799] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cvstd.inl.hpp\n'}
+[0.529901] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/cvstd_wrapper.hpp\n'}
+[0.530003] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/detail/async_promise.hpp\n'}
+[0.530105] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/detail/dispatch_helper.impl.hpp\n'}
+[0.530209] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/detail/exception_ptr.hpp\n'}
+[0.530312] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/directx.hpp\n'}
+[0.530417] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/dualquaternion.hpp\n'}
+[0.530519] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/dualquaternion.inl.hpp\n'}
+[0.530622] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/eigen.hpp\n'}
+[0.530725] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/fast_math.hpp\n'}
+[0.530827] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/hal.hpp\n'}
+[0.530929] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/interface.h\n'}
+[0.531031] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin.hpp\n'}
+[0.531222] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_avx.hpp\n'}
+[0.531328] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_avx512.hpp\n'}
+[0.531426] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_cpp.hpp\n'}
+[0.531524] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_forward.hpp\n'}
+[0.531728] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_lasx.hpp\n'}
+[0.531905] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_lsx.hpp\n'}
+[0.532004] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_math.hpp\n'}
+[0.532102] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_msa.hpp\n'}
+[0.532199] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_neon.hpp\n'}
+[0.532297] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_rvv071.hpp\n'}
+[0.532401] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_rvv_scalable.hpp\n'}
+[0.532501] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_sse.hpp\n'}
+[0.532598] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_sse_em.hpp\n'}
+[0.532696] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_vsx.hpp\n'}
+[0.532794] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/intrin_wasm.hpp\n'}
+[0.532892] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/msa_macros.h\n'}
+[0.532990] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/hal/simd_utils.impl.hpp\n'}
+[0.533088] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/mat.hpp\n'}
+[0.533188] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/mat.inl.hpp\n'}
+[0.533285] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/matx.hpp\n'}
+[0.533383] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/matx.inl.hpp\n'}
+[0.533481] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/neon_utils.hpp\n'}
+[0.533579] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/ocl.hpp\n'}
+[0.533676] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/ocl_genbase.hpp\n'}
+[0.533774] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/ocl_defs.hpp\n'}
+[0.533872] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/opencl_info.hpp\n'}
+[0.533970] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/opencl_svm.hpp\n'}
+[0.534068] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_clblas.hpp\n'}
+[0.534168] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_clfft.hpp\n'}
+[0.534269] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_core.hpp\n'}
+[0.534368] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_core_wrappers.hpp\n'}
+[0.534466] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_gl.hpp\n'}
+[0.534563] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/autogenerated/opencl_gl_wrappers.hpp\n'}
+[0.534660] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_clblas.hpp\n'}
+[0.534757] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_clfft.hpp\n'}
+[0.534854] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_core.hpp\n'}
+[0.534951] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_core_wrappers.hpp\n'}
+[0.535048] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_gl.hpp\n'}
+[0.535146] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_gl_wrappers.hpp\n'}
+[0.535243] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_svm_20.hpp\n'}
+[0.535340] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_svm_definitions.hpp\n'}
+[0.535437] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opencl/runtime/opencl_svm_hsa_extension.hpp\n'}
+[0.535534] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/opengl.hpp\n'}
+[0.535635] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/operations.hpp\n'}
+[0.535733] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/optim.hpp\n'}
+[0.535830] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/ovx.hpp\n'}
+[0.535931] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/parallel/backend/parallel_for.openmp.hpp\n'}
+[0.536036] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/parallel/backend/parallel_for.tbb.hpp\n'}
+[0.536142] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/parallel/parallel_backend.hpp\n'}
+[0.536240] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/persistence.hpp\n'}
+[0.536336] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/quaternion.hpp\n'}
+[0.536434] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/quaternion.inl.hpp\n'}
+[0.536531] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/saturate.hpp\n'}
+[0.536628] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/simd_intrinsics.hpp\n'}
+[0.536726] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/softfloat.hpp\n'}
+[0.536823] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/sse_utils.hpp\n'}
+[0.536920] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/traits.hpp\n'}
+[0.537017] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/types.hpp\n'}
+[0.537113] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/types_c.h\n'}
+[0.537209] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utility.hpp\n'}
+[0.537306] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/allocator_stats.hpp\n'}
+[0.537406] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/allocator_stats.impl.hpp\n'}
+[0.537503] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/filesystem.hpp\n'}
+[0.537600] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/fp_control_utils.hpp\n'}
+[0.537713] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/instrumentation.hpp\n'}
+[0.537816] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/logger.defines.hpp\n'}
+[0.537912] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/logger.hpp\n'}
+[0.538009] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/logtag.hpp\n'}
+[0.538106] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/tls.hpp\n'}
+[0.538205] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/utils/trace.hpp\n'}
+[0.538301] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/va_intel.hpp\n'}
+[0.538398] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/version.hpp\n'}
+[0.538494] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/core/vsx_utils.hpp\n'}
+[0.538591] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/SoftFloat-COPYING.txt\n'}
+[0.538688] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_flann.so.4.10.0\n'}
+[0.538796] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_flann.so.410\n'}
+[0.538900] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_flann.so\n'}
+[0.538997] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann.hpp\n'}
+[0.539199] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/all_indices.h\n'}
+[0.539300] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/allocator.h\n'}
+[0.539398] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/any.h\n'}
+[0.539497] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/autotuned_index.h\n'}
+[0.539594] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/composite_index.h\n'}
+[0.539691] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/config.h\n'}
+[0.539788] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/defines.h\n'}
+[0.539890] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/dist.h\n'}
+[0.539987] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/dummy.h\n'}
+[0.540084] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/dynamic_bitset.h\n'}
+[0.540181] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/flann.hpp\n'}
+[0.540278] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/flann_base.hpp\n'}
+[0.540376] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/general.h\n'}
+[0.540473] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/ground_truth.h\n'}
+[0.540570] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/heap.h\n'}
+[0.540667] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/hierarchical_clustering_index.h\n'}
+[0.540764] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/index_testing.h\n'}
+[0.540861] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/kdtree_index.h\n'}
+[0.540958] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/kdtree_single_index.h\n'}
+[0.541111] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/kmeans_index.h\n'}
+[0.541220] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/linear_index.h\n'}
+[0.541324] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/logger.h\n'}
+[0.541455] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/lsh_index.h\n'}
+[0.541561] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/lsh_table.h\n'}
+[0.541659] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/matrix.h\n'}
+[0.541758] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/miniflann.hpp\n'}
+[0.541856] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/nn_index.h\n'}
+[0.541958] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/object_factory.h\n'}
+[0.542062] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/params.h\n'}
+[0.542160] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/random.h\n'}
+[0.542257] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/result_set.h\n'}
+[0.542354] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/sampling.h\n'}
+[0.542451] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/saving.h\n'}
+[0.542548] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/simplex_downhill.h\n'}
+[0.542645] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/flann/timer.h\n'}
+[0.542742] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgproc.so.4.10.0\n'}
+[0.542840] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgproc.so.410\n'}
+[0.542937] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgproc.so\n'}
+[0.543034] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc.hpp\n'}
+[0.543131] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/bindings.hpp\n'}
+[0.543345] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/detail/gcgraph.hpp\n'}
+[0.543448] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/detail/legacy.hpp\n'}
+[0.543555] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/hal/hal.hpp\n'}
+[0.543663] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/hal/interface.h\n'}
+[0.543761] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/imgproc.hpp\n'}
+[0.543859] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/imgproc_c.h\n'}
+[0.543958] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/segmentation.hpp\n'}
+[0.544060] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgproc/types_c.h\n'}
+[0.544158] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_ml.so.4.10.0\n'}
+[0.544255] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_ml.so.410\n'}
+[0.544352] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_ml.so\n'}
+[0.544450] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/ml.hpp\n'}
+[0.544547] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/ml/ml.hpp\n'}
+[0.544644] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/ml/ml.inl.hpp\n'}
+[0.544741] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_photo.so.4.10.0\n'}
+[0.544838] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_photo.so.410\n'}
+[0.544935] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_photo.so\n'}
+[0.545032] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/photo.hpp\n'}
+[0.545130] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/photo/cuda.hpp\n'}
+[0.545294] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/photo/legacy/constants_c.h\n'}
+[0.545412] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/photo/photo.hpp\n'}
+[0.545514] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_dnn.so.4.10.0\n'}
+[0.545611] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_dnn.so.410\n'}
+[0.545709] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_dnn.so\n'}
+[0.545819] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn.hpp\n'}
+[0.545917] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/all_layers.hpp\n'}
+[0.546011] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/dict.hpp\n'}
+[0.546105] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/dnn.hpp\n'}
+[0.546201] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/dnn.inl.hpp\n'}
+[0.546296] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/layer.details.hpp\n'}
+[0.546390] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/layer.hpp\n'}
+[0.546487] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/shape_utils.hpp\n'}
+[0.546581] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/utils/debug_utils.hpp\n'}
+[0.546675] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/utils/inference_engine.hpp\n'}
+[0.546769] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/dnn/version.hpp\n'}
+[0.546886] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_features2d.so.4.10.0\n'}
+[0.547100] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_features2d.so.410\n'}
+[0.547201] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_features2d.so\n'}
+[0.547520] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/features2d.hpp\n'}
+[0.547623] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/features2d/features2d.hpp\n'}
+[0.547718] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/features2d/hal/interface.h\n'}
+[0.547814] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/mscr-chi_table_LICENSE.txt\n'}
+[0.547909] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgcodecs.so.4.10.0\n'}
+[0.548005] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgcodecs.so.410\n'}
+[0.548110] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_imgcodecs.so\n'}
+[0.548210] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs.hpp\n'}
+[0.548326] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs/imgcodecs.hpp\n'}
+[0.548622] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs/imgcodecs_c.h\n'}
+[0.548727] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs/ios.h\n'}
+[0.548843] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs/legacy/constants_c.h\n'}
+[0.548954] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/imgcodecs/macosx.h\n'}
+[0.549054] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_videoio.so.4.10.0\n'}
+[0.549708] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_videoio.so.410\n'}
+[0.549838] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_videoio.so\n'}
+[0.549950] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/videoio.hpp\n'}
+[0.550073] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/videoio/legacy/constants_c.h\n'}
+[0.550174] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/videoio/registry.hpp\n'}
+[0.550274] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/videoio/videoio.hpp\n'}
+[0.550371] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/videoio/videoio_c.h\n'}
+[0.550469] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_calib3d.so.4.10.0\n'}
+[0.550565] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_calib3d.so.410\n'}
+[0.550662] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_calib3d.so\n'}
+[0.550759] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/calib3d.hpp\n'}
+[0.550856] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/calib3d/calib3d.hpp\n'}
+[0.550956] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/calib3d/calib3d_c.h\n'}
+[0.551077] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_highgui.so.4.10.0\n'}
+[0.551181] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_highgui.so.410\n'}
+[0.551288] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_highgui.so\n'}
+[0.551385] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/highgui.hpp\n'}
+[0.551482] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/highgui/highgui.hpp\n'}
+[0.551580] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/highgui/highgui_c.h\n'}
+[0.551678] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_objdetect.so.4.10.0\n'}
+[0.551775] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_objdetect.so.410\n'}
+[0.551872] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_objdetect.so\n'}
+[0.551970] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect.hpp\n'}
+[0.552067] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/aruco_board.hpp\n'}
+[0.552164] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/aruco_detector.hpp\n'}
+[0.552261] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/aruco_dictionary.hpp\n'}
+[0.552358] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/barcode.hpp\n'}
+[0.552456] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/charuco_detector.hpp\n'}
+[0.552553] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/detection_based_tracker.hpp\n'}
+[0.552650] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/face.hpp\n'}
+[0.552748] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/graphical_code_detector.hpp\n'}
+[0.552845] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/objdetect/objdetect.hpp\n'}
+[0.552942] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_stitching.so.4.10.0\n'}
+[0.553040] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_stitching.so.410\n'}
+[0.553136] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_stitching.so\n'}
+[0.553233] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching.hpp\n'}
+[0.553331] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/autocalib.hpp\n'}
+[0.553428] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/blenders.hpp\n'}
+[0.553525] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/camera.hpp\n'}
+[0.553783] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/exposure_compensate.hpp\n'}
+[0.553884] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/matchers.hpp\n'}
+[0.553981] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/motion_estimators.hpp\n'}
+[0.554081] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/seam_finders.hpp\n'}
+[0.554178] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/timelapsers.hpp\n'}
+[0.554275] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/util.hpp\n'}
+[0.554372] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/util_inl.hpp\n'}
+[0.554468] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/warpers.hpp\n'}
+[0.554565] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/detail/warpers_inl.hpp\n'}
+[0.554662] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/stitching/warpers.hpp\n'}
+[0.554759] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_video.so.4.10.0\n'}
+[0.554856] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_video.so.410\n'}
+[0.554953] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_video.so\n'}
+[0.555049] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video.hpp\n'}
+[0.555146] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video/background_segm.hpp\n'}
+[0.555243] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video/detail/tracking.detail.hpp\n'}
+[0.555340] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video/legacy/constants_c.h\n'}
+[0.555436] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video/tracking.hpp\n'}
+[0.555533] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/video/video.hpp\n'}
+[0.555630] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_gapi.so.4.10.0\n'}
+[0.555727] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_gapi.so.410\n'}
+[0.555823] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/lib/libopencv_gapi.so\n'}
+[0.555920] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi.hpp\n'}
+[0.556017] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/core.hpp\n'}
+[0.556117] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/core.hpp\n'}
+[0.556214] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/gcpukernel.hpp\n'}
+[0.556311] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/imgproc.hpp\n'}
+[0.556408] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/ot.hpp\n'}
+[0.556507] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/stereo.hpp\n'}
+[0.556604] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/cpu/video.hpp\n'}
+[0.556701] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/fluid/core.hpp\n'}
+[0.556798] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/fluid/gfluidbuffer.hpp\n'}
+[0.556893] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/fluid/gfluidkernel.hpp\n'}
+[0.556992] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/fluid/imgproc.hpp\n'}
+[0.557092] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/garg.hpp\n'}
+[0.557192] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/garray.hpp\n'}
+[0.557564] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gasync_context.hpp\n'}
+[0.558161] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcall.hpp\n'}
+[0.558279] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcommon.hpp\n'}
+[0.558390] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcompiled.hpp\n'}
+[0.558972] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcompiled_async.hpp\n'}
+[0.559070] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcompoundkernel.hpp\n'}
+[0.559167] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcomputation.hpp\n'}
+[0.559264] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gcomputation_async.hpp\n'}
+[0.559360] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gframe.hpp\n'}
+[0.559456] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gkernel.hpp\n'}
+[0.559545] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gmat.hpp\n'}
+[0.559658] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gmetaarg.hpp\n'}
+[0.559765] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gopaque.hpp\n'}
+[0.559859] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gproto.hpp\n'}
+[0.559966] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gpu/core.hpp\n'}
+[0.560066] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gpu/ggpukernel.hpp\n'}
+[0.560166] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gpu/imgproc.hpp\n'}
+[0.560265] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gscalar.hpp\n'}
+[0.560364] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gstreaming.hpp\n'}
+[0.560465] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gtransform.hpp\n'}
+[0.560564] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gtype_traits.hpp\n'}
+[0.560663] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/gtyped.hpp\n'}
+[0.560761] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/imgproc.hpp\n'}
+[0.560860] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer.hpp\n'}
+[0.560959] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/bindings_ie.hpp\n'}
+[0.561862] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/bindings_onnx.hpp\n'}
+[0.561966] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/bindings_ov.hpp\n'}
+[0.562067] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/ie.hpp\n'}
+[0.562168] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/onnx.hpp\n'}
+[0.562268] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/ov.hpp\n'}
+[0.562369] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/infer/parsers.hpp\n'}
+[0.562468] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/media.hpp\n'}
+[0.562568] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/oak/infer.hpp\n'}
+[0.562668] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/oak/oak.hpp\n'}
+[0.562767] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/ocl/core.hpp\n'}
+[0.562868] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/ocl/goclkernel.hpp\n'}
+[0.562967] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/ocl/imgproc.hpp\n'}
+[0.563067] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/opencv_includes.hpp\n'}
+[0.563167] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/operators.hpp\n'}
+[0.563267] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/ot.hpp\n'}
+[0.563371] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/assert.hpp\n'}
+[0.563472] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/convert.hpp\n'}
+[0.563572] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/cvdefs.hpp\n'}
+[0.563676] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/exports.hpp\n'}
+[0.563776] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/mat.hpp\n'}
+[0.563876] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/saturate.hpp\n'}
+[0.563976] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/scalar.hpp\n'}
+[0.564078] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/own/types.hpp\n'}
+[0.564178] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/plaidml/core.hpp\n'}
+[0.564279] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/plaidml/gplaidmlkernel.hpp\n'}
+[0.564379] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/plaidml/plaidml.hpp\n'}
+[0.564479] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/python/python.hpp\n'}
+[0.564579] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/render.hpp\n'}
+[0.564679] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/render/render.hpp\n'}
+[0.564778] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/render/render_types.hpp\n'}
+[0.564878] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/rmat.hpp\n'}
+[0.564978] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/s11n.hpp\n'}
+[0.565078] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/s11n/base.hpp\n'}
+[0.565180] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/stereo.hpp\n'}
+[0.565279] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/cap.hpp\n'}
+[0.565379] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/desync.hpp\n'}
+[0.565479] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/format.hpp\n'}
+[0.565579] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/gstreamer/gstreamerpipeline.hpp\n'}
+[0.565679] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/gstreamer/gstreamersource.hpp\n'}
+[0.565779] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/meta.hpp\n'}
+[0.565879] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/accel_types.hpp\n'}
+[0.565979] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/cfg_params.hpp\n'}
+[0.566079] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/data_provider_interface.hpp\n'}
+[0.566184] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/default.hpp\n'}
+[0.566285] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/device_selector_interface.hpp\n'}
+[0.566384] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/onevpl/source.hpp\n'}
+[0.566484] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/queue_source.hpp\n'}
+[0.566586] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/source.hpp\n'}
+[0.566686] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/streaming/sync.hpp\n'}
+[0.566785] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/any.hpp\n'}
+[0.566887] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/compiler_hints.hpp\n'}
+[0.566987] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/copy_through_move.hpp\n'}
+[0.567087] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/optional.hpp\n'}
+[0.567186] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/throw.hpp\n'}
+[0.567285] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/type_traits.hpp\n'}
+[0.567385] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/util.hpp\n'}
+[0.567488] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/util/variant.hpp\n'}
+[0.567588] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/include/opencv4/opencv2/gapi/video.hpp\n'}
+[0.567688] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/licenses/opencv4/vasot-LICENSE.txt\n'}
+[0.567787] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_eye.xml\n'}
+[0.567887] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_eye_tree_eyeglasses.xml\n'}
+[0.567986] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalcatface.xml\n'}
+[0.568086] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalcatface_extended.xml\n'}
+[0.568186] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalface_alt.xml\n'}
+[0.568285] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalface_alt2.xml\n'}
+[0.568394] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalface_alt_tree.xml\n'}
+[0.568502] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_frontalface_default.xml\n'}
+[0.568613] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_fullbody.xml\n'}
+[0.568713] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_lefteye_2splits.xml\n'}
+[0.568812] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_license_plate_rus_16stages.xml\n'}
+[0.568912] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_lowerbody.xml\n'}
+[0.569012] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_profileface.xml\n'}
+[0.569112] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_righteye_2splits.xml\n'}
+[0.569214] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_russian_plate_number.xml\n'}
+[0.569318] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_smile.xml\n'}
+[0.569418] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/haarcascades/haarcascade_upperbody.xml\n'}
+[0.569517] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/lbpcascades/lbpcascade_frontalcatface.xml\n'}
+[0.569616] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/lbpcascades/lbpcascade_frontalface.xml\n'}
+[0.569716] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/lbpcascades/lbpcascade_frontalface_improved.xml\n'}
+[0.569815] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/lbpcascades/lbpcascade_profileface.xml\n'}
+[0.569915] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/share/opencv4/lbpcascades/lbpcascade_silverware.xml\n'}
+[0.570015] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/opencv_annotation\n'}
+[0.570115] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/opencv_visualisation\n'}
+[0.570228] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/opencv_interactive-calibration\n'}
+[0.570338] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/opencv_version\n'}
+[0.570437] (OpenCV) StdoutLine: {'line': b'-- Up-to-date: /home/martin_ngn/ros_compvis/install/OpenCV/bin/opencv_model_diagnostics\n'}
+[0.570537] (OpenCV) CommandEnded: {'returncode': 0}
+[0.579606] (OpenCV) JobEnded: {'identifier': 'OpenCV', 'rc': 0}
+[0.600451] (-) TimerEvent: {}
+[0.640925] (comp_vis) StdoutLine: {'line': b'running develop\n'}
+[0.700706] (-) TimerEvent: {}
+[0.725979] (comp_vis) StdoutLine: {'line': b'running egg_info\n'}
+[0.726316] (comp_vis) StdoutLine: {'line': b'writing comp_vis.egg-info/PKG-INFO\n'}
+[0.726760] (comp_vis) StdoutLine: {'line': b'writing dependency_links to comp_vis.egg-info/dependency_links.txt\n'}
+[0.726815] (comp_vis) StdoutLine: {'line': b'writing entry points to comp_vis.egg-info/entry_points.txt\n'}
+[0.726870] (comp_vis) StdoutLine: {'line': b'writing requirements to comp_vis.egg-info/requires.txt\n'}
+[0.726903] (comp_vis) StdoutLine: {'line': b'writing top-level names to comp_vis.egg-info/top_level.txt\n'}
+[0.728295] (comp_vis) StdoutLine: {'line': b"reading manifest file 'comp_vis.egg-info/SOURCES.txt'\n"}
+[0.728809] (comp_vis) StdoutLine: {'line': b"writing manifest file 'comp_vis.egg-info/SOURCES.txt'\n"}
+[0.729755] (comp_vis) StdoutLine: {'line': b'running build_ext\n'}
+[0.729818] (comp_vis) StdoutLine: {'line': b'Creating /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp-vis.egg-link (link to .)\n'}
+[0.730341] (comp_vis) StdoutLine: {'line': b'Installing camPub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis\n'}
+[0.730430] (comp_vis) StdoutLine: {'line': b'Installing imSub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis\n'}
+[0.730555] (comp_vis) StdoutLine: {'line': b'\n'}
+[0.730599] (comp_vis) StdoutLine: {'line': b'Installed /home/martin_ngn/ros_compvis/build/comp_vis\n'}
+[0.730634] (comp_vis) StdoutLine: {'line': b'running symlink_data\n'}
+[0.748898] (comp_vis) CommandEnded: {'returncode': 0}
+[0.754027] (comp_vis) JobEnded: {'identifier': 'comp_vis', 'rc': 0}
+[0.755292] (-) EventReactorShutdown: {}

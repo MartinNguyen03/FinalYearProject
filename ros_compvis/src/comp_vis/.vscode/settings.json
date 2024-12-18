@@ -1,0 +1,18 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/martin_ngn/ros_open_cv/build/open_cv",
+        "/home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages",
+        "/home/martin_ngn/ros2_ws/build/my_robot_controller",
+        "/home/martin_ngn/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/martin_ngn/ros_open_cv/build/open_cv",
+        "/home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages",
+        "/home/martin_ngn/ros2_ws/build/my_robot_controller",
+        "/home/martin_ngn/ros2_ws/install/my_robot_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

@@ -1,0 +1,47 @@
+running egg_info
+creating ../../build/open_cv/open_cv.egg-info
+writing ../../build/open_cv/open_cv.egg-info/PKG-INFO
+writing dependency_links to ../../build/open_cv/open_cv.egg-info/dependency_links.txt
+writing entry points to ../../build/open_cv/open_cv.egg-info/entry_points.txt
+writing requirements to ../../build/open_cv/open_cv.egg-info/requires.txt
+writing top-level names to ../../build/open_cv/open_cv.egg-info/top_level.txt
+writing manifest file '../../build/open_cv/open_cv.egg-info/SOURCES.txt'
+reading manifest file '../../build/open_cv/open_cv.egg-info/SOURCES.txt'
+writing manifest file '../../build/open_cv/open_cv.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/martin_ngn/ros_open_cv/build/open_cv/build
+creating /home/martin_ngn/ros_open_cv/build/open_cv/build/lib
+creating /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+copying open_cv/samSubscribe.py -> /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+copying open_cv/__init__.py -> /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+copying open_cv/subIm.py -> /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+copying open_cv/cameraPublisher.py -> /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+copying open_cv/subscribeImage.py -> /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv
+running install
+running install_lib
+creating /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+copying /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv/samSubscribe.py -> /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+copying /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv/__init__.py -> /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+copying /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv/subIm.py -> /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+copying /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv/cameraPublisher.py -> /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+copying /home/martin_ngn/ros_open_cv/build/open_cv/build/lib/open_cv/subscribeImage.py -> /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv
+byte-compiling /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv/samSubscribe.py to samSubscribe.cpython-310.pyc
+byte-compiling /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv/subIm.py to subIm.cpython-310.pyc
+byte-compiling /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv/cameraPublisher.py to cameraPublisher.cpython-310.pyc
+byte-compiling /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv/subscribeImage.py to subscribeImage.cpython-310.pyc
+running install_data
+creating /home/martin_ngn/ros_open_cv/install/open_cv/share/ament_index
+creating /home/martin_ngn/ros_open_cv/install/open_cv/share/ament_index/resource_index
+creating /home/martin_ngn/ros_open_cv/install/open_cv/share/ament_index/resource_index/packages
+copying resource/open_cv -> /home/martin_ngn/ros_open_cv/install/open_cv/share/ament_index/resource_index/packages
+copying package.xml -> /home/martin_ngn/ros_open_cv/install/open_cv/share/open_cv
+running install_egg_info
+Copying ../../build/open_cv/open_cv.egg-info to /home/martin_ngn/ros_open_cv/install/open_cv/lib/python3.10/site-packages/open_cv-0.0.0-py3.10.egg-info
+running install_scripts
+Installing camera_publisher script to /home/martin_ngn/ros_open_cv/install/open_cv/lib/open_cv
+Installing image_sub script to /home/martin_ngn/ros_open_cv/install/open_cv/lib/open_cv
+Installing sam_subscribe script to /home/martin_ngn/ros_open_cv/install/open_cv/lib/open_cv
+Installing subscribe_image script to /home/martin_ngn/ros_open_cv/install/open_cv/lib/open_cv
+writing list of installed files to '/home/martin_ngn/ros_open_cv/build/open_cv/install.log'

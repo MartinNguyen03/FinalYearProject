@@ -1,0 +1,36 @@
+[0.386s] Invoking command in '/home/martin_ngn/ros_compvis/build/comp_vis': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/martin_ngn/ros_compvis/build/comp_vis/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --uninstall --editable --build-directory /home/martin_ngn/ros_compvis/build/comp_vis/build
+[0.526s] running develop
+[0.603s] Removing /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp-vis.egg-link (link to .)
+[0.619s] Invoked command in '/home/martin_ngn/ros_compvis/build/comp_vis' returned '0': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/martin_ngn/ros_compvis/build/comp_vis/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py develop --uninstall --editable --build-directory /home/martin_ngn/ros_compvis/build/comp_vis/build
+[0.620s] Invoking command in '/home/martin_ngn/ros_compvis/src/comp_vis': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/martin_ngn/ros_compvis/build/comp_vis/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/comp_vis build --build-base /home/martin_ngn/ros_compvis/build/comp_vis/build install --record /home/martin_ngn/ros_compvis/build/comp_vis/install.log --single-version-externally-managed install_data --force
+[0.753s] running egg_info
+[0.754s] writing ../../build/comp_vis/comp_vis.egg-info/PKG-INFO
+[0.754s] writing dependency_links to ../../build/comp_vis/comp_vis.egg-info/dependency_links.txt
+[0.754s] writing entry points to ../../build/comp_vis/comp_vis.egg-info/entry_points.txt
+[0.754s] writing requirements to ../../build/comp_vis/comp_vis.egg-info/requires.txt
+[0.754s] writing top-level names to ../../build/comp_vis/comp_vis.egg-info/top_level.txt
+[0.756s] reading manifest file '../../build/comp_vis/comp_vis.egg-info/SOURCES.txt'
+[0.757s] writing manifest file '../../build/comp_vis/comp_vis.egg-info/SOURCES.txt'
+[0.757s] running build
+[0.757s] running build_py
+[0.757s] copying comp_vis/camSub.py -> /home/martin_ngn/ros_compvis/build/comp_vis/build/lib/comp_vis
+[0.758s] copying comp_vis/imSub.py -> /home/martin_ngn/ros_compvis/build/comp_vis/build/lib/comp_vis
+[0.758s] running install
+[0.758s] running install_lib
+[0.759s] creating /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis
+[0.759s] copying /home/martin_ngn/ros_compvis/build/comp_vis/build/lib/comp_vis/camSub.py -> /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis
+[0.759s] copying /home/martin_ngn/ros_compvis/build/comp_vis/build/lib/comp_vis/__init__.py -> /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis
+[0.759s] copying /home/martin_ngn/ros_compvis/build/comp_vis/build/lib/comp_vis/imSub.py -> /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis
+[0.760s] byte-compiling /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis/camSub.py to camSub.cpython-310.pyc
+[0.760s] byte-compiling /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis/__init__.py to __init__.cpython-310.pyc
+[0.760s] byte-compiling /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis/imSub.py to imSub.cpython-310.pyc
+[0.761s] running install_data
+[0.761s] copying resource/comp_vis -> /home/martin_ngn/ros_compvis/install/comp_vis/share/ament_index/resource_index/packages
+[0.761s] copying package.xml -> /home/martin_ngn/ros_compvis/install/comp_vis/share/comp_vis
+[0.761s] running install_egg_info
+[0.763s] Copying ../../build/comp_vis/comp_vis.egg-info to /home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages/comp_vis-0.0.0-py3.10.egg-info
+[0.764s] running install_scripts
+[0.776s] Installing camSub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis
+[0.776s] Installing imSub script to /home/martin_ngn/ros_compvis/install/comp_vis/lib/comp_vis
+[0.776s] writing list of installed files to '/home/martin_ngn/ros_compvis/build/comp_vis/install.log'
+[0.790s] Invoked command in '/home/martin_ngn/ros_compvis/src/comp_vis' returned '0': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/martin_ngn/ros_compvis/build/comp_vis/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/martin_ngn/ros_compvis/install/comp_vis/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/comp_vis build --build-base /home/martin_ngn/ros_compvis/build/comp_vis/build install --record /home/martin_ngn/ros_compvis/build/comp_vis/install.log --single-version-externally-managed install_data --force
