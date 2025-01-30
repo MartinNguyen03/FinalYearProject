@@ -1,5 +1,5 @@
-... logging to /root/.ros/log/9d98f6fa-bcd4-11ef-9b7a-4c77cbef1f6e/roslaunch-martinNguyen03-280.log
-[1mstarted roslaunch server http://127.0.0.1:39267/[0m
+... logging to /root/.ros/log/fd0072c0-df12-11ef-bb7a-4c77cbef1f6e/roslaunch-martinNguyen03-199.log
+[1mstarted roslaunch server http://127.0.0.1:40755/[0m
 ros_comm version 1.16.0
 
 
@@ -17,9 +17,9 @@ NODES
     unity_endpoint (ros_tcp_endpoint/default_server_endpoint.py)
 
 auto-starting new master
-[1mprocess[master]: started with pid [325][0m
+[1mprocess[master]: started with pid [244][0m
 [1mROS_MASTER_URI=http://127.0.0.1:11311[0m
-[1msetting /run_id to 9d98f6fa-bcd4-11ef-9b7a-4c77cbef1f6e[0m
-[1mprocess[rosout-1]: started with pid [350][0m
+[1msetting /run_id to fd0072c0-df12-11ef-bb7a-4c77cbef1f6e[0m
+[1mprocess[rosout-1]: started with pid [269][0m
 started core service [/rosout]
-[1mprocess[unity_endpoint-2]: started with pid [353][0m
+[1mprocess[unity_endpoint-2]: started with pid [272][0m
