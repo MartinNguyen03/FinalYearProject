@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/sl_msgs/include/sl_msgs/findPatternServiceResponse.h

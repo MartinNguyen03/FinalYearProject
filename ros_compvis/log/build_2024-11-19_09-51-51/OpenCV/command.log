@@ -1,4 +1,0 @@
-Invoking command in '/home/martin_ngn/ros_compvis/build/OpenCV': CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/martin_ngn/ros_compvis/build/OpenCV -- -j16 -l16
-Invoked command in '/home/martin_ngn/ros_compvis/build/OpenCV' returned '0': CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --build /home/martin_ngn/ros_compvis/build/OpenCV -- -j16 -l16
-Invoking command in '/home/martin_ngn/ros_compvis/build/OpenCV': CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --install /home/martin_ngn/ros_compvis/build/OpenCV
-Invoked command in '/home/martin_ngn/ros_compvis/build/OpenCV' returned '0': CONDA_PROMPT_MODIFIER=(base) /usr/bin/cmake --install /home/martin_ngn/ros_compvis/build/OpenCV

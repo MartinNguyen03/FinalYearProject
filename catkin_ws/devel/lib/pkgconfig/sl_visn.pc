@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/sl_visn/lib/pkgconfig/sl_visn.pc

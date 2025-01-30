@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/yumi_moveit_config/lib/pkgconfig/yumi_moveit_config.pc

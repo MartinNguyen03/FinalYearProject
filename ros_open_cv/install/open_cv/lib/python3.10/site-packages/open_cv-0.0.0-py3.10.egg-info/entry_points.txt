@@ -1,6 +1,0 @@
-[console_scripts]
-camera_publisher = open_cv.cameraPublisher:main
-image_sub = open_cv.subIm:main
-sam_subscribe = open_cv.samSubscribe:main
-subscribe_image = open_cv.subscribeImage:main
-

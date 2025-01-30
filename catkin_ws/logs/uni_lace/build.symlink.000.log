@@ -1,0 +1,4 @@
+Symlinking /catkin_ws/devel/share/uni_lace/cmake/uni_laceConfig.cmake
+Symlinking /catkin_ws/devel/share/uni_lace/cmake/uni_laceConfig-version.cmake
+Symlinking /catkin_ws/devel/lib/pkgconfig/uni_lace.pc
+Symlinking /catkin_ws/devel/lib/python3/dist-packages/uni_lace/__init__.py

@@ -1,0 +1,8 @@
+prefix=/catkin_ws/install
+
+Name: uni_lace
+Description: Description of uni_lace
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

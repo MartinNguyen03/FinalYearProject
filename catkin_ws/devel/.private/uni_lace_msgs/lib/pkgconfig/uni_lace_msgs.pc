@@ -1,0 +1,8 @@
+prefix=/catkin_ws/devel/.private/uni_lace_msgs
+
+Name: uni_lace_msgs
+Description: Description of uni_lace_msgs
+Version: 0.0.0
+Cflags: -I/catkin_ws/devel/.private/uni_lace_msgs/include
+Libs: -L${prefix}/lib 
+Requires: message_runtime

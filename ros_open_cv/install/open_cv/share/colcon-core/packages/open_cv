@@ -1,1 +1,0 @@
-ament_lint_auto:cv_bridge:image_transport:python3-numpy:python3-opencv:python3-torch:python3-ultralytics:rclpy:sensor_msgs:std_msgs:transformers

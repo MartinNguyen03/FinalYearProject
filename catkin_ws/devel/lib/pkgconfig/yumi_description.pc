@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/yumi_description/lib/pkgconfig/yumi_description.pc

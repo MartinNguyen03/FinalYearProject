@@ -1,0 +1,5 @@
+yumi-moveit/yumi_description
+/catkin_ws/devel/.private/yumi_description/cmake.lock /catkin_ws/devel/./cmake.lock
+/catkin_ws/devel/.private/yumi_description/share/yumi_description/cmake/yumi_descriptionConfig.cmake /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig.cmake
+/catkin_ws/devel/.private/yumi_description/share/yumi_description/cmake/yumi_descriptionConfig-version.cmake /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig-version.cmake
+/catkin_ws/devel/.private/yumi_description/lib/pkgconfig/yumi_description.pc /catkin_ws/devel/lib/pkgconfig/yumi_description.pc

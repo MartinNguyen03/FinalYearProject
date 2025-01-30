@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/yumi_moveit_config/share/yumi_moveit_config/cmake/yumi_moveit_configConfig.cmake

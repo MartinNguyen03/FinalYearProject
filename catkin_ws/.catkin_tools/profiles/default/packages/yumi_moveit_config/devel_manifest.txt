@@ -1,0 +1,5 @@
+yumi-moveit/yumi_moveit_config
+/catkin_ws/devel/.private/yumi_moveit_config/cmake.lock /catkin_ws/devel/./cmake.lock
+/catkin_ws/devel/.private/yumi_moveit_config/share/yumi_moveit_config/cmake/yumi_moveit_configConfig-version.cmake /catkin_ws/devel/share/yumi_moveit_config/cmake/yumi_moveit_configConfig-version.cmake
+/catkin_ws/devel/.private/yumi_moveit_config/share/yumi_moveit_config/cmake/yumi_moveit_configConfig.cmake /catkin_ws/devel/share/yumi_moveit_config/cmake/yumi_moveit_configConfig.cmake
+/catkin_ws/devel/.private/yumi_moveit_config/lib/pkgconfig/yumi_moveit_config.pc /catkin_ws/devel/lib/pkgconfig/yumi_moveit_config.pc

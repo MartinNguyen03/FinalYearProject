@@ -1,0 +1,1 @@
+/catkin_ws/devel/.private/sl_msgs/share/roseus/ros/sl_msgs/srv/findPatternService.l
