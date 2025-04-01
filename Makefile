@@ -70,6 +70,17 @@ run-baseline:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch sl_ctrl robot_sl.launch sim:=true"
 
+observation_manager:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch observation_manager test.launch"
+	docker container stop fypContainer
+
+get_observation:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /get_observation"
+	docker container stop fypContainer
 debug:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -80,8 +91,39 @@ recompile:
 	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
 	docker container stop fypContainer
 
+install_dependencies:
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash &&  rosdep install -i -r -y --from-paths . --ignore-src"
+	docker container stop fypContainer
+
+llmAgent:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch agent_comm ros_agent.launch"
+	docker container stop fypContainer
+	
+llmClient:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && rosrun agent_comm llm_client"
+	docker container stop fypContainer
+
+terminal:
+	docker start fypContainer
+	docker exec -it fypContainer bash
+
+debug_dependencies:
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && rosdep check --from-paths . --ignore-src"
+
+roscore:
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
+
 stop:
 	docker container stop fypContainer 
 
 push:
+	docker commit fypContainer martinnguyen03/fyp:latest
+	docker tag martinnguyen03/fyp martinnguyen03/fyp
 	docker push martinnguyen03/fyp

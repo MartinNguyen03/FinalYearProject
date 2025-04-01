@@ -1,3 +1,3 @@
-Symlinking /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig.cmake
-Symlinking /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig-version.cmake
-Symlinking /catkin_ws/devel/lib/pkgconfig/yumi_description.pc
+Linked: (/catkin_ws/devel/.private/yumi_description/share/yumi_description/cmake/yumi_descriptionConfig.cmake, /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig.cmake)
+Linked: (/catkin_ws/devel/.private/yumi_description/share/yumi_description/cmake/yumi_descriptionConfig-version.cmake, /catkin_ws/devel/share/yumi_description/cmake/yumi_descriptionConfig-version.cmake)
+Linked: (/catkin_ws/devel/.private/yumi_description/lib/pkgconfig/yumi_description.pc, /catkin_ws/devel/lib/pkgconfig/yumi_description.pc)

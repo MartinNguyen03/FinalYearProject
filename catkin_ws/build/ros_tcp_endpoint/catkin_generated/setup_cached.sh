@@ -9,6 +9,7 @@
 # modified environment variables
 export CMAKE_PREFIX_PATH="/catkin_ws/devel/.private/ros_tcp_endpoint:$CMAKE_PREFIX_PATH"
 export LD_LIBRARY_PATH="/catkin_ws/devel/.private/ros_tcp_endpoint/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="/catkin_ws/devel/.private/ros_tcp_endpoint/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD='/catkin_ws/build/ros_tcp_endpoint'
 export PYTHONPATH="/catkin_ws/devel/.private/ros_tcp_endpoint/lib/python3/dist-packages:$PYTHONPATH"
 export ROSLISP_PACKAGE_DIRECTORIES="/catkin_ws/devel/.private/ros_tcp_endpoint/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
