@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import rospy
+from rosllm_srvs.srv import LLM, LLMRequest
+
+srv_name = "call_llm"
+
+def main():
+    rospy.init_node("llm_client_node")
+    
+
+    rospy.loginfo("Sending request to LLM...")
+
+    rospy.wait_for_service(srv_name)
+    try:
+        # Create service request
+        while not rospy.is_shutdown():
+            prompt = input("Enter your prompt: ")
+            req = LLMRequest(prompt=prompt)
+            handler = rospy.ServiceProxy(srv_name, LLM)
+
+            # Call the service and get the response
+            resp = handler(req)
+
+            # Log response and Chain-of-Thought reasoning
+            rospy.loginfo(f"Received response from LLM:\n{resp.response.response}")
+            rospy.loginfo(f"Chain-of-Thought Reasoning:\n{resp.response.reasoning}")
+
+    except rospy.ServiceException as e:
+        rospy.logwarn(f"Request to LLM failed: {e}")
+    except KeyboardInterrupt:
+        rospy.loginfo("Goodbye.")
+    
+
+if __name__ == "__main__":
+    main()

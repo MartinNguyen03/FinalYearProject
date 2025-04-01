@@ -3,3 +3,4 @@ catkin_ws/*
 !catkin_ws/src/
 catkin_ws/src/*
 !catkin_ws/src/uni_lace/
+!catkin_ws/src/ROSLLM/
