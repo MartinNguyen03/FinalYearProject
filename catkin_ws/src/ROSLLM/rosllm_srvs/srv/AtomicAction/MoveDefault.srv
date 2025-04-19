@@ -1,0 +1,4 @@
+# MoveDefault
+std_msgs/String arm   # "left", "right", or "both"
+---
+bool success

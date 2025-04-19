@@ -1,7 +1,0 @@
-set(sl_visn_SETUP_PY_SETUP_MODULE "distutils.core")
-set(sl_visn_SETUP_PY_VERSION "1.0.0")
-set(sl_visn_SETUP_PY_SCRIPTS "")
-set(sl_visn_SETUP_PY_PACKAGES "")
-set(sl_visn_SETUP_PY_PACKAGE_DIRS "src")
-set(sl_visn_SETUP_PY_MODULES "")
-set(sl_visn_SETUP_PY_MODULE_DIRS "")

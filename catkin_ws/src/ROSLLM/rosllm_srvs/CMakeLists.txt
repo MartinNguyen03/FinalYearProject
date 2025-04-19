@@ -12,9 +12,16 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ExecuteBehavior.srv
-  AtomicAction.srv
+  AtomicAction/DetectObject.srv
+  AtomicAction/DetectTarget.srv
+  AtomicAction/Gripper.srv
+  AtomicAction/HandOver.srv
+  AtomicAction/InsertObject.srv
+  AtomicAction/MoveArm.srv
+  AtomicAction/MoveDefault.srv 
+  AtomicAction/PullObject.srv
   LLM.srv
-  Observation.srv
+  VLM.srv
 )
 
 generate_messages(

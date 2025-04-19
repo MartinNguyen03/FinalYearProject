@@ -1,8 +1,0 @@
-prefix=/catkin_ws/devel/.private/robot_driver_unity
-
-Name: robot_driver_unity
-Description: Description of robot_driver_unity
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

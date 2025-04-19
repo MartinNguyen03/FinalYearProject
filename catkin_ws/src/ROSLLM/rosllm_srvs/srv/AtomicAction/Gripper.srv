@@ -1,0 +1,5 @@
+# Gripper
+std_msgs/String action # "gripper_open", "gripper_close"
+std_msgs/String arm # "client_left", "client_right"
+---
+bool success

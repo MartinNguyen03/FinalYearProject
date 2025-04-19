@@ -1,1 +1,0 @@
-/catkin_ws/devel/.private/uni_lace_msgs/share/gennodejs/ros/uni_lace_msgs/srv/UniLaceParamService.js

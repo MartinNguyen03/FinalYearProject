@@ -160,7 +160,6 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/llm_node
   scripts/llm_client
-  test/test_llm_node
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

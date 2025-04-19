@@ -1,4 +1,0 @@
-string action # "gripper_open", "gripper_close"
-string arm # "client_left", "client_right"
----
-bool success

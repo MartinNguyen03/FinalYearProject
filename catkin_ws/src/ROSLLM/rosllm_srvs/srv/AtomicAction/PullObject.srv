@@ -1,0 +1,5 @@
+# PullObject
+std_msgs/String arm   # "left" or "right"
+geometry_msgs/Pose target_pose  # Target position where to pull the object
+---
+bool success

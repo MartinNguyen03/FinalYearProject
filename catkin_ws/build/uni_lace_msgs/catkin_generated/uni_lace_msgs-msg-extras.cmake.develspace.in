@@ -1,2 +1,0 @@
-set(uni_lace_msgs_MESSAGE_FILES "")
-set(uni_lace_msgs_SERVICE_FILES "/catkin_ws/src/uni_lace/uni_lace_msgs/srv/UniLaceParamService.srv;/catkin_ws/src/uni_lace/uni_lace_msgs/srv/UniLaceStepService.srv;/catkin_ws/src/uni_lace/uni_lace_msgs/srv/UniLaceResetService.srv;/catkin_ws/src/uni_lace/uni_lace_msgs/srv/UniLaceInfoService.srv;/catkin_ws/src/uni_lace/uni_lace_msgs/srv/UnityStateControllerService.srv")

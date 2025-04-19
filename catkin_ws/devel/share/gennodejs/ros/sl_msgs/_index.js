@@ -1,1 +1,0 @@
-/catkin_ws/devel/.private/sl_msgs/share/gennodejs/ros/sl_msgs/_index.js

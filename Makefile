@@ -102,6 +102,29 @@ llmAgent:
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch agent_comm ros_agent.launch"
 	docker container stop fypContainer
 	
+l_camera:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_d435.launch camera:=yumi_d435_l serial_no:=936322072387 filters:=spatial,temporal,pointcloud"
+	docker container stop fypContainer
+
+l515:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_l515.launch camera:=yumi_l515 serial_no:=f0232155 filters:=spatial,temporal,pointcloud"
+	docker container stop fypContainer
+
+record:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_from file.launch"
+	docker container stop fypContainer
+
+realsense:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_aligned_depth.launch"
+	docker container stop fypContainer
 llmClient:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -109,6 +132,7 @@ llmClient:
 	docker container stop fypContainer
 
 terminal:
+	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
 	docker exec -it fypContainer bash
 

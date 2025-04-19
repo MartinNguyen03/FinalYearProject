@@ -1,7 +1,0 @@
-set(uni_lace_SETUP_PY_SETUP_MODULE "setuptools")
-set(uni_lace_SETUP_PY_VERSION "1.0.0")
-set(uni_lace_SETUP_PY_SCRIPTS "")
-set(uni_lace_SETUP_PY_PACKAGES "uni_lace")
-set(uni_lace_SETUP_PY_PACKAGE_DIRS "scripts/uni_lace")
-set(uni_lace_SETUP_PY_MODULES "")
-set(uni_lace_SETUP_PY_MODULE_DIRS "")

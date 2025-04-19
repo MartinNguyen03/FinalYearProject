@@ -1,0 +1,5 @@
+# InsertObject
+std_msgs/String arm   # "left" or "right"
+geometry_msgs/Pose target_pose  # Pose where the object should be inserted
+---
+bool success

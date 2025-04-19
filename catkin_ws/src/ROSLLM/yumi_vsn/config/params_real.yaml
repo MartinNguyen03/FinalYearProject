@@ -1,0 +1,9 @@
+robot_name: "yumi"
+marker_thresh_blue_low: [90, 56, 0]
+marker_thresh_blue_high: [191, 148, 80]
+marker_thresh_red_low: [0, 0, 125]
+marker_thresh_red_high: [87, 55, 0]
+target_thresh_blue_low: [80, 20, 0]
+target_thresh_blue_high: [193, 145, 85]
+target_thresh_red_low: [0, 0, 100]
+target_thresh_red_high: [125, 85, 255]

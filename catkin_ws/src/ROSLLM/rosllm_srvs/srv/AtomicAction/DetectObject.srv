@@ -1,4 +1,9 @@
-string object_name
+# DetectObject
+string camera_name
+std_msgs/String object_name
 ---
 bool success
-geometry_msgs/PoseArray object_location
+geometry_msgs/PoseArray object_pose
+geometry_msgs/PoseArray marker_a_pose
+geometry_msgs/PoseArray marker_b_pose
+std_msgs/Float64MultiArray confidence

@@ -1,1 +1,0 @@
-/catkin_ws/devel/.private/uni_lace_msgs/share/common-lisp/ros/uni_lace_msgs/srv/_package_UniLaceInfoService.lisp

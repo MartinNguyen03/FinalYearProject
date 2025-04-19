@@ -1,0 +1,14 @@
+<root>
+    <BehaviorTree ID="HandoverSubtree">
+        <Sequence>
+            <!-- Move the receiving arm to the handover position -->
+            <MoveToAction target_location="{handover_position}" arm="{to_arm}"/>
+            
+            <!-- The receiving arm closes its gripper to grasp the object -->
+            <GripperAction action="close" arm="{to_arm}"/>
+            
+            <!-- The original arm releases the object -->
+            <GripperAction action="open" arm="{from_arm}"/>
+        </Sequence>
+    </BehaviorTree>
+</root>

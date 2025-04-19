@@ -1,8 +1,0 @@
-prefix=/catkin_ws/install
-
-Name: uni_lace_msgs
-Description: Description of uni_lace_msgs
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime

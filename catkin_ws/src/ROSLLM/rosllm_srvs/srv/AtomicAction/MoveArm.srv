@@ -1,5 +1,6 @@
-string arm # "client_left", "client_right"
-geometry_msgs/PoseArray target_position
+# MoveArm
+std_msgs/String arm # "client_left", "client_right"
+geometry_msgs/Pose target_pose
 ---
 bool success
 
