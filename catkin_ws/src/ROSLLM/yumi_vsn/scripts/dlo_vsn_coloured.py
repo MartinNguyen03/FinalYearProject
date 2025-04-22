@@ -16,7 +16,8 @@ from ros_numpy import msgify
 from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, Point, PoseArray, Quaternion
-from rosllm_srvs.srv import * 
+from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectTargetResponse
+from rosllm_srvs.srv import DetectObject, DetectObjectRequest, DetectObjectResponse
 from utils.yumi_camera import RealCamera
 from utils.point_clouds import depth_pixel_to_metric_coordinate, read_point_from_region, read_points_from_region, xy_to_yx, euclidian_distance
 from utils.colour_segmentation import ColourSegmentation
@@ -25,8 +26,8 @@ MODEL_DIR = os.path.expanduser('~/Documents/FinalYearProject/FinalYearProject/dl
 if MODEL_DIR not in sys.path:
     sys.path.append(MODEL_DIR)
 MODEL_PATH = os.path.join(MODEL_DIR, "dlo_perceiver.pt")
-from MODEL_DIR.model_contrastive import DLOPerceiver
-from MODEL_DIR.text_encoder import TextEncoder
+from model_contrastive import DLOPerceiver
+from text_encoder import TextEncoder
 from transformers import DistilBertTokenizer
 
 # SCENE:
@@ -46,77 +47,222 @@ class dloVision:
     find_object_srv = 'detect_objects'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
+    HSV_THRESHOLDS = {
+    'red_1':     {'lower': rospy.get_param("~marker_thresh_red_low", [0, 100, 100]),    'upper': rospy.get_param("~marker_thresh_red_high", [10, 255, 255])},
+    'red_2':     {'lower': rospy.get_param("~marker_thresh_red2_low", [160, 100, 100]),  'upper': rospy.get_param("~marker_thresh_red2_high", [179, 255, 255])},
+    'green':     {'lower': rospy.get_param("~target_thresh_green_low", [40, 40, 40]),     'upper': rospy.get_param("~target_thresh_green_high", [80, 255, 255])},
+    'blue':      {'lower': rospy.get_param("~marker_thresh_blue_low", [100, 150, 0]),    'upper': rospy.get_param("~marker_thresh_blue_high", [140, 255, 255])},
+    'yellow':    {'lower': rospy.get_param("~target_thresh_yellow_low", [20, 100, 100]),   'upper': rospy.get_param("~target_thresh_yellow_high", [30, 255, 255])},
+    'orange':    {'lower': rospy.get_param("~target_thresh_orange_low", [10, 100, 100]),   'upper': rospy.get_param("~target_thresh_orange_high", [20, 255, 255])},
+    'purple':    {'lower': rospy.get_param("~target_thresh_purple_low", [130, 100, 100]),  'upper': rospy.get_param("~target_thresh_purple_high", [160, 255, 255])},
+    'pink':      {'lower': rospy.get_param("~target_thresh_pink_low", [145, 100, 100]),  'upper': rospy.get_param("~target_thresh_pink_high", [170, 255, 255])},
+    'brown':     {'lower': rospy.get_param("~target_thresh_brown_low", [10, 100, 20]),    'upper': rospy.get_param("~target_thresh_brown_high", [20, 255, 200])},
+    'cyan':      {'lower': rospy.get_param("~target_thresh_cyan_low", [80, 100, 100]),   'upper': rospy.get_param("~target_thresh_cyan_high", [100, 255, 255])},
+    'gray':      {'lower': rospy.get_param("~target_thresh_gray_low", [0, 0, 40]),       'upper': rospy.get_param("~target_thresh_gray_high", [179, 30, 200])},
+    
+    }
+    
+    class Rope:
+        def __init__(self, cam, rope_name, auto_execution, marker_a_colour, marker_b_colour):
+            self.name = rope_name
+            self.cam = cam
+            self.marker_a_colour = marker_a_colour
+            self.marker_b_colour = marker_b_colour
+            self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, auto_execution)
+            self.priority = 0
+            target_l_colour = None
+            target_r_colour = None
+            curr_target_l_colour = None
+            curr_target_r_colour = None
+         
+        def updateTarget(self, target_l_colour, target_r_colour):
+            self.target_l_colour = target_l_colour
+            self.target_r_colour = target_r_colour
+            self.threshold_l, self.threshold_r = self.updateThreshold(self.cam, self.target_l_colour, self.target_r_colour, auto_execution=False)
+                      
+        def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
+            self.curr_target_l_colour = curr_target_l_colour
+            self.curr_target_r_colour = curr_target_r_colour
+            self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(self.cam, curr_target_l_colour, curr_target_r_colour, auto_execution=True)
+            
+        def updateThreshold(self, colour_1, colour_2, auto_execution):
+            thresh_low_1 = self.HSV_THRESHOLDS[colour_1]['lower']
+            thresh_high_1 = self.HSV_THRESHOLDS[colour_1]['upper']
+            thresh_low_2 = self.HSV_THRESHOLDS[colour_2]['lower']
+            thresh_high_2 = self.HSV_THRESHOLDS[colour_2]['upper']
+            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam.read_image, live_adjust=not auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam.read_image, live_adjust=not auto_execution)
+             
+    class RopePerceiver:
+        def __init__(self, cam):
+            """
+            Initialise model, tokenizer, and colour/view prompts.
+            """
+            self.cam = cam
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            self.model_dict = torch.load(MODEL_PATH)
+            self.model_config = self.model_dict["config"]
+            self.model_weights = self.model_dict["model"]
+            self.model = DLOPerceiver(
+                iterations=self.model_config["iterations"],
+                n_latents=self.model_config["n_latents"],
+                latent_dim=self.model_config["latent_dim"],
+                depth=self.model_config["depth"],
+                dropout=self.model_config["dropout"],
+                img_encoder_type=self.model_config["img_encoder_type"],
+            )
+            self.model.load_state_dict(self.model_weights)
+            self.model.to(device=self.device)
+            self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+            self.textEncoder = TextEncoder(model_name="distilbert-base-uncased")
 
-    def __init__(self, auto_execution, dloPerciver, rope_name, target_l, target_r):
-        self.ropet_name = rope_name # red_rope, blue_rope etc.
+            self.colours = ["red", "green", "blue", "gray", "yellow", "orange", "purple", "brown"]
+            self.views = ["top", "bottom"]
+
+        def _generatePrompt(self, colour, view):
+            """
+            Generate a text prompt using object name, colour, and view.
+            """
+            return f"{self.object_name} {colour} {view}"
+
+        def _getTextEmbedding(self, text):
+            """
+            Convert text prompt into embedding using DistilBERT.
+            """
+            tokens = self.tokenizer([text], return_tensors="pt", padding=True)["input_ids"]
+            textEmb = self.textEncoder(tokens).to(self.device)
+            return textEmb
+
+        def _prepareImage(self, img):
+            """
+            Resize and normalise image for model input.
+            """
+            img = cv2.resize(img, (self.model_config["img_w"], self.model_config["img_h"]))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = img / 255.0
+            img = img.transpose(2, 0, 1)
+            img = torch.from_numpy(img).float().unsqueeze(0).to(self.device)
+            return img
+
+        def _predictMask(self, imgTensor, textEmb):
+            """
+            Predict binary mask from image and text embedding.
+            """
+            with torch.no_grad():
+                pred, (_, _, _) = self.model(imgTensor, textEmb)
+            mask = pred.sigmoid().squeeze().detach().cpu().numpy()
+            return mask
+
+        def _isDuplicate(self, newMask, existingMasks, threshold=0.9):
+            """
+            Check if new mask is a duplicate based on IoU.
+            """
+            for mask in existingMasks:
+                iou = self._maskIoU(newMask, mask)
+                if iou > threshold:
+                    return True
+            return False
+
+        def _maskIoU(self, mask1, mask2):
+            """
+            Compute Intersection over Union (IoU) between two masks.
+            """
+            mask1_bin = (mask1 > 0.5).astype(np.uint8)
+            mask2_bin = (mask2 > 0.5).astype(np.uint8)
+            intersection = np.logical_and(mask1_bin, mask2_bin).sum()
+            union = np.logical_or(mask1_bin, mask2_bin).sum()
+            return intersection / union if union != 0 else 0
+
+        def segmentRope(self, imgTensor, colour, view):
+            """
+            Segment a rope by given colour and view. Returns binary mask.
+            """
+            prompt = self._generatePrompt(colour, view)
+            textEmb = self._getTextEmbedding(prompt)
+            mask = self._predictMask(imgTensor, textEmb)
+            return (mask > 0.5).astype(np.uint8)
+
+        def _rankRopesByHierarchy(self, ropeList):
+            """
+            Stub for hierarchical ranking. Compares overlap between masks.
+            """
+            # Example: sort ropes by average pixel intensity
+            # You can improve this using occlusion detection logic later
+            ropeList.sort(key=lambda r: r["mask"].sum(), reverse=True)
+            return ropeList
+
+        def countRopes(self, frame):
+            """
+            Detect and count unique ropes using mask similarity.
+            Returns list of unique rope dicts with colour, view, prompt, and mask.
+            """
+            imgTensor = self._prepareImage(frame)
+            uniqueRopes = []
+            existingMasks = []
+
+            for colour in self.colours:
+                for view in self.views:
+                    mask = self.segmentRope(imgTensor, colour, view)
+
+                    if mask.max() < 0.1:
+                        continue  # No activation
+
+                    if not self._isDuplicate(mask, existingMasks):
+                        existingMasks.append(mask)
+                        uniqueRopes.append({
+                            "colour": colour,
+                            "view": view,
+                            "prompt": self._generatePrompt(colour, view),
+                            "mask": mask
+                        })
+
+            rankedRopes = self._rankRopesByHierarchy(uniqueRopes)
+            return rankedRopes
+
+        
+    def __init__(self, auto_execution):
+        
         # read ROS parameters
         self.robot_name = rospy.get_param("~robot_name", "yumi")
-        self.marker_thresh_blue_low = rospy.get_param("~marker_thresh_blue_low", [90, 0, 0])  #WIll have to edit the thresholds but calm
-        self.marker_thresh_blue_high = rospy.get_param("~marker_thresh_blue_high", [5, 80, 80])
-        self.marker_thresh_red_low = rospy.get_param("~marker_thresh_red_low", [0, 0, 90])
-        self.marker_thresh_red_high = rospy.get_param("~marker_thresh_red_high", [80, 80, 5])
-        self.target_thresh_blue_low = rospy.get_param("~target_thresh_blue_low", [90, 0, 0])
-        self.target_thresh_blue_high = rospy.get_param("~target_thresh_blue_high", [5, 80, 80])
-        self.target_thresh_red_low = rospy.get_param("~target_thresh_red_low", [0, 0, 80])
-        self.target_thresh_red_high = rospy.get_param("~target_thresh_red_high", [80, 80, 5])
-
+        
         self.auto_execution = auto_execution
         
-        self.dloPerciever = dloPerciver
+        
         
         self.l515 = RealCamera(self.robot_name+'_l515', roi=self.l515_roi, jetson=True)
         self.d435_l = RealCamera(self.robot_name+'_d435_l')
         self.d435_r = RealCamera(self.robot_name+'_d435_r')
 
+        self.dloPerciever = self.RopePerceiver(self.l515)
         
-       
-        self.marker_a = None
-        self.marker_b = None
-        self.current_pos_l = None
-        self.current_pos_r = None
-        self.target_l = target_l
-        self.target_r = target_r
+        self.rope_config = {
+            'rope_r': self.Rope(self.l515, 'rope_r', self.auto_execution, 'blue', 'red_1'),
+            'rope_g': self.Rope(self.l515, 'rope_g', self.auto_execution, 'blue', 'green'),
+            'rope_b': self.Rope(self.l515, 'rope_b', self.auto_execution, 'blue', 'blue'),
+        }
         
+        self.ropes = []
         
         # initialise the tf listener
         self.listener = TransformListener()
-
-        # get segementation instances
-        rospy.loginfo("Set colour threshold for the blue marker")
-        self.seg_marker_a = ColourSegmentation(self.marker_thresh_blue_low, self.marker_thresh_blue_high, 
-                                           self.l515.read_image, live_adjust=not auto_execution)
-        rospy.loginfo(f'Blue marker thresholds: {self.seg_marker_a.thresh_l}, {self.seg_marker_a.thresh_h}')
-        rospy.loginfo("Set colour threshold for the red marker")
-        self.seg_marker_b = ColourSegmentation(self.marker_thresh_red_low, self.marker_thresh_red_high,
-                                            self.l515.read_image, live_adjust=not auto_execution)
-        rospy.loginfo(f'Red marker thresholds: {self.seg_marker_b.thresh_l}, {self.seg_marker_b.thresh_h}')
-                
-        rospy.loginfo("Set colour threshold for the blue targets")
-        self.seg_target_r = ColourSegmentation(self.target_thresh_blue_low, self.target_thresh_blue_high,
-                                                self.d435_l.read_image, live_adjust=not auto_execution)     # Targets on the Right side (Left Camera View)
-        rospy.loginfo(f'Blue targets thresholds: {self.seg_target_r.thresh_l}, {self.seg_target_r.thresh_h}')
-        rospy.loginfo("Set colour threshold for the red targets")
-        self.seg_target_l = ColourSegmentation(self.target_thresh_red_low, self.target_thresh_red_high,
-                                                self.d435_r.read_image, live_adjust=not auto_execution)     # Targets on the Left side (Right Camera View) 
-        rospy.loginfo(f'Red targets thresholds: {self.seg_target_l.thresh_l}, {self.seg_target_l.thresh_h}')
-
+        
+        # define the services
+        rospy.Service(self.find_target_srv, DetectTarget, self.srvPubScene)
+        rospy.loginfo('Find targets service ready')
+        rospy.Service(self.find_object_srv, DetectObject, self.srvPubScene)
+        rospy.loginfo('Find objects service ready')
         
         # define the publishers
         # Crrently Unused
         self.frame_pub = rospy.Publisher(self.processed_frame_topic, Image, queue_size=10)
         if self.debug:
-            self.edge_pub = rospy.Publisher(f'dlo_vsn/{self.ropet_name}/edge', Image, queue_size=10)
-            self.mask_pub = rospy.Publisher(f'dlo_vsn/{self.ropet_name}/masks', Image, queue_size=10)
-            self.marker_pub_a = rospy.Publisher(f"dlo_vsn/{self.ropet_name}/marker_a", PoseArray, queue_size=1)
-            self.marker_pub_b = rospy.Publisher(f"dlo_vsn/{self.ropet_name}/marker_b", PoseArray, queue_size=1)
-            self.target_pub = rospy.Publisher(f"dlo_vsn/{self.ropet_name}/a", PoseArray, queue_size=1)
-            self.target_pub_r = rospy.Publisher(f"dlo_vsn/{self.ropet_name}/b", PoseArray, queue_size=1)
+            for rope_name, _ in self.rope_config.items():       
+                self.edge_pub = rospy.Publisher(f'dlo_vsn/{rope_name}/edge', Image, queue_size=10)
+                self.mask_pub = rospy.Publisher(f'dlo_vsn/{rope_name}/masks', Image, queue_size=10)
+                self.marker_pub_a = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_a", PoseArray, queue_size=1)
+                self.marker_pub_b = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_b", PoseArray, queue_size=1)
+                self.target_pub = rospy.Publisher(f"dlo_vsn/{rope_name}/a", PoseArray, queue_size=1)
+                self.target_pub_r = rospy.Publisher(f"dlo_vsn/{rope_name}/b", PoseArray, queue_size=1)
 
-        # define the services
-        rospy.Service(self.find_target_srv, DetectTarget, self.srvPubTargets)
-        rospy.loginfo('Find targets service ready')
-        rospy.Service(self.find_object_srv, DetectObject, self.srvPubTargets)
-        rospy.loginfo('Find objects service ready')
 
         if self.debug:
             rospy.sleep(1)
@@ -132,9 +278,10 @@ class dloVision:
                 stop = time.perf_counter()
                 print(stop-start)
                 rospy.sleep(0.5)
-
+    
+    
     ''' Callback of find target service '''
-    def srvPubTargets(self, request):
+    def srvPubScene(self, request):
         # generate an empty response
         response = DetectTargetResponse()
         # turn the img msg to numpy array
@@ -154,6 +301,19 @@ class dloVision:
             rospy.logerr("Unknown type of camera!")
             return response
 
+        
+        
+
+          
+
+        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+        return response
+
+
+    def pubMarkers(self, request):
+        
+            
+            
         # start processing the request
         if request.target_name == "marker_a":
             # localise the two markers from the masks
@@ -218,8 +378,9 @@ class dloVision:
                 response.target = target
 
                 if self.debug:
-                    self.marker_pub_b.publish(target) 
-
+                    self.marker_pub_b.publish(target)
+                    
+    def pubTargets(self, request):
         if request.target_name == "targets_r":
             targets, img, confidence = self.target_detection(camera, seg)
             # generate the target point messages
@@ -284,25 +445,11 @@ class dloVision:
             response.confidence = conf_msg
 
             if self.debug:
-                self.target_pub.publish(target)   
-
-        # if request.target_name == "shoe":
-        #     pose, img = self.shoe_detection(img, depth, cam_to_rob, camera_intrinsics)
-        #     if pose is not None:
-        #         # generate the response message
-        #         target = PoseArray()
-        #         target.header.stamp = rospy.Time.now()
-        #         target.header.frame_id = self.robot_frame
-        #         shoe_pose = Pose()
-        #         shoe_pose.position = Point(*pose[:3])
-        #         shoe_pose.orientation = Quaternion(*pose[3:])
-        #         target.poses.append(shoe_pose)
-        #         response.target = target
-
-        # publish a new frame
-        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
-        return response
-
+                self.target_pub.publish(target) 
+                     
+    def ropeDetection(self, request):
+        
+        return None
     
     def marker_detection(self, img, mask, depth, transform, camera_intrinsics):
         '''
@@ -509,6 +656,7 @@ class dloVision:
         result_img = self.generate_frame(result_img, inner_circle_boxes, confidences)
         return poses, result_img, confidences
 
+    
     @staticmethod
     def transform_point(point, transfer):
         return np.dot(transfer, np.array([point[0], point[1], point[2], 1.0]))[:3]

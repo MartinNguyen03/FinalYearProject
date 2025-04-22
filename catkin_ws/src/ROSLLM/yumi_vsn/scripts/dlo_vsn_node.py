@@ -24,22 +24,6 @@ class dloVisionNode:
 if __name__ == "__main__":
     rospy.init_node('dlo_visn_node', anonymous=True)
     
-    # Load Model
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_dict = torch.load(MODEL_PATH)
-    model_config = model_dict["config"]
-    model_weights = model_dict["model"]
-    model = DLOPerceiver(
-        iterations=model_config["iterations"],
-        n_latents=model_config["n_latents"],
-        latent_dim=model_config["latent_dim"],
-        depth=model_config["depth"],
-        dropout=model_config["dropout"],
-        img_encoder_type=model_config["img_encoder_type"],
-    )
-    model.load_state_dict(model_weights)
-    model.to(device=device)
-    tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-    text_encoder = TextEncoder(model_name="distilbert-base-uncased")
-    dlo_visn_node = dloVisionNode(dloPerciever=model)
+    
+    dlo_visn_node = dloVisionNode()
     rospy.spin()

@@ -1,44 +1,38 @@
-# UniLace
-Simulation environment for [**Benchmarking and Simulating Bimanual Robot Shoe Lacing**](https://ieeexplore.ieee.org/abstract/document/10629040) published on *IEEE Robotics and Automation Letters*. 
-
-https://github.com/user-attachments/assets/c65985c7-a8ca-4be4-94d5-fe680df4ea77
-
+# FInal Year Project - AI and LLMs in Robotics
+Source Code 
 
 ## Project Structure
-The project is structured with two main components: the ROS workspace and the Unity project. 
-The ROS workspace contains the ROS packages for the simulation and the Unity project contains the simulation environment. 
-The project structure is as follows:
+
 ```
 ├── catkin_ws
-│   └── src
-│       └── uni_lace
-│           ├── uni_lace
-│           └── uni_lace_msgs
-│           └── robot_driver_unity
-├── UniLace
-│   ├── Assets
-│       ├── Resources
-│       ├── RosMessages
-│       ├── Scenes
-│       ├── Scripts
-│   ├── Build
-|   |   ├── UniLaceLive
-|   |   └── UniLaceGym
-|   |   └── Demo
-├── Dockerfile
-├── Makefile
+│   └── src
+│       ├── ROSLLM
+│       │   ├── agent_comm
+│       │   │   ├── extern
+│       │   │   │   └── DeepSeek-VL
+│       │   │   ├── launch
+│       │   │   ├── prompt
+│       │   │   ├── scripts
+│       │   │   └── src
+│       │   ├── behavior_executor
+│       │   │   └── test
+│       │   ├── extern
+│       │   │   └── BehaviorTree.CPP
+│       │   ├── rosllm_msgs
+│       │   │   └── msg
+│       │   ├── rosllm_srvs
+│       │   │   └── srv
+│       │   │       └── AtomicAction
+│       │   ├── yumi_ctrl
+│       │   └── yumi_vsn
+│       └── yumi-moveit
+└── dlo_perceiver
 ```
-
-This Unity project is composed of two scenes: **UniLaceLive** and **UniLaceGym**. An extra **Demo** scene is for fast showcasing simulated shoe lacing.
-
-Experiments included in the submission are completed with *UniLaceLive*.
-All scenes are prebuilt and can be used without Unity.
 
 ## Prerequisites
 ### System requirements
-* This project has been tested on Ubuntu 18.04, 20.04 and 22.04.
+* This project has been tested on Ubuntu 20.04 and 22.04.
 * Docker and Nvidia-docker installed.
-* Unity installation is required ONLY for [Advanced Usage](#Advanced-Usage).
 
 ## Installation
 1. Clone this repo
