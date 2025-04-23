@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ExecuteBehavior.srv
-  AtomicAction/DetectObject.srv
+  AtomicAction/DetectRope.srv
   AtomicAction/DetectTarget.srv
   AtomicAction/Gripper.srv
   AtomicAction/HandOver.srv

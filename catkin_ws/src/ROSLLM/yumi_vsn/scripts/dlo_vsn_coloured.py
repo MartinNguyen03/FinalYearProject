@@ -17,7 +17,7 @@ from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, Point, PoseArray, Quaternion
 from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectTargetResponse
-from rosllm_srvs.srv import DetectObject, DetectObjectRequest, DetectObjectResponse
+from rosllm_srvs.srv import DetectRope, DetectRopeRequest, DetectRopeResponse
 from utils.yumi_camera import RealCamera
 from utils.point_clouds import depth_pixel_to_metric_coordinate, read_point_from_region, read_points_from_region, xy_to_yx, euclidian_distance
 from utils.colour_segmentation import ColourSegmentation
@@ -257,7 +257,7 @@ class dloVision:
         # define the services
         rospy.Service(self.find_target_srv, DetectTarget, self.srvPubScene)
         rospy.loginfo('Find targets service ready')
-        rospy.Service(self.find_object_srv, DetectObject, self.srvPubScene)
+        rospy.Service(self.find_object_srv, DetectRope, self.srvPubScene)
         rospy.loginfo('Find objects service ready')
         
         # define the publishers
@@ -276,7 +276,7 @@ class dloVision:
         if self.debug:
             rospy.sleep(1)
             self.find_targets = rospy.ServiceProxy(self.find_target_srv, DetectTarget)
-            self.find_objects = rospy.ServiceProxy('find_objects', DetectObject)
+            self.find_objects = rospy.ServiceProxy('find_objects', DetectRope)
             rospy.wait_for_service(self.find_target_srv)
             request = DetectTargetRequest()
             request.target_name = 'marker_b' # targets_b, targets_r, marker_a, marker_b
@@ -471,8 +471,8 @@ class dloVision:
         '''
             
         # remove the shoe region
-        _, width = np.shape(mask)
-        mask[:, width//5*2:width//5*3] = 0
+        # _, width = np.shape(mask)
+        # mask[:, width//5*2:width//5*3] = 0
         # mask[530:600, 405:870] = 0 # remove the central region
 
         # smooth the mask

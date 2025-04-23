@@ -1,5 +1,5 @@
 # DetectObject
-string camera_name
+# string camera_name
 std_msgs/String object_name
 ---
 bool success
