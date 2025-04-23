@@ -4,3 +4,26 @@ catkin_ws/*
 catkin_ws/src/*
 !catkin_ws/src/uni_lace/
 !catkin_ws/src/ROSLLM/
+
+dlo_perceiver/*.png
+dlo_perceiver/*.pth
+dlo_perceiver/*.h5
+dlo_perceiver/*.pkl
+dlo_perceiver/*.pickle
+dlo_perceiver/
+dlo_perceiver/*/*/__pycache__/*
+dlo_perceiver/*.pyc
+dlo_perceiver//*/*/*.pyc
+dlo_perceiver/*.pt
+dlo_perceiver/
+dlo_perceiver/wandb/*
+dlo_perceiver/checkpoints/*
+dlo_perceiver/data/*
+dlo_perceiver/dataset_generator/renderings/*
+dlo_perceiver/*.egg-info
+dlo_perceiver/
+dlo_perceiver/
+dlo_perceiver/*/sample/*
+dlo_perceiver/*.txt
+# Textures
+dlo_perceiver//resources/cctextures/*
