@@ -59,7 +59,7 @@ class dloVision:
     'brown':     {'lower': rospy.get_param("~target_thresh_brown_low", [10, 100, 20]),    'upper': rospy.get_param("~target_thresh_brown_high", [20, 255, 200])},
     'cyan':      {'lower': rospy.get_param("~target_thresh_cyan_low", [80, 100, 100]),   'upper': rospy.get_param("~target_thresh_cyan_high", [100, 255, 255])},
     'gray':      {'lower': rospy.get_param("~target_thresh_gray_low", [0, 0, 40]),       'upper': rospy.get_param("~target_thresh_gray_high", [179, 30, 200])},
-    
+    'white':    {'lower': rospy.get_param("~target_thresh_white_low", [0, 0, 200]),      'upper': rospy.get_param("~target_thresh_white_high", [179, 30, 255])},  # All targets will be white
     }
     
     class Rope:
@@ -70,11 +70,14 @@ class dloVision:
             self.marker_b_colour = marker_b_colour
             self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, auto_execution)
             self.priority = 0
-            target_l_colour = None
-            target_r_colour = None
-            curr_target_l_colour = None
-            curr_target_r_colour = None
-         
+            self.mask = None
+            self.target_l_colour = None
+            self.target_r_colour = None
+            self.curr_target_l_colour = None
+            self.curr_target_r_colour = None
+            self.marker_a_pose = None
+            self.marker_b_pose = None
+            
         def updateTarget(self, target_l_colour, target_r_colour):
             self.target_l_colour = target_l_colour
             self.target_r_colour = target_r_colour
@@ -210,13 +213,13 @@ class dloVision:
                         existingMasks.append(mask)
                         uniqueRopes.append({
                             "colour": colour,
-                            "view": view,
-                            "prompt": self._generatePrompt(colour, view),
                             "mask": mask
                         })
 
-            rankedRopes = self._rankRopesByHierarchy(uniqueRopes)
-            return rankedRopes
+            # rankedRopes = self._rankRopesByHierarchy(uniqueRopes)
+            # return rankedRopes
+            
+            return uniqueRopes
 
         
     def __init__(self, auto_execution):
@@ -235,12 +238,18 @@ class dloVision:
         self.dloPerciever = self.RopePerceiver(self.l515)
         
         self.rope_config = {
-            'rope_r': self.Rope(self.l515, 'rope_r', self.auto_execution, 'blue', 'red_1'),
-            'rope_g': self.Rope(self.l515, 'rope_g', self.auto_execution, 'blue', 'green'),
-            'rope_b': self.Rope(self.l515, 'rope_b', self.auto_execution, 'blue', 'blue'),
+            'red': self.Rope(self.l515, 'rope_r', self.auto_execution, 'gray', 'cyan'),
+            'green': self.Rope(self.l515, 'rope_g', self.auto_execution, 'orange', 'brown'),
+            'blue': self.Rope(self.l515, 'rope_b', self.auto_execution, 'yellow', 'pink')
+        }
+        
+        self.target_config = {
+            'left': ColourSegmentation(self.HSV_THRESHOLDS['white']['lower'], self.HSV_THRESHOLDS['white']['upper'], self.l515.read_image, live_adjust=False),
+            'right': ColourSegmentation(self.HSV_THRESHOLDS['white']['lower'], self.HSV_THRESHOLDS['white']['upper'], self.l515.read_image, live_adjust=False)
         }
         
         self.ropes = []
+        self.targets = {'targets_l': [], 'targets_r': []}
         
         # initialise the tf listener
         self.listener = TransformListener()
@@ -286,11 +295,11 @@ class dloVision:
         response = DetectTargetResponse()
         # turn the img msg to numpy array
         if request.camera_name == 'l515':
-            img = self.l515.read_image()
-            depth = self.l515.read_depth()
-            camera_intrinsics = self.l515.read_camera_info()
+            l515_img = self.l515.read_image()
+            l515_depth = self.l515.read_depth()
+            l515_camera_intrinsics = self.l515.read_camera_info()
             (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
-            cam_to_rob = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
+            l515_transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
         elif request.camera_name == 'd435_l':
             camera = self.d435_l
             seg = self.seg_target_r
@@ -301,8 +310,26 @@ class dloVision:
             rospy.logerr("Unknown type of camera!")
             return response
 
+        detected_ropes = self.dloPerciever.countRopes(l515_img)
+        # {
+        #      "colour": colour,
+        #      "view": view,
+        #      "mask": mask
+        #  }
         
-        
+        for rope in detected_ropes:
+            colour = rope["colour"]
+            
+            mask = rope["mask"]
+            ropeObj = self.rope_config[colour]
+            ropeObj.mask = mask
+            ropeObj.marker_a_pose, ropeObj.marker_b_pose = self.pubMarkers(ropeObj, l515_transform, l515_camera_intrinsics)
+            
+            
+            
+            
+            self.ropes.append(self.rope_config[colour])
+            
 
           
 
@@ -310,79 +337,66 @@ class dloVision:
         return response
 
 
-    def pubMarkers(self, request):
-        
-            
-            
-        # start processing the request
-        if request.target_name == "marker_a":
-            # localise the two markers from the masks
-            pose_list = []
-            img_list = []
-            for _ in range(5):
-                img = self.l515.read_image()
-                depth = self.l515.read_depth()
-                # get masks for two markers
-                mask = self.seg_marker_a.predict_img(img)
-                pose, img = self.marker_detection(img, mask, depth, cam_to_rob, camera_intrinsics)
-                if pose is not None:
-                    pose_list.append(pose)
-                    img_list.append(img)
-            if len(pose_list)>0:
-                pose_list = np.array(pose_list)
-                id = pose_list[:,2].argsort()[pose_list.shape[0]//2]
-                pose = pose_list[id]
-                img = img_list[id]
+    def pubMarkers(self, rope, transform, camera_intrinsics):
+        """
+        Localize the two markers (marker_a and marker_b) from the masks.
+        """
+        pose_list = {"marker_a": [], "marker_b": []}
+        img_list = {"marker_a": [], "marker_b": []}
 
-                # generate the response message
+        for _ in range(5):  # Perform multiple observations for robustness
+            img = self.l515.read_image()
+            depth = self.l515.read_depth()
+
+            # Get masks for both markers
+            mask_a = rope.threshold_a.predict_img(img)
+            mask_b = rope.threshold_b.predict_img(img)
+
+            # Detect poses for both markers
+            pose_a, img_a = self.marker_detection(img, mask_a, depth, transform, camera_intrinsics)
+            pose_b, img_b = self.marker_detection(img, mask_b, depth, transform, camera_intrinsics)
+
+            if pose_a is not None:
+                pose_list["marker_a"].append(pose_a)
+                img_list["marker_a"].append(img_a)
+            else:
+                rospy.logwarn(f"{rope.name}: No pose detected for marker_a")
+            if pose_b is not None:
+                pose_list["marker_b"].append(pose_b)
+                img_list["marker_b"].append(img_b)
+            else:
+                rospy.logwarn(f"{rope.name}: No pose detected for marker_b")
+
+        # Process poses for marker_a and marker_b
+        marker_poses = {}
+        for marker in ["marker_a", "marker_b"]:
+            if len(pose_list[marker]) > 0:
+                poses = np.array(pose_list[marker])
+                id = poses[:, 2].argsort()[poses.shape[0] // 2]  # Median pose based on Z-axis
+                marker_poses[marker] = poses[id]
+                img = img_list[marker][id]
+
+                # Generate the response message
                 target = PoseArray()
                 target.header.stamp = rospy.Time.now()
                 target.header.frame_id = self.robot_frame
                 marker_pose = Pose()
-                marker_pose.position = Point(*pose[:3])
-                marker_pose.orientation = Quaternion(*pose[3:])
+                marker_pose.position = Point(*marker_poses[marker][:3])
+                marker_pose.orientation = Quaternion(*marker_poses[marker][3:])
                 target.poses.append(marker_pose)
-                response.target = target
 
                 if self.debug:
-                    self.marker_pub_a.publish(target) 
+                    if marker == "marker_a":
+                        self.marker_pub_a.publish(target)
+                    elif marker == "marker_b":
+                        self.marker_pub_b.publish(target)
 
-        if request.target_name == "marker_b":
-            # localise the two markers from the masks
-            pose_list = []
-            img_list = []
-            for _ in range(5):
-                img = self.l515.read_image()
-                depth = self.l515.read_depth()
-                # get masks for two markers
-                mask = self.seg_marker_b.predict_img(img)
-                pose, img = self.marker_detection(img, mask, depth, cam_to_rob, camera_intrinsics)
-                if pose is not None:
-                    pose_list.append(pose)
-                    img_list.append(img)
+        return marker_poses.get("marker_a"), marker_poses.get("marker_b")
 
-            if len(pose_list)>0:
-                pose_list = np.array(pose_list)
-                id = pose_list[:,2].argsort()[pose_list.shape[0]//2]
-                pose = pose_list[id]
-                img = img_list[id]
-
-                # generate the response message
-                target = PoseArray()
-                target.header.stamp = rospy.Time.now()
-                target.header.frame_id = self.robot_frame
-                marker_pose = Pose()
-                marker_pose.position = Point(*pose[:3])
-                marker_pose.orientation = Quaternion(*pose[3:])
-                target.poses.append(marker_pose)
-                response.target = target
-
-                if self.debug:
-                    self.marker_pub_b.publish(target)
                     
     def pubTargets(self, request):
         if request.target_name == "targets_r":
-            targets, img, confidence = self.target_detection(camera, seg)
+            targets, img, confidence = self.target_detection(self.d435_r, self.target_config['right'])
             # generate the target point messages
             target = PoseArray()
             target.header.stamp = rospy.Time.now()
@@ -414,8 +428,8 @@ class dloVision:
             if self.debug:
                 self.target_pub_r.publish(target)   
 
-        if request.target_name == "targets_b":
-            targets, img, confidence = self.target_detection(camera, seg)
+        if request.target_name == "targets_l":
+            targets, img, confidence = self.target_detection(self.d435_l, self.target_config['left'])
             # generate the target point messages
             target = PoseArray()
             target.header.stamp = rospy.Time.now()
@@ -447,9 +461,7 @@ class dloVision:
             if self.debug:
                 self.target_pub.publish(target) 
                      
-    def ropeDetection(self, request):
-        
-        return None
+
     
     def marker_detection(self, img, mask, depth, transform, camera_intrinsics):
         '''
@@ -457,6 +469,7 @@ class dloVision:
         Input: image
         output: pose of the marker (7), result image
         '''
+            
         # remove the shoe region
         _, width = np.shape(mask)
         mask[:, width//5*2:width//5*3] = 0
