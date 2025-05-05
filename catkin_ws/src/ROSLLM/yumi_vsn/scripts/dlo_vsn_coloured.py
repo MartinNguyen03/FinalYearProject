@@ -18,6 +18,7 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, Point, PoseArray, Quaternion
 from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectTargetResponse
 from rosllm_srvs.srv import DetectRope, DetectRopeRequest, DetectRopeResponse
+from rosllm_srvs.srv import ObserveScene, ObserveSceneRequest, ObserveSceneResponse
 from utils.yumi_camera import RealCamera
 from utils.point_clouds import depth_pixel_to_metric_coordinate, read_point_from_region, read_points_from_region, xy_to_yx, euclidian_distance
 from utils.colour_segmentation import ColourSegmentation
@@ -68,32 +69,27 @@ class dloVision:
             self.cam = cam
             self.marker_a_colour = marker_a_colour
             self.marker_b_colour = marker_b_colour
-            self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, auto_execution)
+            self.auto_execution = auto_execution
+            self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, self.auto_execution)
             self.priority = 0
             self.mask = None
             self.target_l_colour = None
             self.target_r_colour = None
-            self.curr_target_l_colour = None
-            self.curr_target_r_colour = None
-            self.marker_a_pose = None
-            self.marker_b_pose = None
-            
-        def updateTarget(self, target_l_colour, target_r_colour):
-            self.target_l_colour = target_l_colour
+            self.curr_target_l_colour = None       
             self.target_r_colour = target_r_colour
-            self.threshold_l, self.threshold_r = self.updateThreshold(self.cam, self.target_l_colour, self.target_r_colour, auto_execution=False)
+            self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
                       
         def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
             self.curr_target_l_colour = curr_target_l_colour
             self.curr_target_r_colour = curr_target_r_colour
-            self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(self.cam, curr_target_l_colour, curr_target_r_colour, auto_execution=True)
+            self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(curr_target_l_colour, curr_target_r_colour)
             
-        def updateThreshold(self, colour_1, colour_2, auto_execution):
+        def updateThreshold(self, colour_1, colour_2):
             thresh_low_1 = self.HSV_THRESHOLDS[colour_1]['lower']
             thresh_high_1 = self.HSV_THRESHOLDS[colour_1]['upper']
             thresh_low_2 = self.HSV_THRESHOLDS[colour_2]['lower']
             thresh_high_2 = self.HSV_THRESHOLDS[colour_2]['upper']
-            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam.read_image, live_adjust=not auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam.read_image, live_adjust=not auto_execution)
+            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam.read_image, live_adjust=not self.auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam.read_image, live_adjust=not self.auto_execution)
              
     class RopePerceiver:
         def __init__(self, cam):
@@ -121,19 +117,6 @@ class dloVision:
             self.colours = ["red", "green", "blue", "gray", "yellow", "orange", "purple", "brown"]
             self.views = ["top", "bottom"]
 
-        def _generatePrompt(self, colour, view):
-            """
-            Generate a text prompt using object name, colour, and view.
-            """
-            return f"{self.object_name} {colour} {view}"
-
-        def _getTextEmbedding(self, text):
-            """
-            Convert text prompt into embedding using DistilBERT.
-            """
-            tokens = self.tokenizer([text], return_tensors="pt", padding=True)["input_ids"]
-            textEmb = self.textEncoder(tokens).to(self.device)
-            return textEmb
 
         def _prepareImage(self, img):
             """
@@ -179,8 +162,9 @@ class dloVision:
             """
             Segment a rope by given colour and view. Returns binary mask.
             """
-            prompt = self._generatePrompt(colour, view)
-            textEmb = self._getTextEmbedding(prompt)
+            prompt = f"rope {colour} {view}"
+            tokens = self.tokenizer([prompt], return_tensors="pt", padding=True)["input_ids"]
+            textEmb = self.textEncoder(tokens).to(self.device)       
             mask = self._predictMask(imgTensor, textEmb)
             return (mask > 0.5).astype(np.uint8)
 
@@ -255,10 +239,12 @@ class dloVision:
         self.listener = TransformListener()
         
         # define the services
-        rospy.Service(self.find_target_srv, DetectTarget, self.srvPubScene)
+        rospy.Service(self.find_target_srv, ObserveScene, self.srvPubScene)
         rospy.loginfo('Find targets service ready')
-        rospy.Service(self.find_object_srv, DetectRope, self.srvPubScene)
+        rospy.Service(self.find_object_srv, DetectRope, self.pubMarkers)
         rospy.loginfo('Find objects service ready')
+        rospy.Service('dlo_vsn/targets', DetectTarget, self.pubTargets)
+        rospy.loginfo('Find targets service ready')
         
         # define the publishers
         # Crrently Unused
@@ -292,7 +278,7 @@ class dloVision:
     ''' Callback of find target service '''
     def srvPubScene(self, request):
         # generate an empty response
-        response = DetectTargetResponse()
+        response = ObserveSceneResponse()
         # turn the img msg to numpy array
         if request.camera_name == 'l515':
             l515_img = self.l515.read_image()
@@ -318,15 +304,15 @@ class dloVision:
         #  }
         
         for rope in detected_ropes:
+            rospy.loginfo(f"Detected rope: {rope['colour']}")
             colour = rope["colour"]
             
             mask = rope["mask"]
             ropeObj = self.rope_config[colour]
+            if ropeObj not in self.ropes:
+                self.ropes.append(ropeObj)
             ropeObj.mask = mask
-            ropeObj.marker_a_pose, ropeObj.marker_b_pose = self.pubMarkers(ropeObj, l515_transform, l515_camera_intrinsics)
-            
-            
-            
+            ropeObj.marker_a_pose, ropeObj.marker_b_pose = self.pubMarkers(ropeObj)
             
             self.ropes.append(self.rope_config[colour])
             
@@ -337,10 +323,16 @@ class dloVision:
         return response
 
 
-    def pubMarkers(self, rope, transform, camera_intrinsics):
+    def pubMarkers(self, request):
         """
         Localize the two markers (marker_a and marker_b) from the masks.
         """
+        response = DetectRopeResponse()
+        rope = self.rope_config[request.rope_colour]
+        camera_intrinsics = self.l515.read_camera_info()
+        (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
+        transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
+            
         pose_list = {"marker_a": [], "marker_b": []}
         img_list = {"marker_a": [], "marker_b": []}
 
@@ -373,7 +365,7 @@ class dloVision:
             if len(pose_list[marker]) > 0:
                 poses = np.array(pose_list[marker])
                 id = poses[:, 2].argsort()[poses.shape[0] // 2]  # Median pose based on Z-axis
-                marker_poses[marker] = poses[id]
+                pose = poses[id]
                 img = img_list[marker][id]
 
                 # Generate the response message
@@ -381,8 +373,8 @@ class dloVision:
                 target.header.stamp = rospy.Time.now()
                 target.header.frame_id = self.robot_frame
                 marker_pose = Pose()
-                marker_pose.position = Point(*marker_poses[marker][:3])
-                marker_pose.orientation = Quaternion(*marker_poses[marker][3:])
+                marker_pose.position = Point(*pose[:3])
+                marker_pose.orientation = Quaternion(*pose[3:])
                 target.poses.append(marker_pose)
 
                 if self.debug:
@@ -390,11 +382,23 @@ class dloVision:
                         self.marker_pub_a.publish(target)
                     elif marker == "marker_b":
                         self.marker_pub_b.publish(target)
-
-        return marker_poses.get("marker_a"), marker_poses.get("marker_b")
+                marker_poses[marker] = target
+                
+        response.marker_a = marker_poses["marker_a"]
+        response.marker_b = marker_poses["marker_b"]
+        if marker_poses["marker_a"] is None:
+            rospy.logerr("No marker_a detected!")
+            response.success = False
+        if marker_poses["marker_b"] is None:
+            rospy.logerr("No marker_b detected!")
+            response.success = False
+        
+        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+        return response
 
                     
     def pubTargets(self, request):
+        response = DetectTargetResponse()
         if request.target_name == "targets_r":
             targets, img, confidence = self.target_detection(self.d435_r, self.target_config['right'])
             # generate the target point messages
@@ -409,7 +413,6 @@ class dloVision:
                     quaternion = [0,0,0,1]
                 else:
                     if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
-
                     roll = 0 # marker has 2 degree of rotational freedom
                     yaw = atan2(normal[1], normal[0]) 
                     # if yaw<0: yaw += pi # only defined to the left side 
@@ -417,17 +420,14 @@ class dloVision:
                     # pitch = 0 # set pitch to 0 to avoid bumping into the sheo tongue during pulling after the insertion
                     # quaternion = [roll, pitch, yaw, 0]
                     quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
-                target_pose.orientation = Quaternion(*quaternion)
+                target_pose.orientation = Quaternion(*quaternion)   
                 target.poses.append(target_pose)
             response.target = target
-
             conf_msg = Float64MultiArray()
             conf_msg.data = confidence
             response.confidence = conf_msg
-
             if self.debug:
                 self.target_pub_r.publish(target)   
-
         if request.target_name == "targets_l":
             targets, img, confidence = self.target_detection(self.d435_l, self.target_config['left'])
             # generate the target point messages
@@ -442,7 +442,6 @@ class dloVision:
                     quaternion = [0,0,0,1]
                 else:
                     if normal[1]>0: normal = [ -v for v in normal]
-
                     roll = 0 # marker has 2 degree of rotational freedom
                     yaw = atan2(normal[1], normal[0]) 
                     # if yaw>0: yaw -= pi # only defined to the left side 
@@ -453,13 +452,14 @@ class dloVision:
                 target_pose.orientation = Quaternion(*quaternion)
                 target.poses.append(target_pose)
             response.target = target
-
             conf_msg = Float64MultiArray()
             conf_msg.data = confidence
             response.confidence = conf_msg
-
             if self.debug:
                 self.target_pub.publish(target) 
+                
+            self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+            return response
                      
 
     

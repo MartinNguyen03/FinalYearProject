@@ -4,13 +4,13 @@ from os import path
 from scipy.spatial import distance
 from math import cos, sin, pi, sqrt
 
-from sl_params import ShoelacingParameters
+from scene_params import SceneParameters
 from utils import list_to_pose_msg, ls_concat, ls_add, tf_ls2mat, tf_mat2ls, pose_msg_to_list, is_sorted
-
+from catkin_ws.src.ROSLLM.yumi_ctrl.scripts.yumi_wrapper import YumiWrapper
 import tf
 import rospy
 import rospkg
-from sl_msgs.srv import findTargetsService, findTargetsServiceRequest
+from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest
 from std_msgs.msg import String, Int32MultiArray
 from geometry_msgs.msg import PoseArray
 from tf.transformations import euler_from_quaternion, compose_matrix
@@ -18,50 +18,56 @@ from tf.transformations import euler_from_quaternion, compose_matrix
 # rospy.loginfo("..............................T E S T..................................")
 
 
-class CtrlPrimitives:
-    package_name = 'ctrl_primitives'
+class ScenePrimitives:
+    package_name = 'sl_ctrl'
     marker_topic = '/visualization_marker'
     # robot_frame = "yumi_base_link"
-    vision_srv = 'find_targets'
-    log_topic = 'ctrl_logs'
-    aglet_owner_topic = 'aglet_owner'
-    aglet_pose_topic = 'aglet_pose'
+    target_srv = 'find_targets'
+    rope_srv = 'find_ropes'
+    scene_srv = 'observe_scene'
+    log_topic = 'sl_logs'
+    rope_r_topic = 'rope_r'
+    rope_b_topic = 'rope_b'
+    rope_g_topic = 'rope_g'
+    marker_owner_topic = 'marker_owner'
+    marker_pose_topic = 'marker_pose'
     hand_pose_topic = 'hand_pose'
-    eyelet_pose_topic = 'eyelet_pose'
+    target_pose_topic = 'target_pose'
     cursor_topic = 'cursor'
 
     def __init__(self, auto_execution, reset=True, start_id=0, sim=False):
         # ros related initialisation
         self.logs_pub = rospy.Publisher(self.log_topic, String, queue_size=1)
-        self.aglet_owner_pub = rospy.Publisher(self.aglet_owner_topic, Int32MultiArray, queue_size=1)
-        self.aglet_pose_pub = rospy.Publisher(self.aglet_pose_topic, PoseArray, queue_size=1)
-        self.eyelet_pose_pub = rospy.Publisher(self.eyelet_pose_topic, PoseArray, queue_size=1)
+        self.marker_owner_pub = rospy.Publisher(self.marker_owner_topic, Int32MultiArray, queue_size=1)
+        self.marker_pose_pub = rospy.Publisher(self.marker_pose_topic, PoseArray, queue_size=1)
+        self.target_pose_pub = rospy.Publisher(self.target_pose_topic, PoseArray, queue_size=1)
         self.hand_pose_pub = rospy.Publisher(self.hand_pose_topic, PoseArray, queue_size=1)
         self.cursor_pub = rospy.Publisher(self.cursor_topic, Int32MultiArray, queue_size=1)
         self.tf_listener = tf.TransformListener()
-        self.find_targets = rospy.ServiceProxy(self.vision_srv, findTargetsService)
-        rospy.wait_for_service(self.vision_srv)
+        self.find_ropes = rospy.ServiceProxy(self.rope_srv, DetectRope)
+        rospy.wait_for_service(self.rope_srv)
+        self.find_targets = rospy.ServiceProxy(self.target_srv, DetectTarget)
+        rospy.wait_for_service(self.target_srv)
+        self.observe_scene = rospy.ServiceProxy(self.scene_srv, ObserveScene)
+        rospy.wait_for_service(self.scene_srv)
 
         # load params
         self.sim = sim
         self.debug = False
         self.pkg_path = rospkg.RosPack().get_path(self.package_name)
-        self.pm = ShoelacingParameters(reset=True, start_id=start_id,
+        self.pm = SceneParameters(reset=True, start_id=start_id,
                                            config_path=path.join(self.pkg_path, 'params' if not self.sim else 'params/unity'),
                                            result_path=path.join(self.pkg_path, 'results'),
                                            log_handle=self.add_to_log)
         self.update_cursor('left', self.pm.left_cursor)
         self.update_cursor('right', self.pm.right_cursor)
 
-        # initialise yumi wrapper        
-        if self.sim:
-            from sl_yumi_wrapper_unity import YuMiWrapper
-        else:
-            from sl_yumi_wrapper import YuMiWrapper
-        self.yumi = YuMiWrapper(auto_execution,
+
+       
+        self.yumi = YumiWrapper(auto_execution,
             workspace=self.pm.workspace,
             vel_scale=self.pm.vel_scale,
-            gp_opening=self.pm.aglet_thickness*1000*2, # to mm
+            gp_opening=self.pm.marker_thickness*1000*2, # to mm
             table_offset=self.pm.table_offset,
             grasp_states=self.pm.grasp_states,
             grasp_states2=self.pm.grasp_states2,
@@ -78,9 +84,10 @@ class CtrlPrimitives:
         self.side_thread = threading.Thread(target=self.tf_thread_func, daemon=True)
         self.side_thread.start()
 
-    def tf_thread_func(self):
+    def tf_thread_func(self, rope):
         rate = rospy.Rate(10.0)
         while not rospy.is_shutdown():
+            rope_ = self.pm.rope_dict[rope]
             try:
                 if 'left_gripper' in self.pm.aglet_at.values():
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_l, rospy.Time(0))
@@ -768,12 +775,35 @@ class CtrlPrimitives:
             self.yumi.right_go_observe()
         self.yumi.wait_for_side_thread()
 
-    def call_vision_srv(self, target_name, camera_name):
+
+    def call_rope_srv(self, rope):
+        '''
+        input: rope (colour e.g. red, blue)
+        output: marker_a_pose, marker_b_pose
+        '''
+        request = DetectRopeRequest()
+        request.rope_name = rope
+        while not rospy.is_shutdown():
+            # get the target pose
+            response = self.find_rope(request)
+            if len(response.target.poses) == 0:
+                if not self.yumi.check_command('Got empty reply. Try again?'):
+                    print('Cancelled action. Exiting.')
+                    exit()
+            else:
+                if self.yumi.check_command('Satisfied with the result?'):
+                    break
+        target_poses = []
+        for pose in response.target.poses:
+            target_poses.append(pose_msg_to_list(pose))
+        return target_poses, response.confidence.data
+    
+    def call_target_srv(self, target_name, camera_name):
         '''
         input: target_name, camera_name
         output: target_poses, confidence
         '''
-        request = findTargetsServiceRequest()
+        request = DetectTargetRequest()
         request.target_name = target_name
         request.camera_name = camera_name
         while not rospy.is_shutdown():
@@ -799,10 +829,20 @@ class CtrlPrimitives:
         poses.header.frame_id = self.yumi.robot_frame
         self.hand_pose_pub.publish(poses)
 
-    def pub_aglet_pose(self, aglet, pose):
-        self.pm.aglet_poses[aglet] = pose
+    def pub_marker_pose(self, rope, marker, pose):
+        if self.pm.rope_dict[rope]:
+            rope_ = self.pm.rope_dict[rope]
+        else:
+            print('Unknown rope name!')
+            return
+        if rope_.marker_dict[marker]:
+            marker_ = rope_.marker_dict[marker]
+        else:
+            print('Unknown marker name!')
+            return 
+        marker_['position'] = pose
         poses = PoseArray()
-        for a in self.pm.aglet_poses.values():
+        for a in marker_['position'].values():
             poses.poses.append(list_to_pose_msg(a))
         poses.header.frame_id = self.yumi.robot_frame
         self.aglet_pose_pub.publish(poses)
@@ -835,7 +875,7 @@ class CtrlPrimitives:
         else:
             self.yumi.right_go_grasp()
         # get the target pose
-        target_poses, _ = self.call_vision_srv(aglet, 'l515')
+        target_poses, _ = self.call_target_srv(aglet, 'l515')
         # post processing
         target = target_poses[0]
         target = ls_add(target, (self.pm.l_l_offset if side==0 else self.pm.l_r_offset)+[0,0,0,0])
@@ -847,9 +887,9 @@ class CtrlPrimitives:
     def call_vision_eyelet(self, name):
         # get the position of the eyelet
         if name == 'eyelets_b':
-            eyelet_poses, confidence = self.call_vision_srv(name, 'd435_l')
+            eyelet_poses, confidence = self.call_target_srv(name, 'd435_l')
         elif name == 'eyelets_r':
-            eyelet_poses, confidence = self.call_vision_srv(name, 'd435_r')
+            eyelet_poses, confidence = self.call_target_srv(name, 'd435_r')
         else:
             print("Unknown eyelet name!")
         # pose processing
@@ -945,16 +985,16 @@ class CtrlPrimitives:
         self.logs_pub.publish(String(content))
         rospy.sleep(0.5)
 
-    def init_eyelet_poses(self):
-        eyelets_b = self.get_eyelet_poses('eyelets_b') # left side
-        eyelets_b = self.get_eyelet_poses('eyelets_b', target_id=len(eyelets_b)//2, fine=True) # left side
+    def init_target_poses(self):
+        targets_l = self.get_eyelet_poses('targets_l') # left side
+        targets_l = self.get_eyelet_poses('targets_l', target_id=len(targets_l)//2, fine=True) # left side
         self.yumi.left_go_observe()
-        eyelets_r = self.get_eyelet_poses('eyelets_r') # right side
-        eyelets_r = self.get_eyelet_poses('eyelets_r', target_id=len(eyelets_r)//2, fine=True) # right side
+        targets_r = self.get_eyelet_poses('eyelets_r') # right side
+        targets_r = self.get_eyelet_poses('eyelets_r', target_id=len(targets_r)//2, fine=True) # right side
         self.yumi.right_go_observe()
-        assert len(eyelets_b) == len(eyelets_r), 'Found {} eyelets on the left and {} on the right.\
-            '.format(len(eyelets_b), len(eyelets_r))
-        self.pm.load_eyelet_poses((eyelets_b, eyelets_r))
+        assert len(targets_l) == len(targets_r), 'Found {} eyelets on the left and {} on the right.\
+            '.format(len(targets_l), len(targets_r))
+        self.pm.load_eyelet_poses((targets_l, targets_r))
 
         self.pub_eyelet_poses() # publish eyelet poses
         self.yumi.both_go_grasp()

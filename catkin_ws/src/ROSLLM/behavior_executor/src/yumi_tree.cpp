@@ -4,8 +4,9 @@
 #include "std_msgs/String.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseArray.h"
-#include "rosllm_srvs/DetectObject.h"
+#include "rosllm_srvs/DetectRope.h"
 #include "rosllm_srvs/DetectTarget.h"
+#include "rosllm_srvs/ObserveScene.h"
 #include "rosllm_srvs/Gripper.h"
 #include "rosllm_srvs/HandOver.h"
 #include "rosllm_srvs/InsertObject.h"
@@ -16,10 +17,10 @@
 // Function to set input from the behavior tree
 void setInput(const std_msgs::String& name, const BT::InputPort& value);
 
-class DetectObjectAction : public BT::SyncActionNode {
+class DetectRopeAction : public BT::SyncActionNode {
     public:
-        DetectObjectAction(const std::string& name, const BT::NodeConfiguration& config)
-            : BT::SyncActionNode(name, config), client(nh.serviceClient<rosllm_srvs::DetectObject>("detect_object")) {}
+        DetectRopeAction(const std::string& name, const BT::NodeConfiguration& config)
+            : BT::SyncActionNode(name, config), client(nh.serviceClient<rosllm_srvs::DetectRope>("detect_object")) {}
     
         static BT::PortsList providedPorts() {
             return { 
@@ -29,11 +30,11 @@ class DetectObjectAction : public BT::SyncActionNode {
         }
     
         BT::NodeStatus tick() override {
-            rosllm_srvs::DetectObject srv;
+            rosllm_srvs::DetectRope srv;
             
             // Get object name from input port
             if (!getInput("object_name", srv.request.object_name)) {
-                ROS_ERROR("DetectObject: Missing object_name input.");
+                ROS_ERROR("DetectRope: Missing object_name input.");
                 return BT::NodeStatus::FAILURE;
             }
     
@@ -313,7 +314,7 @@ int main(int argc, char** argv) {
 
     BT::BehaviorTreeFactory factory;
 
-    factory.registerNodeType<DetectObjectAction>("DetectObject");
+    factory.registerNodeType<DetectRopeAction>("DetectRope");
     factory.registerNodeType<GripperAction>("GripperAction");
     factory.registerNodeType<HandoverAction>("HandoverAction");
 

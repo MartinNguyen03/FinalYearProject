@@ -14,6 +14,7 @@ add_service_files(
   ExecuteBehavior.srv
   AtomicAction/DetectRope.srv
   AtomicAction/DetectTarget.srv
+  AtomicAction/ObserveScene.srv
   AtomicAction/Gripper.srv
   AtomicAction/HandOver.srv
   AtomicAction/InsertObject.srv

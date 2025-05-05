@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(yumi_ctrl)
+project(yumi_vsn)
 
 find_package(catkin REQUIRED COMPONENTS
 	std_msgs
