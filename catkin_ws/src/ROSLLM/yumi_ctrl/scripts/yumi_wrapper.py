@@ -22,10 +22,10 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion, dec
 
 class YumiWrapper(YumiCtrl):
 
-    def __init__(self, auto_execution, workspace, vel_scale=1.0, gp_opening=0, table_offset=0, grasp_states=None, grasp_states2=None, observe_states=None):
+    def __init__(self, rope_dict, auto_execution, workspace, vel_scale=1.0, gp_opening=0, table_offset=0, grasp_states=None, grasp_states2=None, observe_states=None):
         # super().__init__(auto_execution)
         super().__init__(auto_execution, logger='sl_logs')
-
+        self.rope_dict = rope_dict
         # initialise the parameters
         self.auto_execution = auto_execution
         self.vel_scale = vel_scale
@@ -51,7 +51,6 @@ class YumiWrapper(YumiCtrl):
         # start initialisation
         # self.in_left_arm = None
         # self.in_right_arm = None
-        self.aglet_at = {"aglet_a":"site_l1", "aglet_b":"site_r1"}
         self.sl_constraint_a = Constraints()
         self.sl_constraint_b = Constraints()
         self.add_collision_objs(workspace)
@@ -415,8 +414,9 @@ class YumiWrapper(YumiCtrl):
         #     constraint = self.sl_constraint_b
         # else:
         #     return
+        
         gripper = 'left_gripper' if group==self.left_arm_group else 'right_gripper'
-        if self.aglet_at['aglet_a'] == gripper:
+        if self.rope_dict['aglet_a'] == gripper:
             constraint = self.sl_constraint_a
         elif self.aglet_at['aglet_b'] == gripper:
             constraint = self.sl_constraint_b

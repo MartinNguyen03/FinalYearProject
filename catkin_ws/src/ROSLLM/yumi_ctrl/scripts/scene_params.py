@@ -15,18 +15,16 @@ class SceneParameters:
         def __init__(self, rope_name, marker_a, marker_b):
             self.name = rope_name
             self.priority = 0
-            self.marker_a_colour = marker_a
-            self.marker_b_colour = marker_b
             self.marker_dict = {
                 'marker_a': {
                     'colour': marker_a,
                     'pose': [0,0,0,0,0,0],
-                    'marker_at': 'site_l1'
+                    'marker_at': None
                 },
                 'marker_b': {
                     'colour': marker_b,
                     'pose': [0,0,0,0,0,0],
-                    'marker_at': 'site_r1'
+                    'marker_at': None
                 }
                 
             }
@@ -35,8 +33,7 @@ class SceneParameters:
             self.mask = None
             self.target_l = None
             self.target_r = None
-            self.curr_target_l = None       
-            self.curr_target_r = None
+  
                       
                       
         def updateTarget(self, target_l, target_r):
@@ -48,7 +45,7 @@ class SceneParameters:
         
     vel_scale = 2.5
 
-    sites_dict = {"site_l1":0, "site_r1":1, "site_l2":2, "site_r2":3, "site_l3":4, "site_r3":5, 'left_gripper':6, 'right_gripper':7}
+    sites_dict = {"site_ul": 0, "site_ur": 1, "site_ll": 2, "site_lr": 3, "target_l1":4, "target_r1":5, "target_l2":6, "target_r2":7, "target_l3":8, "target_r3":9, 'left_gripper':10, 'right_gripper':11}
     gripper_dict = {'left_gripper':0, 'right_gripper':1}
     rope_dict = {
         'rope_r': Rope('rope_r', 'gray', 'cyan'),

@@ -76,7 +76,6 @@ class dloVision:
             self.target_l_colour = None
             self.target_r_colour = None
             self.curr_target_l_colour = None       
-            self.target_r_colour = target_r_colour
             self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
                       
         def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
@@ -384,8 +383,8 @@ class dloVision:
                         self.marker_pub_b.publish(target)
                 marker_poses[marker] = target
                 
-        response.marker_a = marker_poses["marker_a"]
-        response.marker_b = marker_poses["marker_b"]
+        response.marker_a_pose = marker_poses["marker_a"]
+        response.marker_b_pose = marker_poses["marker_b"]
         if marker_poses["marker_a"] is None:
             rospy.logerr("No marker_a detected!")
             response.success = False
@@ -422,7 +421,8 @@ class dloVision:
                     quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
                 target_pose.orientation = Quaternion(*quaternion)   
                 target.poses.append(target_pose)
-            response.target = target
+            response.success = True
+            response.target_poses = target
             conf_msg = Float64MultiArray()
             conf_msg.data = confidence
             response.confidence = conf_msg
@@ -451,15 +451,16 @@ class dloVision:
                     # quaternion = [roll, pitch, yaw, 0]
                 target_pose.orientation = Quaternion(*quaternion)
                 target.poses.append(target_pose)
-            response.target = target
+                
+            response.target_poses = target
             conf_msg = Float64MultiArray()
             conf_msg.data = confidence
             response.confidence = conf_msg
             if self.debug:
                 self.target_pub.publish(target) 
-                
-            self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
-            return response
+            
+        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+        return response
                      
 
     

@@ -25,12 +25,9 @@ class ScenePrimitives:
     target_srv = 'find_targets'
     rope_srv = 'find_ropes'
     scene_srv = 'observe_scene'
-    log_topic = 'sl_logs'
-    rope_r_topic = 'rope_r'
-    rope_b_topic = 'rope_b'
-    rope_g_topic = 'rope_g'
-    marker_owner_topic = 'marker_owner'
-    marker_pose_topic = 'marker_pose'
+    log_topic = 'scene_logs'
+    rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
+    marker_ids_topic = ['marker_a', 'marker_b']
     hand_pose_topic = 'hand_pose'
     target_pose_topic = 'target_pose'
     cursor_topic = 'cursor'
@@ -38,13 +35,31 @@ class ScenePrimitives:
     def __init__(self, auto_execution, reset=True, start_id=0, sim=False):
         # ros related initialisation
         self.logs_pub = rospy.Publisher(self.log_topic, String, queue_size=1)
-        self.marker_owner_pub = rospy.Publisher(self.marker_owner_topic, Int32MultiArray, queue_size=1)
-        self.marker_pose_pub = rospy.Publisher(self.marker_pose_topic, PoseArray, queue_size=1)
+        
+        # Initialise nested dictionary for rope → marker → topic publishers
+        self.marker_owner_pubs = {}
+        self.marker_pose_pubs = {}
+
+        for rope in self.rope_names_topic:
+            self.marker_owner_pubs[rope] = {}
+            self.marker_pose_pubs[rope] = {}
+
+            for marker in self.marker_ids:
+                base_topic = f"{rope}/{marker}"
+
+                owner_topic = f"{base_topic}/marker_owner"
+                pose_topic = f"{base_topic}/marker_pose"
+
+                self.marker_owner_pubs[rope][marker] = rospy.Publisher(owner_topic, Int32MultiArray, queue_size=1)
+                self.marker_pose_pubs[rope][marker] = rospy.Publisher(pose_topic, PoseArray, queue_size=1)
+                
+                
+        
         self.target_pose_pub = rospy.Publisher(self.target_pose_topic, PoseArray, queue_size=1)
         self.hand_pose_pub = rospy.Publisher(self.hand_pose_topic, PoseArray, queue_size=1)
         self.cursor_pub = rospy.Publisher(self.cursor_topic, Int32MultiArray, queue_size=1)
         self.tf_listener = tf.TransformListener()
-        self.find_ropes = rospy.ServiceProxy(self.rope_srv, DetectRope)
+        self.find_rope = rospy.ServiceProxy(self.rope_srv, DetectRope)
         rospy.wait_for_service(self.rope_srv)
         self.find_targets = rospy.ServiceProxy(self.target_srv, DetectTarget)
         rospy.wait_for_service(self.target_srv)
@@ -64,7 +79,7 @@ class ScenePrimitives:
 
 
        
-        self.yumi = YumiWrapper(auto_execution,
+        self.yumi = YumiWrapper(auto_execution, rope_dict=self.pm.rope_dict,
             workspace=self.pm.workspace,
             vel_scale=self.pm.vel_scale,
             gp_opening=self.pm.marker_thickness*1000*2, # to mm
@@ -75,7 +90,7 @@ class ScenePrimitives:
 
         # scan the shoe
         self.pm.update_yumi_constriants = self.yumi.update_sl_constriants
-        self.init_eyelet_poses()
+        self.init_target_poses()
         
         rospy.loginfo('Execution module ready.')
 
@@ -89,12 +104,12 @@ class ScenePrimitives:
         while not rospy.is_shutdown():
             rope_ = self.pm.rope_dict[rope]
             try:
-                if 'left_gripper' in self.pm.aglet_at.values():
+                if 'left_gripper' in self.pm.marker_at.values():
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_l, rospy.Time(0))
                     self.pub_hand_poses('left_gripper', trans+rot)
                     pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_l_to_aglet)
-                    aglet = self.get_aglet_at('left_gripper')
-                    self.pub_aglet_pose(aglet, pose)
+                    rope_name, marker = self.get_marker_at('left_gripper')
+                    self.pub_aglet_pose(marker, pose)
                 elif 'right_gripper' in self.pm.aglet_at.values():
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_r, rospy.Time(0))
                     self.pub_hand_poses('right_gripper', trans+rot)
@@ -113,12 +128,12 @@ class ScenePrimitives:
         # interpret the action
         if 'left_insert' in action[0]:
             reset = False if next_action is not None and next_action[0][:4]=='left' else True
-            self.left_lace('eyelets_b', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
-                                     sl_cost=sl_cost+self.pm.eyelet_to_edge, reset=reset, site=action[-1])
+            self.left_lace('targets_l', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
+                                     sl_cost=sl_cost+self.pm.target_to_edge, reset=reset, site=action[-1])
         elif 'right_insert' in action[0]:
             reset = False if next_action is not None and next_action[0][:5]=='right' else True
-            self.right_lace('eyelets_r', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
-                                       sl_cost=sl_cost+self.pm.eyelet_to_edge, reset=reset, site=action[-1])
+            self.right_lace('targets_r', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
+                                       sl_cost=sl_cost+self.pm.target_to_edge, reset=reset, site=action[-1])
         elif action[0] == 'right_to_left_transfer':
             reset = False if next_action is not None and next_action[0][:4]=='left' else True
             self.right_to_left(action[1], reset=reset, site=action[-1])
@@ -132,10 +147,10 @@ class ScenePrimitives:
         else:
             print('Unrecogised primitive name ({})!'.format(action[0]))
 
-    def right_pick(self, aglet, fine_ori=True):
+    def right_pick(self, rope, marker, fine_ori=True):
         """ pick up the aglet with the right gripper """
         # calc pick poses
-        target, yaw = self.get_aglet_poses(aglet)
+        target, yaw = self.get_rope_poses(rope, marker)
         pick_pos = [target[0], target[1], target[2]+self.pm.gp_os]
         pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
         pick_rot = self.pm.grasp_rot_r
@@ -460,217 +475,7 @@ class ScenePrimitives:
         self.yumi.left_go_thro(waypoints,"Stretch Forward Retract")
         self.yumi.change_speed(1)
 
-    def right_lace(self, eyelet_group, eyelet_id, aglet, sl_cost=0, reset=True, site='site_r1'):
-        """
-        This primitive laces eyelets on the right eyestay, inserts aglet from the right side
-        Process: right pick, left to grasp, right insert, right retract, left retract, left place
-        """
-
-        ''' PICKING '''
-        self.right_pick(aglet)
-
-        ''' locate the eyelet '''
-        # make observations
-        self.get_eyelet_poses(eyelet_group, target_id=eyelet_id//2, fine=False, 
-                              compare_with=self.pm.eyelet_poses[self.pm.right_cursor])
-        e_pos_relax = self.pm.eyelet_poses[eyelet_id][:3]
-
-        ''' prepare to grasp '''
-        # calc grasp poses
-        grasp_pitch = self.pm.insert_pitch2
-        grasp_rot = self.yumi.ee_rot_to_tip_l([0, pi/2+grasp_pitch, -pi])
-        grasp_pos = ls_add(e_pos_relax, [-self.pm.eyelet_radius*cos(grasp_pitch),
-                                         self.pm.eyestay_thickness,
-                                         -self.pm.eyelet_radius*sin(grasp_pitch)])
-        grasp_pos_approach = ls_add(e_pos_relax, [self.pm.eyelet_to_edge*cos(grasp_pitch),
-                                                  self.pm.eyestay_opening/2+self.pm.eyestay_thickness,
-                                                  self.pm.eyelet_to_edge*sin(grasp_pitch)])
-        grasp_pos_approach2 = ls_add(grasp_pos, [0, self.pm.eyestay_opening/2, 0])
-
-        # prepare to grasp
-        self.yumi.left_go_thro([ls_concat(self.pm.pre_grasp, self.pm.grasp_rot_r)], "Lace Grasp Prepare")
-        self.yumi.wait_for_side_thread()
-        self.yumi.left_tip_go_thro([ls_concat(grasp_pos_approach, grasp_rot)], "Lace Grasp Approach")
-        self.yumi.open_left_gripper(full=2)
-        self.yumi.change_speed(0.5)
-        waypoints = [ls_concat(grasp_pos_approach2, grasp_rot),
-                     ls_concat(grasp_pos, grasp_rot)]
-        self.yumi.left_tip_go_thro(waypoints, "Lace Grasp")
-
-        ''' locate the eyelet '''
-        # correct the previous estimation again
-        self.get_eyelet_poses(eyelet_group, target_id=eyelet_id//2, init=False, fine=True,
-                              compare_with=e_pos_relax)
-        eyelet_pos = self.pm.eyelet_poses[eyelet_id][:3]
-            
-        ''' insert the aglet '''
-        # reset right arm
-        self.yumi.right_go_grasp2()
-        # calc insert poses
-        insert_pitch = grasp_pitch-pi/8 # minus gripper cam mount angle
-        e_pose = compose_matrix(translate=eyelet_pos, angles=[0, 0, pi/2]) # eyelet rotation too noisy
-        insert_pose = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.eyestay_thickness/2,0,0,
-                                                  -insert_pitch, 0, 0]))
-        insert_pose_approach = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.app_os*2,0,0,
-                                                           -insert_pitch, 0, 0]))
-        retract_pos_rel = [0, self.pm.app_os*(cos(insert_pitch)+1), self.pm.app_os*sin(insert_pitch)]
-        insert_pose_retract = tf_mat2ls(e_pose@tf_ls2mat(retract_pos_rel+[-insert_pitch, 0, 0]))
-        insert_pose_retract2 = tf_mat2ls(e_pose@tf_ls2mat(ls_add(retract_pos_rel, [-self.pm.app_os*2, 0, 0])+
-                                                          [-insert_pitch, 0, 0]))
-        # adjust the gripper angle for the insertion
-        self.yumi.right_go_thro([self.pm.pre_insert_r+[0, pi-insert_pitch, 0]], "Lace Insert Prepare")
-        # insert with the right gripper
-        self.yumi.right_tip_go_thro([insert_pose_approach, insert_pose], "Lace Insert", velocity_scaling=1.5)
-        self.yumi.close_left_gripper()
-        self.yumi.open_right_gripper()
-        self.update_aglet_ownership(aglet, 'left_gripper')
-        # retract the left gripper after the insertion
-        self.yumi.right_tip_go_thro([insert_pose_retract], "Lace Insert Retract")
-        self.yumi.open_right_gripper(full=True)
-
-        ''' grasp and pull '''
-        # calc grasp retract poses
-        retract_pos = ls_add(e_pos_relax, [-self.pm.eyelet_radius*cos(grasp_pitch),
-                                            self.pm.aglet_length+self.pm.gp_tip_w,
-                                           -self.pm.eyelet_radius*sin(grasp_pitch)])
-        retract_pos2 = ls_add(retract_pos, [self.pm.eyelet_radius, 0, 0])
-        retract_pos3 = ls_add(retract_pos, [self.pm.eyelet_radius, 0, self.pm.app_os*2])
-        retract_pos4 = ls_add(self.pm.hand_over_centre, [0, self.pm.app_os*2, 0])
-        stretch_rot = [0,0,pi]
-        ## pull out of the eyelet with the left gripper
-        waypoints = [ls_concat(retract_pos, grasp_rot),
-                     ls_concat(retract_pos2, grasp_rot)]
-        self.yumi.left_tip_go_thro(waypoints, "Lace Grasp Retract")
-        waypoints = [ls_concat(retract_pos3, grasp_rot),
-                     ls_concat(retract_pos4, stretch_rot)]
-        self.yumi.left_tip_go_thro(waypoints, "Lace Grasp Retract 2")
-        self.yumi.right_tip_go_thro([insert_pose_retract2], "Lace Insert Retract 2", main=False)
-        self.yumi.close_right_gripper(main=False)
-
-        # reset left arm
-        self.yumi.left_go_grasp2()
-        self.yumi.change_speed(1)
-        # update parameters
-        self.pm.update_shoelace_length(aglet, -sl_cost)
-        self.pm.update_root_position(aglet, e_pos_relax)
-        self.update_cursor('right', self.pm.right_cursor+2)
-
-        ''' PLACING '''
-        # place the aglet
-        self.left_place(aglet, site=site)
-
-        # reset arms
-        self.yumi.close_right_gripper(main=False)
-        if reset:
-            self.yumi.right_go_observe()
-        self.yumi.wait_for_side_thread()
-
-    def left_lace(self, eyelet_group, eyelet_id, aglet, sl_cost=0, reset=True, site='site_l1'):
-        """
-        This primitive laces eyelets on the left eyestay, inserts aglet from the left side
-        Process: left pick, right to grasp, left insert, left retract, right retract, right place
-        """
-
-        ''' pick the aglet '''
-        self.left_pick(aglet)
-
-        ''' locate the eyelet '''
-        # make observations
-        self.get_eyelet_poses(eyelet_group, target_id=eyelet_id//2, fine=False, 
-                              compare_with=self.pm.eyelet_poses[self.pm.left_cursor])
-        e_pos_relax = self.pm.eyelet_poses[eyelet_id][:3]
-
-        ''' prepare to grasp '''
-        # calc grasp poses
-        grasp_pitch = self.pm.insert_pitch2
-        grasp_rot = self.yumi.ee_rot_to_tip_r([0, pi/2+grasp_pitch, pi])
-        grasp_pos = ls_add(e_pos_relax, [-self.pm.eyelet_radius*cos(grasp_pitch), 
-                                         -self.pm.eyestay_thickness, 
-                                         -self.pm.eyelet_radius*sin(grasp_pitch)])
-        grasp_pos_approach = ls_add(e_pos_relax, [self.pm.eyelet_to_edge*cos(grasp_pitch),
-                                                  -self.pm.eyestay_opening/2-self.pm.eyestay_thickness,
-                                                  self.pm.eyelet_to_edge*sin(grasp_pitch)])
-        grasp_pos_approach2 = ls_add(grasp_pos, [0, -self.pm.eyestay_opening/2, 0])
-
-        # prepare to grasp
-        self.yumi.right_go_thro([ls_concat(self.pm.pre_grasp, self.pm.grasp_rot_l)], "Lace Grasp Prepare")
-        self.yumi.wait_for_side_thread()
-        self.yumi.right_tip_go_thro([ls_concat(grasp_pos_approach, grasp_rot)], "Lace Grasp Approach")
-        self.yumi.open_right_gripper(full=2) # mode 2: half open
-        self.yumi.change_speed(0.5)
-        waypoints=[ls_concat(grasp_pos_approach2, grasp_rot),
-                   ls_concat(grasp_pos, grasp_rot)]
-        self.yumi.right_tip_go_thro(waypoints, "Lace Grasp")
-
-        ''' locate the eyelet '''
-        # correct the previous estimation again
-        self.get_eyelet_poses(eyelet_group, target_id=eyelet_id//2, init=False, fine=True, 
-                              compare_with=e_pos_relax)
-        eyelet_pos = self.pm.eyelet_poses[eyelet_id][:3]
-
-        ''' insert the aglet '''
-        # reset left arm
-        self.yumi.left_go_observe()
-        self.yumi.left_go_grasp2()
-        # calc insert poses
-        insert_pitch = grasp_pitch-pi/8 # minus gripper cam mount angle
-        e_pose = compose_matrix(translate=eyelet_pos, angles=[0, 0, -pi/2]) # eyelet rotation too noisy
-        insert_pose = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.eyestay_thickness/2,0,0, 
-                                                            insert_pitch, 0, 0]))
-        insert_pose_approach = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.app_os*2,0,0, 
-                                                           insert_pitch, 0, 0]))
-        retract_pos_rel = [0, -self.pm.app_os*(cos(insert_pitch)+1), self.pm.app_os*sin(insert_pitch)]
-        insert_pose_retract = tf_mat2ls(e_pose@tf_ls2mat(retract_pos_rel+[insert_pitch, 0, 0]))
-        insert_pose_retract2 = tf_mat2ls(e_pose@tf_ls2mat(ls_add(retract_pos_rel,[-self.pm.app_os*2,0,0])+
-                                                          [insert_pitch, 0, 0]))
-        # adjust the gripper angle for the insertion
-        self.yumi.left_go_thro([ls_concat(self.pm.pre_insert_l, [0, pi-insert_pitch, 0])], "Lace Insert Prepare")
-
-        # insert with the left gripper
-        self.yumi.left_tip_go_thro([insert_pose_approach, insert_pose], "Lace Insert", velocity_scaling=1.5)
-        self.yumi.close_right_gripper()
-        self.yumi.open_left_gripper()
-        self.update_aglet_ownership(aglet, 'right_gripper')
-        # retract the left gripper after the insertion
-        self.yumi.left_tip_go_thro([insert_pose_retract], "Lace Insert Retract")
-        self.yumi.open_left_gripper(full=True)
-
-        ''' grasp and pull '''
-        # calc grasp retract poses
-        retract_pos = ls_add(e_pos_relax, [-self.pm.eyelet_radius*cos(grasp_pitch),
-                                           -self.pm.aglet_length-self.pm.gp_tip_w,
-                                           -self.pm.eyelet_radius*sin(grasp_pitch)])
-        retract_pos2 = ls_add(retract_pos, [self.pm.eyelet_radius, 0, 0])
-        retract_pos3 = ls_add(retract_pos, [self.pm.eyelet_radius, 0, self.pm.app_os*2])
-        retract_pos4 = ls_add(self.pm.hand_over_centre, [0, -self.pm.app_os*2, 0])
-        stretch_rot = [0,0,pi]
-        ## pull out of the eyelet with the right gripper
-        waypoints = [ls_concat(retract_pos, grasp_rot),
-                     ls_concat(retract_pos2, grasp_rot)]
-        self.yumi.right_tip_go_thro(waypoints, "Lace Grasp Retract")
-        waypoints=[ls_concat(retract_pos3,grasp_rot),
-                   ls_concat(retract_pos4,stretch_rot)]
-        self.yumi.right_tip_go_thro(waypoints, "Lace Grasp Retract 2")
-        self.yumi.left_tip_go_thro([insert_pose_retract2], "Lace Insert Retract 2", main=False)
-        self.yumi.close_left_gripper(main=False)
-
-        # reset right arm
-        self.yumi.right_go_grasp2()
-        self.yumi.change_speed(1)
-        # update parameters
-        self.pm.update_shoelace_length(aglet, -sl_cost)
-        self.pm.update_root_position(aglet, e_pos_relax)
-        self.update_cursor('left', self.pm.left_cursor+2)
-
-        ''' place the aglet '''
-        # place the aglet
-        self.right_place(aglet, site=site)
-
-        # reset arms
-        self.yumi.close_left_gripper(main=False)
-        if reset:
-            self.yumi.left_go_observe()
-        self.yumi.wait_for_side_thread()
+    
 
     def right_to_left_handover(self):
         # calc the transfer points
@@ -782,21 +587,21 @@ class ScenePrimitives:
         output: marker_a_pose, marker_b_pose
         '''
         request = DetectRopeRequest()
-        request.rope_name = rope
+        request.rope_colour = rope
         while not rospy.is_shutdown():
             # get the target pose
-            response = self.find_rope(request)
-            if len(response.target.poses) == 0:
+            response = self.observe_scene(request)
+            if len(response.marker_a_pose) == 0 or len(response.marker_b_pose) == 0:
                 if not self.yumi.check_command('Got empty reply. Try again?'):
                     print('Cancelled action. Exiting.')
                     exit()
             else:
                 if self.yumi.check_command('Satisfied with the result?'):
                     break
-        target_poses = []
-        for pose in response.target.poses:
-            target_poses.append(pose_msg_to_list(pose))
-        return target_poses, response.confidence.data
+        self.rope_order = []
+        for rope in response.ropes:
+            self.rope_order.append(rope)
+       
     
     def call_target_srv(self, target_name, camera_name):
         '''
@@ -820,6 +625,27 @@ class ScenePrimitives:
         for pose in response.target.poses:
             target_poses.append(pose_msg_to_list(pose))
         return target_poses, response.confidence.data
+    
+    def call_scene_srv(self):
+        '''
+        input: None
+        output: list of ropes from top to bottom
+        '''
+        request = ObserveSceneRequest()
+        while not rospy.is_shutdown():
+            # get the target pose
+            response = self.find_scene(request)
+            if len(response.target.poses) == 0:
+                if not self.yumi.check_command('Got empty reply. Try again?'):
+                    print('Cancelled action. Exiting.')
+                    exit()
+            else:
+                if self.yumi.check_command('Satisfied with the result?'):
+                    break
+        scene_poses = []
+        for pose in response.target.poses:
+            scene_poses.append(pose_msg_to_list(pose))
+        return scene_poses, response.confidence.data
 
     def pub_hand_poses(self, hand, pose):
         self.pm.hand_poses[self.pm.gripper_dict[hand]] = pose
@@ -847,9 +673,9 @@ class ScenePrimitives:
         poses.header.frame_id = self.yumi.robot_frame
         self.aglet_pose_pub.publish(poses)
 
-    def update_eyelet_poses(self, pose, id):
-        if len(self.pm.eyelet_poses)>id:
-            self.pm.eyelet_poses[id] = pose
+    def update_target_poses(self, pose, id):
+        if len(self.pm.target_poses)>id:
+            self.pm.target_poses[id] = pose
 
     def update_cursor(self, name, id):
         if name=='left':
@@ -861,87 +687,97 @@ class ScenePrimitives:
         else:
             print('Unknown cursor name!')
 
-    def pub_eyelet_poses(self):
+    def pub_target_poses(self):
         poses = PoseArray()
-        for e in self.pm.eyelet_poses:
+        for e in self.pm.target_poses:
             poses.poses.append(list_to_pose_msg(e))
         poses.header.frame_id = self.yumi.robot_frame
-        self.eyelet_pose_pub.publish(poses)
+        self.target_pose_pub.publish(poses)
 
-    def get_aglet_poses(self, aglet):
-        side = self.pm.check_aglet_location(aglet)%2 # 0 for left, 1 for right
+    def get_rope_poses(self, rope, marker):
+        '''
+        input: rope (colour e.g. rope_r, rope_b), marker (marker_a, marker_b)
+        output: marker_pose, yaw
+        '''
+        side = self.pm.check_marker_location(rope, marker)%2 # 0 for left, 1 for right
         if side==0:
             self.yumi.left_go_grasp()
         else:
             self.yumi.right_go_grasp()
         # get the target pose
-        target_poses, _ = self.call_target_srv(aglet, 'l515')
-        # post processing
-        target = target_poses[0]
-        target = ls_add(target, (self.pm.l_l_offset if side==0 else self.pm.l_r_offset)+[0,0,0,0])
-        [_, _, yaw] = euler_from_quaternion(target[3:]) # RPY
-        # publish aglet pose
-        self.pub_aglet_pose(aglet, target)
-        return target, yaw
-
-    def call_vision_eyelet(self, name):
-        # get the position of the eyelet
-        if name == 'eyelets_b':
-            eyelet_poses, confidence = self.call_target_srv(name, 'd435_l')
-        elif name == 'eyelets_r':
-            eyelet_poses, confidence = self.call_target_srv(name, 'd435_r')
+        if marker == 'marker_a':
+            marker_poses, _ = self.call_rope_srv(rope)
+        elif marker == 'marker_b':
+            _, marker_poses = self.call_rope_srv(rope)
         else:
-            print("Unknown eyelet name!")
-        # pose processing
-        eyelets = []
-        for id, eyelet in enumerate(eyelet_poses):
-            eyelet[3:] = list(euler_from_quaternion(eyelet[3:]))
-            if name == 'eyelets_r':
-                eyelet = ls_add(eyelet, self.pm.e_r_offset+[0,0,0])
-            elif name == 'eyelets_b':
-                eyelet = ls_add(eyelet, self.pm.e_l_offset+[0,0,0])
-            if confidence[id]<0.6: # impossible, depth must be wrong
-                eyelet[3:] = [0, pi/24*2, -pi/2] if name=='eyelets_b' else [0, pi/24*2, pi/2]
-            eyelets.append(eyelet)
-        if name == 'eyelets_b' and self.pm.left_cursor==0:
-            eyelets[0][3:] = [0, pi/24*2, -pi/2]
-        return np.array(eyelets), confidence
+            print("Unknown marker name!")
+            return None, None
+        # post processing
+        marker_pose = ls_add(marker_poses[0], (self.pm.l_l_offset if side==0 else self.pm.l_r_offset)+[0,0,0,0])
+        [_, _, yaw] = euler_from_quaternion(marker_pose[3:]) # RPY
+        self.pm.rope_dict[rope].marker_dict[marker]['position'] = marker_pose
+        # publish aglet pose
+        self.pub_marker_pose(rope, marker, marker_pose)
+        return marker, yaw
 
-    def sanity_check_eyelets(self, eyelets, target_id):
-        if any(np.isnan(eyelets[target_id][:3])):
+    def call_vision_target(self, target_name):
+        # get the position of the target
+        if target_name == 'targets_l':
+            target_poses, confidence = self.call_target_srv(target_name, 'd435_l')
+        elif target_name == 'targets_r':
+            target_poses, confidence = self.call_target_srv(target_name, 'd435_r')
+        else:
+            print("Unknown target name!")
+        # pose processing
+        targets = []
+        for id, target in enumerate(target_poses):
+            target[3:] = list(euler_from_quaternion(target[3:]))
+            if target_name == 'targets_r':
+                target = ls_add(target, self.pm.e_r_offset+[0,0,0])
+            elif target_name == 'targets_l':
+                target = ls_add(target, self.pm.e_l_offset+[0,0,0])
+            if confidence[id]<0.6: # impossible, depth must be wrong
+                target[3:] = [0, pi/24*2, -pi/2] if target_name=='targets_l' else [0, pi/24*2, pi/2]
+            targets.append(target)
+        if target_name == 'targets_l' and self.pm.left_cursor==0:
+            targets[0][3:] = [0, pi/24*2, -pi/2]
+        return np.array(targets), confidence
+
+    def sanity_check_targets(self, targets, target_id):
+        if any(np.isnan(targets[target_id][:3])):
             return False
-        if len(eyelets) > 1: # do not test when only one is detected
-            return is_sorted(eyelets[:,0]) and is_sorted(eyelets[:,2]) # x and z should be ascending
+        if len(targets) > 1: # do not test when only one is detected
+            return is_sorted(targets[:,0]) and is_sorted(targets[:,2]) # x and z should be ascending
         else:
             return True
         
-    def get_eyelet_poses(self, name, target_id=0, fine=False, init=True, compare_with=None):
+    def get_target_poses(self, name, target_id=0, fine=False, init=True, compare_with=None):
         ''' 
-            eyelet_id: index in all eyelets
+            target_id: index in all targets
             target_id: index on one side
             return: list of translations and euelr angles 
         '''
         # go to observe pose if first time
-        if name=='eyelets_b' and init:
+        if name=='targets_l' and init:
             self.yumi.left_go_observe()
-        elif name=='eyelets_r' and init:
+        elif name=='targets_r' and init:
             self.yumi.right_go_observe(cartesian=True)
-        eyelet_id = target_id*2 if name == 'eyelets_b' else target_id*2+1
+        target_id = target_id*2 if name == 'targets_l' else target_id*2+1
 
         max_n_tryouts = 10
         rospy.sleep(0.5)
         # sanity check
-        cursor = self.pm.left_cursor if name == 'eyelets_b' else self.pm.right_cursor
-        target_id_visible = 0 if eyelet_id==cursor else target_id
+        cursor = self.pm.left_cursor if name == 'targets_l' else self.pm.right_cursor
+        target_id_visible = 0 if target_id==cursor else target_id
         if self.debug: target_id_visible=target_id
         for _ in range(max_n_tryouts):
-            eyelets, confidence = self.call_vision_eyelet(name)
-            if not self.sanity_check_eyelets(eyelets, target_id_visible): # x and z should be ascending
+            targets, confidence = self.call_vision_target(name)
+            if not self.sanity_check_targets(targets, target_id_visible): # x and z should be ascending
                 print('Result pose list does not seem to be correct. Retrying ...')
                 rospy.sleep(0.1)
                 continue
             elif compare_with is not None:
-                if distance.euclidean(compare_with[:3], eyelets[target_id_visible][:3])<=0.01 or self.sim:
+                if distance.euclidean(compare_with[:3], targets[target_id_visible][:3])<=0.01 or self.sim:
                     break
                 else:
                     print('Camera depth faulty.')
@@ -950,56 +786,59 @@ class ScenePrimitives:
                 break
 
         # check confidence and adjust observing position
-        if fine and confidence[target_id_visible]<0.90: # first eyelet confidence low
-            print('Start Active Observation for eyelet at {} with confidence {}!\
-                  '.format(eyelets[target_id_visible], confidence[target_id_visible]))
-            arm = 'left' if name=='eyelets_b' else 'right'
-            base_to_eyelet = compose_matrix(translate=eyelets[target_id_visible][:3], angles=eyelets[target_id_visible][3:])
+        if fine and confidence[target_id_visible]<0.90: # first target confidence low
+            print('Start Active Observation for target at {} with confidence {}!\
+                  '.format(targets[target_id_visible], confidence[target_id_visible]))
+            arm = 'left' if name=='targets_l' else 'right'
+            base_to_target = compose_matrix(translate=targets[target_id_visible][:3], angles=targets[target_id_visible][3:])
 
             image_offset = [-0.17, -0.03, -0.05, 0, -pi/2, 0] if arm=='left' else [-0.17, -0.03, -0.05, 0, -pi/2, 0]
-            waypoints = [tf_mat2ls(base_to_eyelet@tf_ls2mat(image_offset))] # align eyelet to image centre
+            waypoints = [tf_mat2ls(base_to_target@tf_ls2mat(image_offset))] # align target to image centre
             self.yumi.tip_go_thro(arm, waypoints, "Active Observe")
             rospy.sleep(0.5) # wait for auto white balance
-            eyelets = self.get_eyelet_poses(name,target_id=target_id,init=False)
+            targets = self.get_target_poses(name,target_id=target_id,init=False)
         else:
-            print('Target eyelet: {}, confidence {}'.format(eyelets[target_id_visible], confidence[target_id_visible]))
-        self.update_eyelet_poses(eyelets[target_id_visible], eyelet_id)
-        self.pub_eyelet_poses()
-        return eyelets
+            print('Target target: {}, confidence {}'.format(targets[target_id_visible], confidence[target_id_visible]))
+        self.update_target_poses(targets[target_id_visible], target_id)
+        self.pub_target_poses()
+        return targets
 
-    def update_aglet_ownership(self, aglet, site):
-        self.pm.aglet_at[aglet] = site
-        self.yumi.aglet_at[aglet] = site
+    def update_marker_ownership(self, rope, marker, site):
+        self.pm.rope_dict[rope].marker_dict['marker_at'] = site
+        self.yumi.marker_at[marker] = site
         owner_msg = Int32MultiArray()
         owner_msg.data = [self.pm.sites_dict[self.pm.aglet_at['aglet_a']]-6, 
                         self.pm.sites_dict[self.pm.aglet_at['aglet_b']]-6] # left 0, right 1
         self.aglet_owner_pub.publish(owner_msg)
 
-    def get_aglet_at(self, site):
-        for a, s in self.pm.aglet_at.items():
-            if s == site: return a
+    def get_marker_at(self, site, mar):
+        for rope_name, rope in self.pm.rope_dict.items():  
+            for marker, s in rope.marker_dict.items():
+                if s['marker_at'] == site: return rope_name, marker
         else:
-            return None
+            return None, None
 
     def add_to_log(self, content):
         self.logs_pub.publish(String(content))
         rospy.sleep(0.5)
 
     def init_target_poses(self):
-        targets_l = self.get_eyelet_poses('targets_l') # left side
-        targets_l = self.get_eyelet_poses('targets_l', target_id=len(targets_l)//2, fine=True) # left side
+        targets_l = self.get_target_poses('targets_l') # left side
+        targets_l = self.get_target_poses('targets_l', target_id=len(targets_l)//2, fine=True) # left side
         self.yumi.left_go_observe()
-        targets_r = self.get_eyelet_poses('eyelets_r') # right side
-        targets_r = self.get_eyelet_poses('eyelets_r', target_id=len(targets_r)//2, fine=True) # right side
+        targets_r = self.get_target_poses('targets_r') # right side
+        targets_r = self.get_target_poses('targets_r', target_id=len(targets_r)//2, fine=True) # right side
         self.yumi.right_go_observe()
-        assert len(targets_l) == len(targets_r), 'Found {} eyelets on the left and {} on the right.\
+        assert len(targets_l) == len(targets_r), 'Found {} targets on the left and {} on the right.\
             '.format(len(targets_l), len(targets_r))
-        self.pm.load_eyelet_poses((targets_l, targets_r))
+        self.pm.load_target_poses((targets_l, targets_r))
 
-        self.pub_eyelet_poses() # publish eyelet poses
+        self.pub_target_poses() # publish target poses
         self.yumi.both_go_grasp()
-        self.get_aglet_poses('aglet_a')
-        self.get_aglet_poses('aglet_b')
+        for rope in self.rope_names_topic:
+            self.get_rope_poses(rope, 'marker_a')
+            self.get_rope_poses(rope, 'marker_b')
+
 
     def stop(self):
         self.yumi.stop()
@@ -1008,3 +847,218 @@ class ScenePrimitives:
 
 if __name__ == "__main__":
     rospy.init_node('sl_ctrl', anonymous=True)
+    
+    
+    # UNSUSED CODE
+    
+    # def right_lace(self, target_group, target_id, aglet, sl_cost=0, reset=True, site='site_r1'):
+    #     """
+    #     This primitive laces targets on the right eyestay, inserts aglet from the right side
+    #     Process: right pick, left to grasp, right insert, right retract, left retract, left place
+    #     """
+
+    #     ''' PICKING '''
+    #     self.right_pick(aglet)
+
+    #     ''' locate the target '''
+    #     # make observations
+    #     self.get_target_poses(target_group, target_id=target_id//2, fine=False, 
+    #                           compare_with=self.pm.target_poses[self.pm.right_cursor])
+    #     e_pos_relax = self.pm.target_poses[target_id][:3]
+
+    #     ''' prepare to grasp '''
+    #     # calc grasp poses
+    #     grasp_pitch = self.pm.insert_pitch2
+    #     grasp_rot = self.yumi.ee_rot_to_tip_l([0, pi/2+grasp_pitch, -pi])
+    #     grasp_pos = ls_add(e_pos_relax, [-self.pm.target_radius*cos(grasp_pitch),
+    #                                      self.pm.eyestay_thickness,
+    #                                      -self.pm.target_radius*sin(grasp_pitch)])
+    #     grasp_pos_approach = ls_add(e_pos_relax, [self.pm.target_to_edge*cos(grasp_pitch),
+    #                                               self.pm.eyestay_opening/2+self.pm.eyestay_thickness,
+    #                                               self.pm.target_to_edge*sin(grasp_pitch)])
+    #     grasp_pos_approach2 = ls_add(grasp_pos, [0, self.pm.eyestay_opening/2, 0])
+
+    #     # prepare to grasp
+    #     self.yumi.left_go_thro([ls_concat(self.pm.pre_grasp, self.pm.grasp_rot_r)], "Lace Grasp Prepare")
+    #     self.yumi.wait_for_side_thread()
+    #     self.yumi.left_tip_go_thro([ls_concat(grasp_pos_approach, grasp_rot)], "Lace Grasp Approach")
+    #     self.yumi.open_left_gripper(full=2)
+    #     self.yumi.change_speed(0.5)
+    #     waypoints = [ls_concat(grasp_pos_approach2, grasp_rot),
+    #                  ls_concat(grasp_pos, grasp_rot)]
+    #     self.yumi.left_tip_go_thro(waypoints, "Lace Grasp")
+
+    #     ''' locate the target '''
+    #     # correct the previous estimation again
+    #     self.get_target_poses(target_group, target_id=target_id//2, init=False, fine=True,
+    #                           compare_with=e_pos_relax)
+    #     target_pos = self.pm.target_poses[target_id][:3]
+            
+    #     ''' insert the aglet '''
+    #     # reset right arm
+    #     self.yumi.right_go_grasp2()
+    #     # calc insert poses
+    #     insert_pitch = grasp_pitch-pi/8 # minus gripper cam mount angle
+    #     e_pose = compose_matrix(translate=target_pos, angles=[0, 0, pi/2]) # target rotation too noisy
+    #     insert_pose = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.eyestay_thickness/2,0,0,
+    #                                               -insert_pitch, 0, 0]))
+    #     insert_pose_approach = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.app_os*2,0,0,
+    #                                                        -insert_pitch, 0, 0]))
+    #     retract_pos_rel = [0, self.pm.app_os*(cos(insert_pitch)+1), self.pm.app_os*sin(insert_pitch)]
+    #     insert_pose_retract = tf_mat2ls(e_pose@tf_ls2mat(retract_pos_rel+[-insert_pitch, 0, 0]))
+    #     insert_pose_retract2 = tf_mat2ls(e_pose@tf_ls2mat(ls_add(retract_pos_rel, [-self.pm.app_os*2, 0, 0])+
+    #                                                       [-insert_pitch, 0, 0]))
+    #     # adjust the gripper angle for the insertion
+    #     self.yumi.right_go_thro([self.pm.pre_insert_r+[0, pi-insert_pitch, 0]], "Lace Insert Prepare")
+    #     # insert with the right gripper
+    #     self.yumi.right_tip_go_thro([insert_pose_approach, insert_pose], "Lace Insert", velocity_scaling=1.5)
+    #     self.yumi.close_left_gripper()
+    #     self.yumi.open_right_gripper()
+    #     self.update_aglet_ownership(aglet, 'left_gripper')
+    #     # retract the left gripper after the insertion
+    #     self.yumi.right_tip_go_thro([insert_pose_retract], "Lace Insert Retract")
+    #     self.yumi.open_right_gripper(full=True)
+
+    #     ''' grasp and pull '''
+    #     # calc grasp retract poses
+    #     retract_pos = ls_add(e_pos_relax, [-self.pm.target_radius*cos(grasp_pitch),
+    #                                         self.pm.aglet_length+self.pm.gp_tip_w,
+    #                                        -self.pm.target_radius*sin(grasp_pitch)])
+    #     retract_pos2 = ls_add(retract_pos, [self.pm.target_radius, 0, 0])
+    #     retract_pos3 = ls_add(retract_pos, [self.pm.target_radius, 0, self.pm.app_os*2])
+    #     retract_pos4 = ls_add(self.pm.hand_over_centre, [0, self.pm.app_os*2, 0])
+    #     stretch_rot = [0,0,pi]
+    #     ## pull out of the target with the left gripper
+    #     waypoints = [ls_concat(retract_pos, grasp_rot),
+    #                  ls_concat(retract_pos2, grasp_rot)]
+    #     self.yumi.left_tip_go_thro(waypoints, "Lace Grasp Retract")
+    #     waypoints = [ls_concat(retract_pos3, grasp_rot),
+    #                  ls_concat(retract_pos4, stretch_rot)]
+    #     self.yumi.left_tip_go_thro(waypoints, "Lace Grasp Retract 2")
+    #     self.yumi.right_tip_go_thro([insert_pose_retract2], "Lace Insert Retract 2", main=False)
+    #     self.yumi.close_right_gripper(main=False)
+
+    #     # reset left arm
+    #     self.yumi.left_go_grasp2()
+    #     self.yumi.change_speed(1)
+    #     # update parameters
+    #     self.pm.update_shoelace_length(aglet, -sl_cost)
+    #     self.pm.update_root_position(aglet, e_pos_relax)
+    #     self.update_cursor('right', self.pm.right_cursor+2)
+
+    #     ''' PLACING '''
+    #     # place the aglet
+    #     self.left_place(aglet, site=site)
+
+    #     # reset arms
+    #     self.yumi.close_right_gripper(main=False)
+    #     if reset:
+    #         self.yumi.right_go_observe()
+    #     self.yumi.wait_for_side_thread()
+
+    # def left_lace(self, target_group, target_id, aglet, sl_cost=0, reset=True, site='site_l1'):
+    #     """
+    #     This primitive laces targets on the left eyestay, inserts aglet from the left side
+    #     Process: left pick, right to grasp, left insert, left retract, right retract, right place
+    #     """
+
+    #     ''' pick the aglet '''
+    #     self.left_pick(aglet)
+
+    #     ''' locate the target '''
+    #     # make observations
+    #     self.get_target_poses(target_group, target_id=target_id//2, fine=False, 
+    #                           compare_with=self.pm.target_poses[self.pm.left_cursor])
+    #     e_pos_relax = self.pm.target_poses[target_id][:3]
+
+    #     ''' prepare to grasp '''
+    #     # calc grasp poses
+    #     grasp_pitch = self.pm.insert_pitch2
+    #     grasp_rot = self.yumi.ee_rot_to_tip_r([0, pi/2+grasp_pitch, pi])
+    #     grasp_pos = ls_add(e_pos_relax, [-self.pm.target_radius*cos(grasp_pitch), 
+    #                                      -self.pm.eyestay_thickness, 
+    #                                      -self.pm.target_radius*sin(grasp_pitch)])
+    #     grasp_pos_approach = ls_add(e_pos_relax, [self.pm.target_to_edge*cos(grasp_pitch),
+    #                                               -self.pm.eyestay_opening/2-self.pm.eyestay_thickness,
+    #                                               self.pm.target_to_edge*sin(grasp_pitch)])
+    #     grasp_pos_approach2 = ls_add(grasp_pos, [0, -self.pm.eyestay_opening/2, 0])
+
+    #     # prepare to grasp
+    #     self.yumi.right_go_thro([ls_concat(self.pm.pre_grasp, self.pm.grasp_rot_l)], "Lace Grasp Prepare")
+    #     self.yumi.wait_for_side_thread()
+    #     self.yumi.right_tip_go_thro([ls_concat(grasp_pos_approach, grasp_rot)], "Lace Grasp Approach")
+    #     self.yumi.open_right_gripper(full=2) # mode 2: half open
+    #     self.yumi.change_speed(0.5)
+    #     waypoints=[ls_concat(grasp_pos_approach2, grasp_rot),
+    #                ls_concat(grasp_pos, grasp_rot)]
+    #     self.yumi.right_tip_go_thro(waypoints, "Lace Grasp")
+
+    #     ''' locate the target '''
+    #     # correct the previous estimation again
+    #     self.get_target_poses(target_group, target_id=target_id//2, init=False, fine=True, 
+    #                           compare_with=e_pos_relax)
+    #     target_pos = self.pm.target_poses[target_id][:3]
+
+    #     ''' insert the aglet '''
+    #     # reset left arm
+    #     self.yumi.left_go_observe()
+    #     self.yumi.left_go_grasp2()
+    #     # calc insert poses
+    #     insert_pitch = grasp_pitch-pi/8 # minus gripper cam mount angle
+    #     e_pose = compose_matrix(translate=target_pos, angles=[0, 0, -pi/2]) # target rotation too noisy
+    #     insert_pose = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.eyestay_thickness/2,0,0, 
+    #                                                         insert_pitch, 0, 0]))
+    #     insert_pose_approach = tf_mat2ls(e_pose@tf_ls2mat([-self.pm.app_os*2,0,0, 
+    #                                                        insert_pitch, 0, 0]))
+    #     retract_pos_rel = [0, -self.pm.app_os*(cos(insert_pitch)+1), self.pm.app_os*sin(insert_pitch)]
+    #     insert_pose_retract = tf_mat2ls(e_pose@tf_ls2mat(retract_pos_rel+[insert_pitch, 0, 0]))
+    #     insert_pose_retract2 = tf_mat2ls(e_pose@tf_ls2mat(ls_add(retract_pos_rel,[-self.pm.app_os*2,0,0])+
+    #                                                       [insert_pitch, 0, 0]))
+    #     # adjust the gripper angle for the insertion
+    #     self.yumi.left_go_thro([ls_concat(self.pm.pre_insert_l, [0, pi-insert_pitch, 0])], "Lace Insert Prepare")
+
+    #     # insert with the left gripper
+    #     self.yumi.left_tip_go_thro([insert_pose_approach, insert_pose], "Lace Insert", velocity_scaling=1.5)
+    #     self.yumi.close_right_gripper()
+    #     self.yumi.open_left_gripper()
+    #     self.update_aglet_ownership(aglet, 'right_gripper')
+    #     # retract the left gripper after the insertion
+    #     self.yumi.left_tip_go_thro([insert_pose_retract], "Lace Insert Retract")
+    #     self.yumi.open_left_gripper(full=True)
+
+    #     ''' grasp and pull '''
+    #     # calc grasp retract poses
+    #     retract_pos = ls_add(e_pos_relax, [-self.pm.target_radius*cos(grasp_pitch),
+    #                                        -self.pm.aglet_length-self.pm.gp_tip_w,
+    #                                        -self.pm.target_radius*sin(grasp_pitch)])
+    #     retract_pos2 = ls_add(retract_pos, [self.pm.target_radius, 0, 0])
+    #     retract_pos3 = ls_add(retract_pos, [self.pm.target_radius, 0, self.pm.app_os*2])
+    #     retract_pos4 = ls_add(self.pm.hand_over_centre, [0, -self.pm.app_os*2, 0])
+    #     stretch_rot = [0,0,pi]
+    #     ## pull out of the target with the right gripper
+    #     waypoints = [ls_concat(retract_pos, grasp_rot),
+    #                  ls_concat(retract_pos2, grasp_rot)]
+    #     self.yumi.right_tip_go_thro(waypoints, "Lace Grasp Retract")
+    #     waypoints=[ls_concat(retract_pos3,grasp_rot),
+    #                ls_concat(retract_pos4,stretch_rot)]
+    #     self.yumi.right_tip_go_thro(waypoints, "Lace Grasp Retract 2")
+    #     self.yumi.left_tip_go_thro([insert_pose_retract2], "Lace Insert Retract 2", main=False)
+    #     self.yumi.close_left_gripper(main=False)
+
+    #     # reset right arm
+    #     self.yumi.right_go_grasp2()
+    #     self.yumi.change_speed(1)
+    #     # update parameters
+    #     self.pm.update_shoelace_length(aglet, -sl_cost)
+    #     self.pm.update_root_position(aglet, e_pos_relax)
+    #     self.update_cursor('left', self.pm.left_cursor+2)
+
+    #     ''' place the aglet '''
+    #     # place the aglet
+    #     self.right_place(aglet, site=site)
+
+    #     # reset arms
+    #     self.yumi.close_left_gripper(main=False)
+    #     if reset:
+    #         self.yumi.left_go_observe()
+    #     self.yumi.wait_for_side_thread()
