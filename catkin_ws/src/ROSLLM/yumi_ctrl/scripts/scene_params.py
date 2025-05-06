@@ -103,6 +103,7 @@ class SceneParameters:
 
     
 
+    
     def update_section_availability(self, rope, marker, section):
         if rope == 'rope_r':
             rope_id = 0

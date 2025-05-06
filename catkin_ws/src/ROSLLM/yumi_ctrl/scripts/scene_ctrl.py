@@ -99,27 +99,36 @@ class ScenePrimitives:
         self.side_thread = threading.Thread(target=self.tf_thread_func, daemon=True)
         self.side_thread.start()
 
-    def tf_thread_func(self, rope):
+    def tf_thread_func(self):
         rate = rospy.Rate(10.0)
         while not rospy.is_shutdown():
-            rope_ = self.pm.rope_dict[rope]
             try:
-                if 'left_gripper' in self.pm.marker_at.values():
+                
+                if self.get_marker_at('left_gripper') is not None:
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_l, rospy.Time(0))
                     self.pub_hand_poses('left_gripper', trans+rot)
                     pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_l_to_aglet)
-                    rope_name, marker = self.get_marker_at('left_gripper')
-                    self.pub_aglet_pose(marker, pose)
-                elif 'right_gripper' in self.pm.aglet_at.values():
+                    rope, marker = self.get_marker_at('left_gripper')
+                    self.pub_marker_pose(marker, pose)
+                elif self.get_marker_at('right_gripper') is not None:
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_r, rospy.Time(0))
                     self.pub_hand_poses('right_gripper', trans+rot)
                     pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_r_to_aglet)
-                    aglet = self.get_aglet_at('right_gripper')
-                    self.pub_aglet_pose(aglet, pose)
+                    rope, marker = self.get_marker_at('right_gripper')
+                    self.pub_marker_pose(rope, marker, pose)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
             rate.sleep()
 
+    def check_gripper_with_marker(self, gripper):
+        for rope in self.pm.rope_dict.values():
+            for marker in rope.marker_dict.items():
+                if marker['marker_at'] == gripper:
+                    return True
+        return False
+                
+                
+                
     def execute(self, action, next_action, sl_cost):
         '''
         pick: gripper aglet site
@@ -169,7 +178,7 @@ class ScenePrimitives:
         self.yumi.right_go_thro(waypoints,"Pick")
         self.yumi.close_right_gripper()
 
-        self.update_aglet_ownership(aglet, 'right_gripper')
+        self.update_marker_ownership(rope, marker, 'right_gripper')
 
         # retreat after pick
         waypoints = []
@@ -178,7 +187,7 @@ class ScenePrimitives:
         self.yumi.add_table()
 
         # set section flags
-        self.pm.update_section_availability(aglet, None)
+        self.pm.update_section_availability(rope, marker, None)
 
         if fine_ori:
             self.right_refine_orientation()
@@ -671,7 +680,7 @@ class ScenePrimitives:
         for a in marker_['position'].values():
             poses.poses.append(list_to_pose_msg(a))
         poses.header.frame_id = self.yumi.robot_frame
-        self.aglet_pose_pub.publish(poses)
+        self.marker_pose_pubs[rope][marker].publish(poses)
 
     def update_target_poses(self, pose, id):
         if len(self.pm.target_poses)>id:
@@ -802,7 +811,10 @@ class ScenePrimitives:
         self.update_target_poses(targets[target_id_visible], target_id)
         self.pub_target_poses()
         return targets
-
+    
+    def get_scene_poses(self):
+        ropes = self.call_scene_srv()
+        
     def update_marker_ownership(self, rope, marker, site):
         self.pm.rope_dict[rope].marker_dict['marker_at'] = site
         self.yumi.marker_at[marker] = site
@@ -811,12 +823,15 @@ class ScenePrimitives:
                         self.pm.sites_dict[self.pm.aglet_at['aglet_b']]-6] # left 0, right 1
         self.aglet_owner_pub.publish(owner_msg)
 
-    def get_marker_at(self, site, mar):
+    def get_marker_at(self, site):
+        '''
+        input:
+        output: rope_name, marker 
+        '''
         for rope_name, rope in self.pm.rope_dict.items():  
             for marker, s in rope.marker_dict.items():
                 if s['marker_at'] == site: return rope_name, marker
-        else:
-            return None, None
+        return None
 
     def add_to_log(self, content):
         self.logs_pub.publish(String(content))
@@ -835,11 +850,15 @@ class ScenePrimitives:
 
         self.pub_target_poses() # publish target poses
         self.yumi.both_go_grasp()
+        
+        
         for rope in self.rope_names_topic:
             self.get_rope_poses(rope, 'marker_a')
             self.get_rope_poses(rope, 'marker_b')
 
-
+        self.get_scene_poses()
+        
+        
     def stop(self):
         self.yumi.stop()
         self.pm.save_params()
