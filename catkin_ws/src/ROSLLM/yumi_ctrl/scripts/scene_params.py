@@ -45,7 +45,7 @@ class SceneParameters:
         
     vel_scale = 2.5
 
-    sites_dict = {"site_ul": 0, "site_ur": 1, "site_ll": 2, "site_lr": 3, "target_l1":4, "target_r1":5, "target_l2":6, "target_r2":7, "target_l3":8, "target_r3":9, 'left_gripper':10, 'right_gripper':11}
+    sites_dict = {"site_uu": 0, "site_ul": 1, "site_ur": 2, "site_dd": 3, "site_dl": 3, "site_dr": 4, "target_l1":5, "target_l2":6, "target_l3":7, "target_r1": 8, "target_r2":9,"target_r3":10, 'left_gripper':11, 'right_gripper':12}
     gripper_dict = {'left_gripper':0, 'right_gripper':1}
     rope_dict = {
         'rope_r': Rope('rope_r', 'gray', 'cyan'),
@@ -126,7 +126,7 @@ class SceneParameters:
             section_id = self.sites_dict[section]
             self.sites_availabilty[section_id, ((rope_id * 2) + marker_id)] = 1
 
-    def check_section_availability(self, section):
+    def check_site_availability(self, site):
         """
         Return true if available, false if not
         """
@@ -183,7 +183,7 @@ class SceneParameters:
             print('Unknown aglet!')
         self.add_to_log('[Root update] '+marker+', '+str(position))
 
-    def get_shoelace_length(self, marker):
+    def get_shoelace_length(self, rope, marker):
         if marker == 'marker_b':
             return self.rope_length_r
         elif marker == 'marker_a':
@@ -239,12 +239,12 @@ class SceneParameters:
         self.hand_over_centre = ls_add(self.scene_centre, [-0.12, 0, -0.07]) # transfer
         self.hand_over_centre_2 = ls_add(self.scene_centre, [-0.05, 0, -0.05]) # adjusting orientation
         table_height = self.table_offset+0.02
-        self.site_l1 = [0.38, 0.21, table_height] # centre of the left section a
-        self.site_r1 = [0.38, -0.21, table_height] # centre of the right section a
-        self.site_l2 = [0.38, 0.16, table_height] # centre of the left section b
-        self.site_r2 = [0.38, -0.16, table_height] # centre of the right section b
-        self.site_l3 = [0.53, 0.13, table_height] # centre of the left section c
-        self.site_r3 = [0.53, -0.13, table_height] # centre of the right section c
+        self.site_dl = [0.38, 0.16, table_height] # centre of the left section a
+        self.site_dd = [0.38, 0, table_height] # centre of the left section a
+        self.site_dr = [0.38, -0.16, table_height] # centre of the right section b
+        self.site_ul = [0.53, 0.13, table_height] # centre of the left section c
+        self.site_ur = [0.53, -0.13, table_height] # centre of the right section c
+        self.site_uu = [0.53, 0, table_height] # centre of the left section d
         self.pre_grasp = ls_add(self.scene_centre, [0, 0, 0.1])
         self.pre_insert_l = [0.3, 0.2, 0.2]
         self.pre_insert_r = [0.3, -0.2, 0.2]
@@ -263,8 +263,8 @@ class SceneParameters:
             self.r_root = None # root of the red lace tip
             self.b_root = None # root of the blue lace tip
             self.sites_availabilty = np.zeros((len(self.sites_dict), len(self.rope_dict) * 2))
-            self.sites_availabilty[0, 0] = 1 # assume red initially at left A
-            self.sites_availabilty[1, 1] = 1 # assume blue initially at right A
+            # self.sites_availabilty[0, 0] = 1 # assume red initially at left A
+            # self.sites_availabilty[1, 1] = 1 # assume blue initially at right A
         else:
             self.eyelet_id = self.dynamic_params["eyelet_id"]
             self.rope_length_r = self.dynamic_params["rope_length_r"]

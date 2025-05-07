@@ -32,7 +32,7 @@ class ScenePrimitives:
     target_pose_topic = 'target_pose'
     cursor_topic = 'cursor'
 
-    def __init__(self, auto_execution, reset=True, start_id=0, sim=False):
+    def __init__(self, auto_execution, reset=True, start_id=0):
         # ros related initialisation
         self.logs_pub = rospy.Publisher(self.log_topic, String, queue_size=1)
         
@@ -67,11 +67,10 @@ class ScenePrimitives:
         rospy.wait_for_service(self.scene_srv)
 
         # load params
-        self.sim = sim
         self.debug = False
         self.pkg_path = rospkg.RosPack().get_path(self.package_name)
         self.pm = SceneParameters(reset=True, start_id=start_id,
-                                           config_path=path.join(self.pkg_path, 'params' if not self.sim else 'params/unity'),
+                                           config_path=path.join(self.pkg_path, 'params'),
                                            result_path=path.join(self.pkg_path, 'results'),
                                            log_handle=self.add_to_log)
         self.update_cursor('left', self.pm.left_cursor)
@@ -118,15 +117,7 @@ class ScenePrimitives:
                     self.pub_marker_pose(rope, marker, pose)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
-            rate.sleep()
-
-    def check_gripper_with_marker(self, gripper):
-        for rope in self.pm.rope_dict.values():
-            for marker in rope.marker_dict.items():
-                if marker['marker_at'] == gripper:
-                    return True
-        return False
-                
+            rate.sleep()                
                 
                 
     def execute(self, action, next_action, sl_cost):
@@ -157,22 +148,22 @@ class ScenePrimitives:
             print('Unrecogised primitive name ({})!'.format(action[0]))
 
     def right_pick(self, rope, marker, fine_ori=True):
-        """ pick up the aglet with the right gripper """
+        """ pick up the marker with the right gripper """
         # calc pick poses
-        target, yaw = self.get_rope_poses(rope, marker)
-        pick_pos = [target[0], target[1], target[2]+self.pm.gp_os]
+        marker_pos, yaw = self.get_rope_poses(rope, marker)
+        pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
         pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
         pick_rot = self.pm.grasp_rot_r
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
 
         self.yumi.remove_table()
-        # approach the aglet
+        # approach the marker
         waypoints = []
         waypoints.append(ls_concat(pick_pos_approach,pick_rot))
         self.yumi.right_go_thro(waypoints,"Pick Approach")
         self.yumi.open_right_gripper()
 
-        # pick the aglet
+        # pick the marker
         waypoints = []
         waypoints.append(ls_concat(pick_pos,pick_rot_fine))
         self.yumi.right_go_thro(waypoints,"Pick")
@@ -192,11 +183,11 @@ class ScenePrimitives:
         if fine_ori:
             self.right_refine_orientation()
 
-    def left_pick(self, aglet, fine_ori=True):
+    def left_pick(self, rope, marker, fine_ori=True):
         """ pick up the aglet with the left gripper """
         # calc pick poses
-        target, yaw = self.get_aglet_poses(aglet)
-        pick_pos = [target[0], target[1], target[2]+self.pm.gp_os]
+        marker_pos, yaw = self.get_rope_poses(rope, marker)
+        pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
         pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
         pick_rot = self.pm.grasp_rot_l
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
@@ -213,7 +204,7 @@ class ScenePrimitives:
         waypoints.append(ls_concat(pick_pos,pick_rot_fine))
         self.yumi.left_go_thro(waypoints,"Pick")
         self.yumi.close_left_gripper()
-        self.update_aglet_ownership(aglet, 'left_gripper')
+        self.update_marker_ownership(rope, marker, 'left_gripper')
 
         # retreat after pick
         waypoints = []
@@ -223,34 +214,41 @@ class ScenePrimitives:
         self.yumi.add_table()
 
         # set section flags
-        self.pm.update_section_availability(aglet, None)
+        self.pm.update_section_availability(rope, marker, None)
 
         if fine_ori:
             self.left_refine_orientation()
 
-    def right_place(self, aglet, site='site_r1'):
+    def right_place(self, rope, marker, site='site_dl'):
         """ place down the aglet with the right gripper"""
 
         # stretch the shoelace
         self.add_to_log("Placing to "+site)
-        if site == 'site_r1':
+        if site == 'site_dr':
             self.yumi.right_go_grasp()
-            section = self.pm.site_r1
-            self.right_stretch_backward(aglet)
+            section = self.pm.site_dr
+            self.right_stretch_backward(rope, marker)
             self.yumi.right_go_grasp()
-        elif site == 'site_r2':
-            section = self.pm.site_r2
-            self.right_stretch_backward(aglet)
+        elif site == 'site_dd':
             self.yumi.right_go_grasp()
-        elif site == 'site_r3':
-            section = self.pm.site_r3
-            self.right_stretch_forward(aglet)
-            self.yumi.right_go_grasp2()
+            section = self.pm.site_dd
+            self.right_stretch_backward(rope, marker)
+            self.yumi.right_go_grasp()
+        elif site == 'site_ur':
+            self.yumi.right_go_grasp()
+            section = self.pm.site_ur
+            self.right_stretch_forward(rope, marker)
+            self.yumi.right_go_grasp()
+        elif site == 'site_uu':
+            self.yumi.right_go_grasp()
+            section = self.pm.site_uu
+            self.right_stretch_forward(rope, marker)
+            self.yumi.right_go_grasp()
         else:
             rospy.logerr("No Section is available for placing!")
             return
 
-        self.pm.update_section_availability(aglet, site)
+        self.pm.update_section_availability(rope, marker, site)
 
         # calc place poses
         place_pos = [section[0], section[1], section[2]+self.pm.gp_os]
@@ -266,58 +264,72 @@ class ScenePrimitives:
         waypoints.append(place_pos+place_rot)
         self.yumi.right_go_thro(waypoints,"Place")
         self.yumi.open_right_gripper(full=True)
-        self.update_aglet_ownership(aglet, site)
+        self.update_marker_ownership(rope, marker, site)
         # retreat after place
         waypoints = []
         waypoints.append(place_pos_approach+place_rot)
         self.yumi.right_go_thro(waypoints,"Place Retract")
         self.yumi.add_table()
 
-    def left_place(self, aglet, site='site_l1'):
-        """ place down the aglet with the right gripper"""
+    def left_place(self, rope, marker, site='site_dd'):
+        """ place down the marker with the right gripper"""
 
         # stretch the shoelace
         self.add_to_log("Placing to "+site)
-        if site == 'site_l1':
+        
+        if site == 'site_dl':
             self.yumi.left_go_grasp()
-            section = self.pm.site_l1
-            self.left_stretch_backward(aglet)
+            section = self.pm.site_dl
+            self.left_stretch_backward(marker)
             self.yumi.left_go_grasp()
-        elif site == 'site_l2':
-            section = self.pm.site_l2
-            self.left_stretch_backward(aglet)
+        elif site == 'site_dd':
             self.yumi.left_go_grasp()
-        elif site == 'site_l3':
-            section = self.pm.site_l3
-            self.left_stretch_forward(aglet)
-            self.yumi.left_go_grasp2()
+            section = self.pm.site_dd
+            self.left_stretch_backward(marker)
+            self.yumi.left_go_grasp()
+        elif site == 'site_ul':
+            self.yumi.left_go_grasp()
+            section = self.pm.site_ul
+            self.left_stretch_forward(marker)
+            self.yumi.left_go_grasp()
+        elif site == 'site_uu':
+            self.yumi.left_go_grasp()
+            section = self.pm.site_uu
+            self.left_stretch_forward(marker)
+            self.yumi.left_go_grasp()
         else:
             rospy.logerr("No Section is available for placing!")
             return
 
-        self.pm.update_section_availability(aglet, site)
+        self.pm.update_section_availability(rope, marker, site)
 
         # calc place poses
         place_pos = [section[0], section[1], section[2]+self.pm.gp_os]
         place_pos_approach = ls_add(place_pos, [0, self.pm.app_os, self.pm.app_os])
         place_rot = self.pm.grasp_rot_l
         self.yumi.remove_table()
-        # approach the aglet
+        # approach the marker
         waypoints = []
         waypoints.append(place_pos_approach+place_rot)
         self.yumi.left_go_thro(waypoints,"Place Approach", eef_step=0.05)
-        # place the aglet
+        # place the marker
         waypoints = []
         waypoints.append(place_pos+place_rot)
         self.yumi.left_go_thro(waypoints,"Place")
         self.yumi.open_left_gripper(full=True)
-        self.update_aglet_ownership(aglet, site)
+        self.update_marker_ownership(marker, site)
         # retreat after place
         waypoints = []
         waypoints.append(place_pos_approach+place_rot)
         self.yumi.left_go_thro(waypoints,"Place Retract")
         self.yumi.add_table()
 
+    def right_insert(self, rope, marker, target=None):
+        return
+    
+    def left_insert(self, rope, marker, target=None):
+        return
+    
     def right_refine_orientation(self):
         # calc transfer poses
         transfer_point_l = ls_add(self.pm.hand_over_centre_2, 
@@ -390,10 +402,10 @@ class ScenePrimitives:
         self.yumi.left_tip_go_thro(waypoints, "Reorient Left Retract")
         self.yumi.wait_for_side_thread()
 
-    def right_stretch_backward(self, aglet):
+    def right_stretch_backward(self, rope, marker):
         self.yumi.change_speed(0.25)
-        sl_length = self.pm.get_shoelace_length(aglet)
-        root = self.pm.get_root_position(aglet)
+        sl_length = self.pm.get_shoelace_length(rope, marker)
+        root = self.pm.get_root_position(rope, marker)
         # calc stretch poses
         stretch_z = 0.2
         stretch_y = -sqrt(sl_length**2-(stretch_z-self.pm.gp_os-root[2])**2)*cos(pi/4)+root[1]
@@ -414,10 +426,10 @@ class ScenePrimitives:
         self.yumi.right_go_thro(waypoints,"Stretch Backward Retract")
         self.yumi.change_speed(1)
 
-    def right_stretch_forward(self, aglet):
+    def right_stretch_forward(self, rope, marker):
         self.yumi.change_speed(0.5)
-        sl_length = self.pm.get_shoelace_length(aglet)
-        root = self.pm.get_root_position(aglet)
+        sl_length = self.pm.get_shoelace_length(rope, marker)
+        root = self.pm.get_root_position(rope, marker)
         # calc stretch poses
         stretch_x = max(root[0], self.pm.site_r1[0]+self.pm.app_os)-self.pm.gp_os
         stretch_z = 0.25
@@ -437,10 +449,10 @@ class ScenePrimitives:
         self.yumi.right_go_thro(waypoints,"Stretch Forward Retract")
         self.yumi.change_speed(1)
 
-    def left_stretch_backward(self, aglet):
+    def left_stretch_backward(self, rope, marker):
         self.yumi.change_speed(0.25)
-        sl_length = self.pm.get_shoelace_length(aglet)
-        root = self.pm.get_root_position(aglet)
+        sl_length = self.pm.get_shoelace_length(rope, marker)
+        root = self.pm.get_root_position(rope, marker)
         # calc stretch poses
         stretch_z = 0.2
         stretch_y = sqrt(sl_length**2-(stretch_z-self.pm.gp_os-root[2])**2)*cos(pi/4)+root[1]
@@ -461,10 +473,10 @@ class ScenePrimitives:
         self.yumi.left_go_thro(waypoints,"Stretch Backward Retract")
         self.yumi.change_speed(1)
     
-    def left_stretch_forward(self, aglet):
+    def left_stretch_forward(self, rope, marker):
         self.yumi.change_speed(0.5)
-        sl_length = self.pm.get_shoelace_length(aglet)
-        root = self.pm.get_root_position(aglet)
+        sl_length = self.pm.get_shoelace_length(rope, marker)
+        root = self.pm.get_root_position(rope, marker)
         # calc stretch poses
         stretch_x = max(root[0], self.pm.site_l1[0]+self.pm.app_os)-self.pm.gp_os
         stretch_z = 0.25
@@ -512,7 +524,8 @@ class ScenePrimitives:
         self.yumi.wait_for_side_thread()
         self.yumi.close_left_gripper()
         self.yumi.open_right_gripper()
-        self.update_aglet_ownership(self.get_aglet_at('right_gripper'), 'left_gripper')
+        rope, marker = self.get_marker_at('right_gripper')
+        self.update_marker_ownership(rope, marker, 'left_gripper')
         # retract right arm
         waypoints = []
         waypoints.append(ls_concat(transfer_point_r_approach, transfer_rot_r))
@@ -549,7 +562,8 @@ class ScenePrimitives:
         self.yumi.wait_for_side_thread()
         self.yumi.close_right_gripper()
         self.yumi.open_left_gripper()
-        self.update_aglet_ownership(self.get_aglet_at('left_gripper'), 'right_gripper')
+        rope, marker = self.get_marker_at('left_gripper')
+        self.update_marker_ownership(rope, marker, 'right_gripper')
         # retract left arm
         waypoints = []
         # waypoints.append([centre[0]+extra_os_x, centre[1]+self.pm.gp_os+0.20, centre[2], pi/2, pi, 0])
@@ -559,18 +573,18 @@ class ScenePrimitives:
         self.yumi.close_left_gripper(main=False)
         self.yumi.left_go_observe(main=False)
 
-    def right_replace(self, aglet, site='site_r1'):
-        self.right_pick(aglet, fine_ori=False)
-        self.right_place(aglet, site=site)
+    def right_replace(self, rope, marker, site='site_r1'):
+        self.right_pick(rope, marker, fine_ori=False)
+        self.right_place(rope, marker, site=site)
 
-    def left_replace(self, aglet, site='site_l1'):
-        self.left_pick(aglet, fine_ori=False)
-        self.left_place(aglet, site=site)
+    def left_replace(self, rope, marker, site='site_l1'):
+        self.left_pick(rope, marker, fine_ori=False)
+        self.left_place(rope, marker, site=site)
 
-    def right_to_left(self, aglet, reset=True, site='site_l1'):
-        self.right_pick(aglet, fine_ori=False)
+    def right_to_left(self, rope, marker, reset=True, site='site_l1'):
+        self.right_pick(rope, marker, fine_ori=False)
         self.right_to_left_handover()
-        self.left_place(aglet, site=site)
+        self.left_place(rope, marker, site=site)
 
         # reset to initial position
         self.yumi.close_left_gripper(main=False)
@@ -578,10 +592,10 @@ class ScenePrimitives:
             self.yumi.left_go_observe()
         self.yumi.wait_for_side_thread()
 
-    def left_to_right(self, aglet, reset=True, site='site_r1'):
-        self.left_pick(aglet, fine_ori=False)
+    def left_to_right(self, rope, marker, reset=True, site='site_r1'):
+        self.left_pick(rope, marker, fine_ori=False)
         self.left_to_right_handover()
-        self.right_place(aglet, site=site)
+        self.right_place(rope, marker, site=site)
 
         # reset to initial position
         self.yumi.close_right_gripper(main=False)
