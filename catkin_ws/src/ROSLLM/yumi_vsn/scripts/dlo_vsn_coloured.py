@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import os, sys
 import cv2
+from cv_bridge import CvBridge
+bridge = CvBridge()
 import time
 import numpy as np
 import open3d as o3d
@@ -113,7 +115,9 @@ class dloVision:
             self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
             self.textEncoder = TextEncoder(model_name="distilbert-base-uncased")
 
-            self.colours = ["red", "green", "blue", "gray", "yellow", "orange", "purple", "brown"]
+            self.colours = {"red": "rope_r",
+                            "green": "rope_g",
+                            "blue": "rope_b"}
             self.views = ["top", "bottom"]
 
 
@@ -173,8 +177,15 @@ class dloVision:
             """
             # Example: sort ropes by average pixel intensity
             # You can improve this using occlusion detection logic later
-            ropeList.sort(key=lambda r: r["mask"].sum(), reverse=True)
-            return ropeList
+            rope_visibility = []
+            for rope in ropeList:
+                if "score" in rope:
+                    rope_visibility.append((rope["score"], rope))
+
+            # Sort by descending area → more visible on top
+            rope_visibility.sort(reverse=True, key=lambda x: x[0])
+
+            return [r for _, r in rope_visibility]
 
         def countRopes(self, frame):
             """
@@ -184,8 +195,8 @@ class dloVision:
             imgTensor = self._prepareImage(frame)
             uniqueRopes = []
             existingMasks = []
-
-            for colour in self.colours:
+            ropeList = []
+            for colour in self.colours.keys():
                 for view in self.views:
                     mask = self.segmentRope(imgTensor, colour, view)
 
@@ -196,13 +207,11 @@ class dloVision:
                         existingMasks.append(mask)
                         uniqueRopes.append({
                             "colour": colour,
-                            "mask": mask
+                            "mask": mask,
+                            "score": mask.sum()
                         })
-
-            # rankedRopes = self._rankRopesByHierarchy(uniqueRopes)
-            # return rankedRopes
-            
-            return uniqueRopes
+                
+            return self._rankRopesByHierarchy(uniqueRopes)
 
         
     def __init__(self, auto_execution):
@@ -221,9 +230,9 @@ class dloVision:
         self.dloPerciever = self.RopePerceiver(self.l515)
         
         self.rope_config = {
-            'red': self.Rope(self.l515, 'rope_r', self.auto_execution, 'gray', 'cyan'),
-            'green': self.Rope(self.l515, 'rope_g', self.auto_execution, 'orange', 'brown'),
-            'blue': self.Rope(self.l515, 'rope_b', self.auto_execution, 'yellow', 'pink')
+            'rope_r': self.Rope(self.l515, 'rope_r', self.auto_execution, 'gray', 'cyan'),
+            'rope_g': self.Rope(self.l515, 'rope_g', self.auto_execution, 'orange', 'brown'),
+            'rope_b': self.Rope(self.l515, 'rope_b', self.auto_execution, 'yellow', 'pink')
         }
         
         self.target_config = {
@@ -231,7 +240,7 @@ class dloVision:
             'right': ColourSegmentation(self.HSV_THRESHOLDS['white']['lower'], self.HSV_THRESHOLDS['white']['upper'], self.l515.read_image, live_adjust=False)
         }
         
-        self.ropes = []
+        
         self.targets = {'targets_l': [], 'targets_r': []}
         
         # initialise the tf listener
@@ -274,51 +283,37 @@ class dloVision:
                 rospy.sleep(0.5)
     
     
-    ''' Callback of find target service '''
+    ''' Callback of find overall scene service '''
     def srvPubScene(self, request):
         # generate an empty response
         response = ObserveSceneResponse()
         # turn the img msg to numpy array
-        if request.camera_name == 'l515':
-            l515_img = self.l515.read_image()
-            l515_depth = self.l515.read_depth()
-            l515_camera_intrinsics = self.l515.read_camera_info()
-            (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
-            l515_transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
-        elif request.camera_name == 'd435_l':
-            camera = self.d435_l
-            seg = self.seg_target_r
-        elif request.camera_name == 'd435_r':
-            camera = self.d435_r
-            seg = self.seg_target_l
-        else:
-            rospy.logerr("Unknown type of camera!")
-            return response
+        l515_img = self.l515.read_image()
+        l515_depth = self.l515.read_depth()
+        l515_camera_intrinsics = self.l515.read_camera_info()
+        (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
+        l515_transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
+      
 
         detected_ropes = self.dloPerciever.countRopes(l515_img)
-        # {
-        #      "colour": colour,
-        #      "view": view,
-        #      "mask": mask
-        #  }
         
+        rope_list = []
         for rope in detected_ropes:
-            rospy.loginfo(f"Detected rope: {rope['colour']}")
             colour = rope["colour"]
+            ropeName = self.dloPerciever.colours[colour]
+            if ropeName not in self.rope_config:
+                rospy.logerr(f"Unknown rope name: {ropeName}")
+                continue
+            rope_list.append(ropeName)
+            rospy.loginfo(f"Detected rope: {ropeName}")
+            ropeObj = self.rope_config[ropeName]
+            ropeObj.mask = rope["mask"]
             
-            mask = rope["mask"]
-            ropeObj = self.rope_config[colour]
-            if ropeObj not in self.ropes:
-                self.ropes.append(ropeObj)
-            ropeObj.mask = mask
-            ropeObj.marker_a_pose, ropeObj.marker_b_pose = self.pubMarkers(ropeObj)
-            
-            self.ropes.append(self.rope_config[colour])
-            
-
-          
-
-        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+        response.success = True
+        response.ropes = rope_list 
+        response.img = bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), encoding="rgb8")
+        
+        self.frame_pub.publish(msgify(Image, cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), 'rgb8'))
         return response
 
 

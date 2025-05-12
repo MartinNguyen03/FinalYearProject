@@ -14,7 +14,36 @@ def tf_ls2mat(list):
         return compose_matrix(translate=list[:3], angles=euler_from_quaternion(list[3:]))
     else:
         print(f'Wrong input dimension! Got a list with {len(list)} elements.')
+        
+def is_overlapping(aa, ab, ba, bb):
+    def orientation(p, q, r):
+        val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
+        if val == 0:
+            return 0  # colinear
+        return 1 if val > 0 else 2  # clockwise or counterclockwise
 
+    def on_segment(p, q, r):
+        return min(p[0], r[0]) <= q[0] <= max(p[0], r[0]) and \
+               min(p[1], r[1]) <= q[1] <= max(p[1], r[1])
+
+    o1 = orientation(aa, ab, ba)
+    o2 = orientation(aa, ab, bb)
+    o3 = orientation(ba, bb, aa)
+    o4 = orientation(ba, bb, ab)
+
+    # General case
+    if o1 != o2 and o3 != o4:
+        return True
+
+    # Special Cases
+    if o1 == 0 and on_segment(aa, ba, ab): return True
+    if o2 == 0 and on_segment(aa, bb, ab): return True
+    if o3 == 0 and on_segment(ba, aa, bb): return True
+    if o4 == 0 and on_segment(ba, ab, bb): return True
+
+    return False
+
+    
 def pose_msg_to_list(pose):
     return [pose.position.x, pose.position.y, pose.position.z, pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
 

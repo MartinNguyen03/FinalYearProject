@@ -33,20 +33,15 @@ class SceneParameters:
             self.mask = None
             self.target_l = None
             self.target_r = None
-  
+            self.completion = False
                       
                       
-        def updateTarget(self, target_l, target_r):
-            self.target_l = target_l
-            self.target_r = target_r
-            self.curr_target_l = target_l
-            self.curr_target_r = target_r
             
         
     vel_scale = 2.5
 
-    sites_dict = {"site_uu": 0, "site_ul": 1, "site_ur": 2, "site_dd": 3, "site_dl": 3, "site_dr": 4, "target_l1":5, "target_l2":6, "target_l3":7, "target_r1": 8, "target_r2":9,"target_r3":10, 'left_gripper':11, 'right_gripper':12}
-    gripper_dict = {'left_gripper':0, 'right_gripper':1}
+    sites_dict = {"site_uu": -1, "site_ul": -1, "site_ur": 1, "site_dd": 1, "site_dl": -1, "site_dr": 1, "target_l1":-1, "target_l2":-1, "target_l3":-1, "target_r1": 1, "target_r2":1,"target_r3":1, 'left_gripper':-2, 'right_gripper':2}
+    
     rope_dict = {
         'rope_r': Rope('rope_r', 'gray', 'cyan'),
         'rope_g': Rope( 'rope_g','orange', 'brown'),
@@ -69,7 +64,11 @@ class SceneParameters:
         self.hand_poses = [[0,0,0,0,0,0], [0,0,0,0,0,0]]
         self.add_to_log = log_handle
         # self.aglet_at = {"aglet_a":"site_l1", "aglet_b":"site_r1"}
-
+        self.site_occupency = {}
+        self.heirarchy = []
+        self.img_frame = None
+        self.site_poses = {}
+        
     def update_yumi_constriants(self):
         pass
 
@@ -82,6 +81,8 @@ class SceneParameters:
         for i in range(self.n_rows):
             targets_temp.append(targets_l[i])
             targets_temp.append(targets_r[i])
+            self.site_poses['target_l'+str(i+1)] = targets_l[i]
+            self.site_poses['target_r'+str(i+1)] = targets_r[i]
         self.target_poses = np.array(targets_temp)
         # estimate mathematical shoe properties
         self.horizontal_gap = np.mean([distance.euclidean(b[:3],r[:3]) for b,r in zip(targets_l, targets_r)])
@@ -102,68 +103,58 @@ class SceneParameters:
         self.save_scene_params()
 
     
-
-    
-    def update_section_availability(self, rope, marker, section):
-        if rope == 'rope_r':
-            rope_id = 0
-        elif rope == 'rope_g':
-            rope_id = 1
-        elif rope == 'rope_b':
-            rope_id = 2
-        else:
-            print('Unknown rope!')
-            return
+    def calc_optimal_site(self, rope, marker):
+        """
+        Calculate the optimal section for the given marker
+        """
         if marker == 'marker_a':
-            marker_id = 0
+            marker_alt = 'marker_b'
         elif marker == 'marker_b':
-            marker_id = 1
+            marker_alt = 'marker_a'
         else:
             print('Unknown marker!')
             return
-        self.sites_availabilty[:, ((rope_id * 2) + marker_id)] = 0
-        if section:
-            section_id = self.sites_dict[section]
-            self.sites_availabilty[section_id, ((rope_id * 2) + marker_id)] = 1
+        marker_alt_location = self.check_marker_location(rope, marker_alt)
+        marker_location = self.check_marker_location(rope, marker)
+        
+    def update_site_occupency(self, rope, marker, site, add_site=True):
+        if add_site:
+            if site in self.site_occupancy:
+                print(f"Site '{site}' already occupied by {self.site_occupancy[site]}")
+                return None
+            rope_ = self.rope_dict[rope]
+            rope_.marker_dict[marker]['marker_at'] = site
+            self.site_occupancy[site] = (rope, marker)
+        else:
+            """Clears the site the marker is located at."""
+            rope_ = self.rope_dict[rope]
+            site = rope.marker_dict[marker]['marker_at']
+            if site and self.site_occupancy.get(site) == (rope, marker):
+                del self.site_occupancy[site]
+            rope_.marker_dict[marker]['marker_at'] = None
+            
+    def get_marker_at_site(self, site):
+        """Returns (rope_name, marker_name) or None."""
+        return self.site_occupancy.get(site)
 
+    def check_marker_location(self, rope, marker):
+        """Returns site_name or None if being held."""
+        return self.rope_dict[rope].marker_dict[marker]['marker_at']
+            
+
+    def update_heirarchy(self):
+        return
+        
     def check_site_availability(self, site):
         """
         Return true if available, false if not
         """
-        section_id = self.sites_dict[section]
-        return not np.any(self.sites_availabilty[section_id, :])
-
-    def check_marker_location(self, rope, marker):
-        """_summary_
-
-        Args:
-            rope (_type_): 'rope_r', 'rope_g', 'rope_b'
-            marker (_type_): 'marker_a', 'marker_b'
-
-        Returns:
-            _type_: location of the marker or None if it is being held
-        """
-        if rope == 'rope_r':
-            rope_id = 0
-        elif rope == 'rope_g':
-            rope_id = 1
-        elif rope == 'rope_b':
-            rope_id = 2
+        if site in self.site_occupency:
+            return False
         else:
-            print('Unknown rope!')
-            return
-        if marker == 'marker_a':
-            marker_id = 0
-        elif marker == 'marker_b':
-            marker_id = 1
-        else:
-            print('Unknown marker!')
-            return
-        location = np.nonzero(self.sites_availabilty[:, ((rope_id * 2) + marker_id)])[0]
-        if location.size == 0:
-            return None # aglet is being held
-        else:
-            return location[0]
+            return True
+
+
 
 
 
@@ -205,9 +196,41 @@ class SceneParameters:
             print('Unknown marker!')
 
 
-
-    
-
+    def find_closest_site(self, rope, marker, tol=0.1):
+        """
+        Find the closest site to the given marker
+        """
+        marker_location = self.rope_dict[rope].marker_dict[marker]['pose'][:2] # get the 2D position
+        closest_site = None
+        closest_distance = float('inf')
+        for site, site_location in self.site_poses.items():
+            if site in self.site_occupency:
+                continue
+            distance = np.linalg.norm(np.array(marker_location) - np.array(site_location[:2]))
+            if distance < closest_distance and distance < tol:
+                closest_distance = distance
+                closest_site = site
+        if closest_site is not None:
+            self.site_occupency[closest_site] = (rope, marker)
+            self.rope_dict[rope].marker_dict[marker]['marker_at'] = closest_site
+            return closest_site
+        else:
+            print(f"No available site found for {marker} on {rope} within tolerance {tol}.")
+            return None
+        
+        
+    def init_marker_sites(self):
+        """
+        Initialize the marker sites
+        """
+        for rope in self.rope_dict:
+            for marker in self.rope_dict[rope].marker_dict:
+                estimated_site = self.find_closest_site(rope, marker)
+                if estimated_site is not None:
+                    self.update_site_occupency(rope, marker, estimated_site)
+                else:
+                    print(f"Failed to find initial site for {marker} on {rope}.")
+                
     def read_static_params(self):
         static_param_file = open(self.static_param_path, 'r')
         params = safe_load(static_param_file)
@@ -239,12 +262,13 @@ class SceneParameters:
         self.hand_over_centre = ls_add(self.scene_centre, [-0.12, 0, -0.07]) # transfer
         self.hand_over_centre_2 = ls_add(self.scene_centre, [-0.05, 0, -0.05]) # adjusting orientation
         table_height = self.table_offset+0.02
-        self.site_dl = [0.38, 0.16, table_height] # centre of the left section a
-        self.site_dd = [0.38, 0, table_height] # centre of the left section a
-        self.site_dr = [0.38, -0.16, table_height] # centre of the right section b
-        self.site_ul = [0.53, 0.13, table_height] # centre of the left section c
-        self.site_ur = [0.53, -0.13, table_height] # centre of the right section c
-        self.site_uu = [0.53, 0, table_height] # centre of the left section d
+       
+        self.site_poses['site_dl'] = [0.38, 0.16, table_height] # centre of the left section a
+        self.site_poses['site_dd'] = [0.38, 0, table_height] # centre of the left section a
+        self.site_poses['site_dr'] = [0.38, -0.16, table_height] # centre of the right section b
+        self.site_poses['site_ul'] = [0.53, 0.13, table_height] # centre of the left section c
+        self.site_poses['site_ur'] = [0.53, -0.13, table_height] # centre of the right section c
+        self.site_poses['site_uu'] = [0.53, 0, table_height] # centre of the left section d
         self.pre_grasp = ls_add(self.scene_centre, [0, 0, 0.1])
         self.pre_insert_l = [0.3, 0.2, 0.2]
         self.pre_insert_r = [0.3, -0.2, 0.2]
@@ -305,65 +329,4 @@ class SceneParameters:
         shoe_param_file.close()
         print('Shoe parameters saved')
         
-    # UNUSED FUNCTIONS
     
-    # def check_flip(self, start_id):
-    #     final_id = (self.n_eyelets-1-start_id)//2*2+start_id
-    #     # check if the last same column eyelet is farther than 0.03m
-    #     return distance.euclidean(self.eyelet_poses[start_id][:3], self.eyelet_poses[final_id][:3])>0.03  
-
-    # def get_flip_id(self, start_id):
-    #     flip_id = start_id+2
-    #     while flip_id < self.n_eyelets-1:
-    #         if distance.euclidean(self.eyelet_poses[start_id][:3], self.eyelet_poses[flip_id][:3])>0.03:
-    #             return flip_id
-    #         flip_id+=2
-    #     else: 
-    #         print('Unable to find proper eyelet to flip.')
-    #         return
-    
-    
-    # def get_the_other_aglet(self, aglet):
-    #     aglet_list = list(self.aglets_dict.keys())
-    #     aglet_list.remove(aglet)
-    #     return aglet_list.pop()
-    
-    # def update_shoelace_length(self, aglet, difference):
-    #     if aglet == 'aglet_b':
-    #         self.rope_length_l += difference
-    #         self.update_yumi_constriants('aglet_b', self.rope_length_l, self.get_root_position('aglet_b'))
-    #     elif aglet == 'aglet_a':
-    #         self.rope_length_r += difference
-    #         self.update_yumi_constriants('aglet_a', self.rope_length_r, self.get_root_position('aglet_a'))
-    #     else:
-    #         print('Unknown aglet!')
-    #     self.save_params()
-    #     self.add_to_log('[Length update] '+str(self.rope_length_r)+', '+str(self.rope_length_l))
-    
-    # @staticmethod
-    # def eyelet_fit_to_shoe(src, tar):
-    #     '''
-    #     src, tar: Nx3
-    #     '''
-    #     src = np.array(src)
-    #     tar = np.array(tar)
-    #     src_ctr = np.mean(src, axis=0)
-    #     tar_ctr = np.mean(tar, axis=0)
-
-    #     src -= src_ctr
-    #     tar -= tar_ctr
-
-    #     a = np.matmul(tar.T, src)
-    #     U,S,Vh = np.linalg.svd(a)
-    #     R = np.matmul(U,Vh)
-    #     t = tar_ctr - np.matmul(R, src_ctr)
-        
-    #     eyelets_registered = []
-    #     error = 0
-    #     for i in range(len(src)):
-    #         eyelets_registered.append(R @ src[i] + t)
-    #         error += tar - eyelets_registered[i]
-    #     from scipy.spatial.transform import Rotation
-    #     R = Rotation.from_matrix(R)
-    #     print("Fit to shoe model error: ", error)
-    #     return R.as_quat(), t, np.array(eyelets_registered), error

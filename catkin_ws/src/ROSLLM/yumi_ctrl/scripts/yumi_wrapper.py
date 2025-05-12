@@ -5,11 +5,11 @@ import threading
 import numpy as np
 from copy import deepcopy
 from moveit.core.planning_scene import PlanningScene
-from yumi_ctrl.yumi_ctrl import YumiCtrl
+from yumi_ctrl import YumiCtrl
 from utils import tf_mat_to_list, tf_list_to_mat
 
 import rospy
-from sl_msgs.srv import *
+from rosllm_srvs.srv import *
 from std_msgs.msg import Bool, String
 from shape_msgs.msg import SolidPrimitive
 from moveit_msgs.msg import MoveGroupActionFeedback
@@ -24,7 +24,7 @@ class YumiWrapper(YumiCtrl):
 
     def __init__(self, rope_dict, auto_execution, workspace, vel_scale=1.0, gp_opening=0, table_offset=0, grasp_states=None, grasp_states2=None, observe_states=None):
         # super().__init__(auto_execution)
-        super().__init__(auto_execution, logger='sl_logs')
+        super().__init__(auto_execution, logger='scene_logs')
         self.rope_dict = rope_dict
         # initialise the parameters
         self.auto_execution = auto_execution
@@ -44,9 +44,9 @@ class YumiWrapper(YumiCtrl):
         # self.gripper_r_to_aglet = inverse_matrix(self.aglet_to_gripper_r)
         self.gripper_l_to_marker = compose_matrix(translate=[0, 0, self.gripper_offset], angles=[pi, 0, -pi/2])
         self.gripper_r_to_marker = compose_matrix(translate=[0, 0, self.gripper_offset], angles=[pi, 0, pi/2])
-        self.shoe_rotation = None
-        self.shoe_translation = None
-        self.shoe_model_path = None
+        # self.shoe_rotation = None
+        # self.shoe_translation = None
+        # self.shoe_model_path = None
 
         # start initialisation
         # self.in_left_arm = None
@@ -500,7 +500,7 @@ class YumiWrapper(YumiCtrl):
     
 if __name__ == '__main__':
     rospy.init_node('yumi_wrapper', anonymous=True)
-    yumi = YuMiWrapper(auto_execution=True, workspace=[-1.0, 1.0, -0.6, 0.6, 0.0, 0.77], table_offset=0.025)
+    yumi = YumiWrapper(auto_execution=True, workspace=[-1.0, 1.0, -0.6, 0.6, 0.0, 0.77], table_offset=0.025)
     # yumi = YuMiWrapper(auto_execution=True, workspace=[-1.0, 1.0, -0.6, 0.6, 0.0, 0.77], grasp_states=[-0.6677426099777222, -1.143572211265564, 1.6579793691635132, 0.6495829820632935,
 #   2.425766944885254, 0.5661510825157166, 2.1443932056427, 0.6723159551620483, -1.0775535106658936,
 #   -1.690792202949524, 0.6427130103111267, 3.8197340965270996, 0.521094024181366, -2.0585293769836426], observe_states=[-1.2257874011993408, -0.4985324442386627, 1.980921745300293, -0.058894701302051544,
