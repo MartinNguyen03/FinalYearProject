@@ -4,8 +4,8 @@ gp_os: 0.137+0.02175
 gp_tip_w: 0.01
 da_os_x: 0.0035
 da_os_z: 0.009
-eyelet_to_edge: 0.014
-eyelet_diameter: 0.01
+target_to_edge: 0.014
+target_diameter: 0.01
 eyestay_thickness: 0.01
 eyestay_opening: 0.05
 table_offset: 0.025 # -0.01

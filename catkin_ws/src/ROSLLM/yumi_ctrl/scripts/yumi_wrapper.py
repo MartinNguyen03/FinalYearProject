@@ -51,8 +51,8 @@ class YumiWrapper(YumiCtrl):
         # start initialisation
         # self.in_left_arm = None
         # self.in_right_arm = None
-        self.sl_constraint_a = Constraints()
-        self.sl_constraint_b = Constraints()
+        self.rope_constraint_a = Constraints()
+        self.rope_constraint_b = Constraints()
         self.add_collision_objs(workspace)
         if self.observe_states:
             super().go_to_angles_both(observe_states, 'Observe', velocity_scaling=vel_scale, wait=True)
@@ -63,7 +63,7 @@ class YumiWrapper(YumiCtrl):
 
         # register subscriber and publishers
         rospy.Subscriber('/move_group/feedback', MoveGroupActionFeedback, self.moveit_feedback_cb, queue_size=1)
-        self.sl_constriant_marker_pub = rospy.Publisher('sl_constriant', Marker, queue_size=10)
+        self.rope_constriant_marker_pub = rospy.Publisher('sl_constriant', Marker, queue_size=10)
         self.logs_pub = rospy.Publisher('sl_logs', String, queue_size=1)
 
         # create and start the side thread
@@ -111,7 +111,7 @@ class YumiWrapper(YumiCtrl):
     def left_tip_go_to(self, target_tip, statement, velocity_scaling=None, main=True):
         ''' Set target in finger tip frame rather than ee frame '''
         target_mat = tf_list_to_mat(target_tip)
-        target = tf_mat_to_list(target_mat@self.aglet_to_gripper_l)
+        target = tf_mat_to_list(target_mat@self.marker_to_gripper_l)
         self.left_go_to(target, statement, velocity_scaling=velocity_scaling, main=main)
         # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_l)
         # self.left_go_to(np.concatenate((target, target_euler)), statement, velocity_scaling=velocity_scaling, main=main)
@@ -119,7 +119,7 @@ class YumiWrapper(YumiCtrl):
     def right_tip_go_to(self, target_tip, statement, velocity_scaling=None, main=True):
         ''' Set target in finger tip frame rather than ee frame '''
         target_mat = tf_list_to_mat(target_tip)
-        target = tf_mat_to_list(target_mat@self.aglet_to_gripper_r)
+        target = tf_mat_to_list(target_mat@self.marker_to_gripper_r)
         self.right_go_to(target, statement, velocity_scaling=velocity_scaling, main=main)
         # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_r)
         # self.right_go_to(np.concatenate((target, target_euler)), statement, velocity_scaling=velocity_scaling, main=main)
@@ -138,7 +138,7 @@ class YumiWrapper(YumiCtrl):
         points = []
         for p_tip in points_tip:
             target_mat = tf_list_to_mat(p_tip)
-            points.append(tf_mat_to_list(target_mat@self.aglet_to_gripper_l))
+            points.append(tf_mat_to_list(target_mat@self.marker_to_gripper_l))
             # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_l)
             # points.append(np.concatenate((target, target_euler)))
         self.left_go_thro(points, statement, eef_step=eef_step, jump_threshold=jump_threshold, velocity_scaling=velocity_scaling, main=main)
@@ -148,7 +148,7 @@ class YumiWrapper(YumiCtrl):
         points = []
         for p_tip in points_tip:
             target_mat = tf_list_to_mat(p_tip)
-            points.append(tf_mat_to_list(target_mat@self.aglet_to_gripper_r))
+            points.append(tf_mat_to_list(target_mat@self.marker_to_gripper_r))
             # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_r)
             # points.append(np.concatenate((target, target_euler)))
         self.right_go_thro(points, statement, eef_step=eef_step, jump_threshold=jump_threshold, velocity_scaling=velocity_scaling, main=main)
@@ -381,7 +381,7 @@ class YumiWrapper(YumiCtrl):
         pass
 
     ### Planning Scene ###
-    def update_sl_constriants(self, branch, sl_length, anchor):
+    def update_rope_constriants(self, branch, rope_length, anchor):
         pcm = PositionConstraint()
         # pcm.link_name = self.left_arm_group.get_end_effector_link() if 'l' in group else self.right_arm_group.get_end_effector_link()
         pcm.header.frame_id = self.robot_frame
@@ -390,7 +390,7 @@ class YumiWrapper(YumiCtrl):
 
         boundary = SolidPrimitive()
         boundary.type = boundary.SPHERE
-        boundary.dimensions = [sl_length*1.0] # slack off 1 percent
+        boundary.dimensions = [rope_length*1.0] # slack off 1 percent
         # boundary.dimensions[boundary.SPHERE_RADIUS] = sl_length
         pcm.constraint_region.primitives.append(boundary)
 
@@ -399,27 +399,27 @@ class YumiWrapper(YumiCtrl):
         boundary_pose.orientation = Quaternion(0,0,0,1)
         pcm.constraint_region.primitive_poses.append(boundary_pose)
 
-        if 'aglet_a' == branch:
-            self.sl_constraint_a = pcm
+        if 'marker_a' == branch:
+            self.rope_constraint_a = pcm
             # self.plot_sl_constriant_marker(pcm, 0)
-        elif 'aglet_b' == branch:
-            self.sl_constraint_b = pcm
+        elif 'marker_b' == branch:
+            self.rope_constraint_b = pcm
             # self.plot_sl_constriant_marker(pcm, 1)
 
-    def set_constraints(self, group):
+    def set_constraints(self, rope, group):
         # branch = self.in_left_arm if group==self.left_arm_group else self.in_right_arm
         # if 'aglet_a' == branch:
-        #     constraint = self.sl_constraint_a
+        #     constraint = self.rope_constraint_a
         # elif 'aglet_b' == branch:
-        #     constraint = self.sl_constraint_b
+        #     constraint = self.rope_constraint_b
         # else:
         #     return
         
         gripper = 'left_gripper' if group==self.left_arm_group else 'right_gripper'
-        if self.rope_dict['aglet_a'] == gripper:
-            constraint = self.sl_constraint_a
-        elif self.aglet_at['aglet_b'] == gripper:
-            constraint = self.sl_constraint_b
+        if self.rope_dict[rope].marker_dict['marker_a']['marker_at'] == gripper:
+            constraint = self.rope_constraint_a
+        elif self.rope_dict[rope].marker_dict['marker_b']['marker_at'] == gripper:
+            constraint = self.rope_constraint_b
         else:
             return
         constraint.link_name = group.get_end_effector_link()
@@ -444,7 +444,7 @@ class YumiWrapper(YumiCtrl):
         marker.color.g = 0.0
         marker.color.b = 0.0 if id == 0 else 1.0
         marker.lifetime = rospy.Duration(0) # 0 means forever
-        self.sl_constriant_marker_pub.publish(marker)
+        self.rope_constriant_marker_pub.publish(marker)
 
     def remove_constraints(self, group):
         group.clear_path_constraints()
@@ -455,7 +455,7 @@ class YumiWrapper(YumiCtrl):
         marker.id = 0
         # marker.ns = self.marker_ns
         marker.action = Marker.DELETEALL
-        self.sl_constriant_marker_pub.publish(marker)
+        self.rope_constriant_marker_pub.publish(marker)
 
     def add_collision_objs(self, ws):
         ''' Add table and walls to the MoveIt planing scene '''
@@ -471,19 +471,19 @@ class YumiWrapper(YumiCtrl):
         ''' Remove the table and shoe model from the MoveIt planing scene '''
         self.remove_collision_objects('table')
 
-    def remove_shoe_model(self):
-        ''' Remove the table and shoe model from the MoveIt planing scene '''
-        self.remove_collision_objects('shoe')
+    # def remove_shoe_model(self):
+    #     ''' Remove the table and shoe model from the MoveIt planing scene '''
+    #     self.remove_collision_objects('shoe')
 
     def add_table(self):
         ''' Add the table from the MoveIt planing scene '''
         self.add_collision_box('table', self.table_box[0], self.table_box[1])
-        self.add_shoe_model()
+    #     self.add_shoe_model()
 
-    def add_shoe_model(self):
-        ''' Add the shoe from the MoveIt planing scene '''
-        if self.shoe_rotation is not None and self.shoe_translation is not None and self.shoe_model_path is not None:
-            self.add_collision_mesh('shoe', self.shoe_translation, self.shoe_rotation, self.shoe_model_path)
+    # def add_shoe_model(self):
+    #     ''' Add the shoe from the MoveIt planing scene '''
+    #     if self.shoe_rotation is not None and self.shoe_translation is not None and self.shoe_model_path is not None:
+    #         self.add_collision_mesh('shoe', self.shoe_translation, self.shoe_rotation, self.shoe_model_path)
 
     ### Utilities ###
     def ee_angle_to_tip_l(self, euler):

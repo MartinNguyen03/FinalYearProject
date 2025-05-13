@@ -57,8 +57,8 @@ class SceneParameters:
         self.shoe_param_path = path.join(result_path, 'scene_params.yaml')
         self.read_static_params()
         self.read_dynamic_params(reset)
-        self.left_cursor = start_id if start_id%2==0 else start_id-1
-        self.right_cursor = start_id+1 if start_id%2==0 else start_id
+        # self.left_cursor = start_id if start_id%2==0 else start_id-1
+        # self.right_cursor = start_id+1 if start_id%2==0 else start_id
         # self.aglet_poses = {"aglet_a":[0,0,0,0,0,0], "aglet_b":[0,0,0,0,0,0]}
         self.target_poses = []
         self.hand_poses = [[0,0,0,0,0,0], [0,0,0,0,0,0]]
@@ -218,6 +218,20 @@ class SceneParameters:
             print(f"No available site found for {marker} on {rope} within tolerance {tol}.")
             return None
         
+    def get_target_id(self, target):
+        side = self.sites_dict[target]
+        if side == -1:
+            side = 0
+            group = 'targets_l'
+        else:
+            side = 1
+            group = 'targets_r'
+        target_number = int(target[-1]) - 1
+        target_id = (target_number * 2) + side
+        return group, target_id
+        
+
+        
         
     def init_marker_sites(self):
         """
@@ -243,9 +257,9 @@ class SceneParameters:
         self.app_os = params["app_os"]
         self.da_os_x = params["da_os_x"]
         self.da_os_z = params["da_os_z"]
-        self.eyelet_to_edge = params["eyelet_to_edge"]
-        self.eyelet_diameter = params["eyelet_diameter"]
-        self.eyelet_radius = self.eyelet_diameter/2
+        self.target_to_edge = params["target_to_edge"]
+        self.target_diameter = params["target_diameter"]
+        self.target_radius = self.target_diameter/2
         self.eyestay_thickness = params["eyestay_thickness"]
         self.eyestay_opening = params["eyestay_opening"]
         self.table_offset = params["table_offset"]
@@ -281,7 +295,7 @@ class SceneParameters:
         self.dynamic_params = safe_load(dynamic_param_file)
         dynamic_param_file.close()
         if reset:
-            self.eyelet_id = 0
+            self.target_id = 0
             self.rope_length_r = self.sl_length/2
             self.rope_length_l = self.sl_length/2
             self.r_root = None # root of the red lace tip
@@ -290,7 +304,7 @@ class SceneParameters:
             # self.sites_availabilty[0, 0] = 1 # assume red initially at left A
             # self.sites_availabilty[1, 1] = 1 # assume blue initially at right A
         else:
-            self.eyelet_id = self.dynamic_params["eyelet_id"]
+            self.target_id = self.dynamic_params["target_id"]
             self.rope_length_r = self.dynamic_params["rope_length_r"]
             self.rope_length_l = self.dynamic_params["rope_length_l"]
             self.r_root = self.dynamic_params["r_root"]
