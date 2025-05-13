@@ -10,7 +10,7 @@ from catkin_ws.src.ROSLLM.yumi_ctrl.scripts.yumi_wrapper import YumiWrapper
 import tf
 import rospy
 import rospkg
-from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest
+from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest, VLM, VLMResponse
 from std_msgs.msg import String, Int32MultiArray
 from geometry_msgs.msg import PoseArray
 from tf.transformations import euler_from_quaternion, compose_matrix
@@ -65,6 +65,7 @@ class ScenePrimitives:
         rospy.wait_for_service(self.target_srv)
         self.observe_scene = rospy.ServiceProxy(self.scene_srv, ObserveScene)
         rospy.wait_for_service(self.scene_srv)
+        
 
         # load params
         self.debug = False
@@ -446,7 +447,7 @@ class ScenePrimitives:
         
         marker_pos, yaw = self.get_rope_poses(rope, marker)
         pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
+        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os]) # Slightly above the marker
         pick_rot = self.pm.grasp_rot_r
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
 
@@ -467,7 +468,7 @@ class ScenePrimitives:
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, 2*self.pm.app_os, 0]),pick_rot_fine))
         self.yumi.right_go_thro(waypoints,"Pick Retract")
         self.yumi.add_table()
 
@@ -477,8 +478,6 @@ class ScenePrimitives:
             self.pm.update_site_occupency(rope, marker, current_site, False)
         self.pm.update_site_occupency(rope, marker, 'right_gripper')
 
-    
-    
     def left_remove(self, rope, marker):
          # calc pick poses
         marker_pos, yaw = self.get_rope_poses(rope, marker)
@@ -503,7 +502,7 @@ class ScenePrimitives:
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, -2*self.pm.app_os, 0]),pick_rot_fine))
         self.yumi.left_go_thro(waypoints,"Pick Retract")
 
         self.yumi.add_table()
@@ -513,8 +512,6 @@ class ScenePrimitives:
         if current_site is not None:
             self.pm.update_site_occupency(rope, marker, current_site, False)
         self.pm.update_site_occupency(rope, marker, 'left_gripper')
-    
-    
     
     
     def right_refine_orientation(self):
