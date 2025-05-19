@@ -2,10 +2,10 @@
 import rospy
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from rosllm_msgs.msg import LLMResponse
-from rosllm_srvs.srv import LLM as LLMSrv
-from rosllm_srvs.srv import LLMResponse as LLMSrvResponse
-from vl_chat_llm import VLChatLLM  # Import the new class
+from rosllm_msgs.msg import VLMResponse
+from rosllm_srvs.srv import VLM as VLMSrv
+from rosllm_srvs.srv import VLMResponse as VLMSrvResponse
+from agent_comm.src.agent_comm.vlm import VLM  # Assuming the VLM class is in this module
 
 
 class VLChatNode:
@@ -13,45 +13,45 @@ class VLChatNode:
         rospy.init_node("vl_chat_node")
 
         self.model_path = rospy.get_param("~model_path", "deepseek-ai/deepseek-vl-7b-chat")
-        self.llm = VLChatLLM(model_path=self.model_path)
+        self.llm = VLM(model_path=self.model_path)
 
         self.image = None
 
-        rospy.Service("call_llm", LLMSrv, self.handle_service_request)
-        rospy.Subscriber("llm_prompt", String, self.llm_prompt_callback)
-        rospy.Subscriber("/camera/color/image_raw", Image, self.image_callback)  # Subscribe to RealSense image
+        rospy.Service("call_vlm", VLMSrv, self.handle_service_request)
+        rospy.Subscriber("vlm_prompt", String, self.VLM_prompt_callback)
+        
 
-        self.pub = rospy.Publisher("llm_response", LLMResponse, queue_size=1)
+        self.pub = rospy.Publisher("vlm_response", VLMResponse, queue_size=1)
 
         rospy.loginfo("VLChatNode initialized, ready to receive requests.")
 
     def image_callback(self, msg):
         self.image = msg  # Store latest image
 
-    def llm_prompt_callback(self, msg):
+    def vlm_prompt_callback(self, msg):
         if self.image is None:
             rospy.logwarn("No image received yet!")
             return
 
-        response = self.call_llm(msg.data, self.image)
+        response = self.call_vlm(msg.data, self.image)
         self.pub.publish(response)
 
-    def call_llm(self, prompt: str, image: Image) -> LLMResponse:
+    def call_vlm(self, prompt: str, image: Image) -> VLMResponse:
         try:
-            response_text = self.llm(prompt, image)
-            return LLMResponse(success=True, response=response_text, info="DeepSeek-VL response successful")
+            response_text = self.VLM(prompt, image)
+            return VLMResponse(success=True, response=response_text, info="DeepSeek-VL response successful")
         except Exception as e:
-            rospy.logerr(f"LLM error: {e}")
-            return LLMResponse(success=False, response="", info="LLM failed")
+            rospy.logerr(f"VLM error: {e}")
+            return VLMResponse(success=False, response="", info="VLM failed")
 
     def handle_service_request(self, req):
-        rospy.loginfo("Received LLM request.")
+        rospy.loginfo("Received VLM request.")
         if self.image is None:
             rospy.logwarn("No image received yet!")
-            return LLMSrvResponse(response=LLMResponse(success=False, info="No image available."))
+            return VLMSrvResponse(response=VLMResponse(success=False, info="No image available."))
 
-        response = self.call_llm(req.prompt, self.image)
-        return LLMSrvResponse(response=response)
+        response = self.call_vlm(req.prompt, self.image)
+        return VLMSrvResponse(response=response)
 
     def spin(self):
         rospy.spin()

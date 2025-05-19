@@ -1,8 +1,7 @@
 string action        # action string
 string rope
 string marker
-string tar
+string site
 ---
 bool success           # success flag
-string message         # human-readable message
-int32 info             # information flag
+string description         # description of action

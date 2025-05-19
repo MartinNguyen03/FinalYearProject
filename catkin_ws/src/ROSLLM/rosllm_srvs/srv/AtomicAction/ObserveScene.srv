@@ -1,4 +1,0 @@
----
-bool success
-sensor_msgs/Image img
-string[] ropes

@@ -10,7 +10,7 @@ from catkin_ws.src.ROSLLM.yumi_ctrl.scripts.yumi_wrapper import YumiWrapper
 import tf
 import rospy
 import rospkg
-from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest, VLM, VLMResponse
+from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest, VLM, VLMResponse, ExecuteBehaviour, ExecuteBehaviour, ExecuteBehaviourResponse
 from std_msgs.msg import String, Int32MultiArray
 from geometry_msgs.msg import PoseArray
 from tf.transformations import euler_from_quaternion, compose_matrix
@@ -25,12 +25,14 @@ class ScenePrimitives:
     target_srv = 'find_targets'
     rope_srv = 'find_ropes'
     scene_srv = 'observe_scene'
+    vlm_srv = 'vlm'
+    bt_srv = 'bt'
     log_topic = 'scene_logs'
     rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
     marker_ids_topic = ['marker_a', 'marker_b']
     hand_pose_topic = 'hand_pose'
     target_pose_topic = 'target_pose'
-    # cursor_topic = 'cursor'
+    
 
     def __init__(self, auto_execution, reset=True, start_id=0):
         # ros related initialisation
@@ -65,7 +67,7 @@ class ScenePrimitives:
         rospy.wait_for_service(self.target_srv)
         self.observe_scene = rospy.ServiceProxy(self.scene_srv, ObserveScene)
         rospy.wait_for_service(self.scene_srv)
-        
+        rospy.Service(self.bt_srv, ExecuteBehaviour, self.execute)
 
         # load params
         self.debug = False
@@ -89,7 +91,7 @@ class ScenePrimitives:
             observe_states=self.pm.observe_states)
 
         # scan the shoe
-        self.pm.update_yumi_constriants = self.yumi.update_sl_constriants
+        self.pm.update_yumi_constriants = self.yumi.update_rope_constriants
         self.init_target_poses()
         
         rospy.loginfo('Execution module ready.')
@@ -107,13 +109,13 @@ class ScenePrimitives:
                 if self.get_marker_at('left_gripper') is not None:
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_l, rospy.Time(0))
                     self.pub_hand_poses('left_gripper', trans+rot)
-                    pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_l_to_aglet)
+                    pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_l_to_marker)
                     rope, marker = self.get_marker_at('left_gripper')
                     self.pub_marker_pose(marker, pose)
                 elif self.get_marker_at('right_gripper') is not None:
                     (trans,rot) = self.tf_listener.lookupTransform(self.yumi.robot_frame, self.yumi.ee_frame_r, rospy.Time(0))
                     self.pub_hand_poses('right_gripper', trans+rot)
-                    pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_r_to_aglet)
+                    pose = tf_mat2ls(tf_ls2mat(trans+rot)@self.yumi.gripper_r_to_marker)
                     rope, marker = self.get_marker_at('right_gripper')
                     self.pub_marker_pose(rope, marker, pose)
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
@@ -121,32 +123,34 @@ class ScenePrimitives:
             rate.sleep()                
                 
                 
-    # def execute(self, action, next_action, sl_cost):
-    #     '''
-    #     pick: gripper aglet site
-    #     ''' 
-    #     self.add_to_log(f'{action} Cost: {sl_cost}')
-    #     # interpret the action
-    #     if 'left_insert' in action[0]:
-    #         reset = False if next_action is not None and next_action[0][:4]=='left' else True
-    #         self.left_lace('targets_l', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
-    #                                  sl_cost=sl_cost+self.pm.target_to_edge, reset=reset, site=action[-1])
-    #     elif 'right_insert' in action[0]:
-    #         reset = False if next_action is not None and next_action[0][:5]=='right' else True
-    #         self.right_lace('targets_r', int(action[1][6:]), 'aglet{}'.format(action[0][-2:]), 
-    #                                    sl_cost=sl_cost+self.pm.target_to_edge, reset=reset, site=action[-1])
-    #     elif action[0] == 'right_to_left_transfer':
-    #         reset = False if next_action is not None and next_action[0][:4]=='left' else True
-    #         self.right_to_left(action[1], reset=reset, site=action[-1])
-    #     elif action[0] == 'left_to_right_transfer':
-    #         reset = False if next_action is not None and next_action[0][:5]=='right' else True
-    #         self.left_to_right(action[1], reset=reset, site=action[-1])
-    #     elif action[0] == 'left_replace':
-    #         self.left_replace(action[1], site=action[-1])
-    #     elif action[0] == 'right_replace':
-    #         self.right_replace(action[1], site=action[-1])
-    #     else:
-    #         print('Unrecogised primitive name ({})!'.format(action[0]))
+    def execute(self, req):
+        '''
+        pick: gripper aglet site
+        ''' 
+        
+        res = ExecuteBehaviourResponse()
+        action = req.action
+        rope = req.rope
+        marker = req.marker
+        site = req.site
+        
+        self.add_to_log(f'Executing action: {action} on {rope} {marker} to {site}')
+        
+        if action == 'left_pick':
+            self.left_pick(rope, marker)
+        elif action == 'right_pick':
+            self.right_pick(rope, marker)
+        elif action == 'left_place':
+            self.left_place(rope, marker, site)
+        elif action == 'right_place':
+            self.right_place(rope, marker, site)
+        else:
+            self.add_to_log(f'Action {action} not recognised.')
+            res.success = False
+        return res
+        
+        
+        
 
     def right_pick(self, rope, marker, fine_ori=True):
         """ pick up the marker with the right gripper """
@@ -245,6 +249,9 @@ class ScenePrimitives:
     def right_place(self, rope, marker, site='site_dr'):
         """ place down the aglet with the right gripper"""
 
+        if site[:6] == 'target':
+            self.right_insert(rope, marker, site)
+            return
         # stretch the shoelace
         self.add_to_log("Placing to "+site)
         if site == 'site_dr':
@@ -298,6 +305,9 @@ class ScenePrimitives:
     def left_place(self, rope, marker, site='site_dd'):
         """ place down the marker with the right gripper"""
 
+        if site[:6] == 'target':
+            self.left_insert(rope, marker, site)
+            return
         # stretch the shoelace
         self.add_to_log("Placing to "+site)
         
@@ -883,16 +893,6 @@ class ScenePrimitives:
         if len(self.pm.target_poses)>id:
             self.pm.target_poses[id] = pose
 
-    # def update_cursor(self, name, id):
-    #     if name=='left':
-    #         self.pm.left_cursor = id
-    #         self.cursor_pub.publish(Int32MultiArray(data=[id, self.pm.right_cursor]))
-    #     elif name=='right':
-    #         self.pm.right_cursor = id
-    #         self.cursor_pub.publish(Int32MultiArray(data=[self.pm.left_cursor, id]))
-    #     else:
-    #         print('Unknown cursor name!')
-
     def pub_target_poses(self):
         poses = PoseArray()
         for e in self.pm.target_poses:
@@ -926,6 +926,7 @@ class ScenePrimitives:
         marker_pose = ls_add(marker_poses[0], (self.pm.l_l_offset if side==-1 else self.pm.l_r_offset)+[0,0,0,0])
         [_, _, yaw] = euler_from_quaternion(marker_pose[3:]) # RPY
         self.pm.rope_dict[rope].marker_dict[marker]['position'] = marker_pose
+        _ = self.pm.find_closest_site(rope=rope, marker=marker)
         # publish aglet pose
         self.pub_marker_pose(rope, marker, marker_pose)
         return marker, yaw
@@ -1019,7 +1020,6 @@ class ScenePrimitives:
             self.pm.heirarchy.append(rope)
         self.pm.img_frame = img
         
-        
     def update_marker_ownership(self, rope, marker, site):
         self.pm.rope_dict[rope].marker_dict['marker_at'] = site
         self.yumi.marker_at[marker] = site
@@ -1070,6 +1070,16 @@ class ScenePrimitives:
 
 
 if __name__ == "__main__":
-    rospy.init_node('sl_ctrl', anonymous=True)
+    rospy.init_node('scene_ctrl', anonymous=True)
     
   
+  
+    # def update_cursor(self, name, id):
+    #     if name=='left':
+    #         self.pm.left_cursor = id
+    #         self.cursor_pub.publish(Int32MultiArray(data=[id, self.pm.right_cursor]))
+    #     elif name=='right':
+    #         self.pm.right_cursor = id
+    #         self.cursor_pub.publish(Int32MultiArray(data=[self.pm.left_cursor, id]))
+    #     else:
+    #         print('Unknown cursor name!')

@@ -1,0 +1,20 @@
+Your task is to generate a Behaviour Tree (BT) that achieves the given task by calling the appropriate action nodes with fully specified arguments. Each action node must have clearly defined `action`, `rope`, `marker`, and `site` arguments.
+
+The BT must use the following actions as node names:
+- pick_up
+- place
+- check_goal
+- check_visual
+
+Each node must be formatted as:
+<ActionNode action="..." rope="..." marker="..." site="..." />
+
+Ensure that the tree follows logical sequencing (using `Sequence` and `Fallback` nodes as appropriate) and includes any necessary checks or fallbacks.
+
+The BT should:
+1. Respect the current location of each rope and marker as provided.
+2. Ensure ropes are placed in their correct target or placeholder locations.
+3. Use checks (e.g., `check_goal` or `check_visual`) where needed to verify success.
+4. Include fallbacks for potential failure (e.g., if a `pick_up` fails, retry or log via a `description` field).
+
+Use concise and well-structured formatting. Only output the raw XML-formatted BT.

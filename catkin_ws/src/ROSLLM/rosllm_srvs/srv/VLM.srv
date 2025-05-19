@@ -1,4 +1,4 @@
 string prompt    # Prompt for the VLM
-sensor_msgs/Image image # Image input for the VLM
+sensor_msgs/Image img # Image input for the VLM
 ---
 rosllm_msgs/VLMResponse response # Prompt from VLM

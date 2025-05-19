@@ -1,5 +1,0 @@
-# HandOver
-std_msgs/String from_arm   # "left" or "right" (holding the object)
-std_msgs/String to_arm     # "left" or "right" (receiving the object)
----
-bool success

@@ -1,11 +1,9 @@
 import sys
 import os
-deepseek_vl_path = os.path.join(os.path.dirname(__file__), "../extern/DeepSeek-VL")
-sys.path.append(deepseek_vl_path)
 import torch
 from transformers import AutoModelForCausalLM
-from deepseek_vl.models import VLChatProcessor, MultiModalityCausalLM
-from deepseek_vl.utils.io import load_pil_images
+from extern.DeepSeekVL.deepseek_vl.models import VLChatProcessor, MultiModalityCausalLM
+from extern.DeepSeekVL.deepseek_vl.utils.io import load_pil_images
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
@@ -29,10 +27,17 @@ class VLM:
 
         # Process input
         conversation = [
-            {"role": "User", "content": "<image_placeholder>" + prompt, "images": pil_image},
-            {"role": "Assistant", "content": ""}
+            {
+                "role": "User", 
+                "content": "<image_placeholder>" + prompt, 
+                "images": pil_image},
+            {
+                "role": "Assistant", 
+                "content": ""
+            }
         ]
 
+        pil_image = load_pil_images(pil_image)
         inputs = self.processor(conversations=conversation, images=pil_image, force_batchify=True).to(self.model.device)
 
         # Get image embeddings
