@@ -1,3 +1,0 @@
-string prompt    # Prompt for the LLM
----
-rosllm_msgs/LLMResponse response # Prompt from LLM

@@ -1,45 +1,45 @@
-#!/usr/bin/env python3
-import rospy
-from rosllm_srvs.srv import LLM, LLMRequest
-from sensor_msgs.msg import Image
+# #!/usr/bin/env python3
+# import rospy
+# from rosllm_srvs.srv import LLM, LLMRequest
+# from sensor_msgs.msg import Image
 
-srv_name = "call_llm"
-image_topic = "/camera/color/image_raw"  # Update with your RealSense topic
+# srv_name = "call_llm"
+# image_topic = "/camera/color/image_raw"  # Update with your RealSense topic
 
-latest_image = None
+# latest_image = None
 
-def image_callback(msg):
-    global latest_image
-    latest_image = msg
+# def image_callback(msg):
+#     global latest_image
+#     latest_image = msg
 
-def main():
-    global latest_image
-    rospy.init_node("vlm_client_node")
+# def main():
+#     global latest_image
+#     rospy.init_node("vlm_client_node")
 
-    rospy.Subscriber(image_topic, Image, image_callback)
+#     rospy.Subscriber(image_topic, Image, image_callback)
 
-    rospy.loginfo("Waiting for images and VLM service...")
+#     rospy.loginfo("Waiting for images and VLM service...")
 
-    rospy.wait_for_service(srv_name)
-    try:
-        while not rospy.is_shutdown():
-            if latest_image is None:
-                rospy.logwarn("No image received yet, waiting...")
-                rospy.sleep(1)
-                continue
+#     rospy.wait_for_service(srv_name)
+#     try:
+#         while not rospy.is_shutdown():
+#             if latest_image is None:
+#                 rospy.logwarn("No image received yet, waiting...")
+#                 rospy.sleep(1)
+#                 continue
 
-            prompt = input("Enter your prompt: ")
-            req = LLMRequest(prompt=prompt)
-            handler = rospy.ServiceProxy(srv_name, LLM)
+#             prompt = input("Enter your prompt: ")
+#             req = LLMRequest(prompt=prompt)
+#             handler = rospy.ServiceProxy(srv_name, LLM)
 
-            resp = handler(req)
+#             resp = handler(req)
 
-            rospy.loginfo(f"LLM Response:\n{resp.response.response}")
+#             rospy.loginfo(f"LLM Response:\n{resp.response.response}")
 
-    except rospy.ServiceException as e:
-        rospy.logwarn(f"LLM request failed: {e}")
-    except KeyboardInterrupt:
-        rospy.loginfo("Shutting down.")
+#     except rospy.ServiceException as e:
+#         rospy.logwarn(f"LLM request failed: {e}")
+#     except KeyboardInterrupt:
+#         rospy.loginfo("Shutting down.")
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

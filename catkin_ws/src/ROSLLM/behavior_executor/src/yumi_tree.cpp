@@ -2,21 +2,24 @@
 #include <behaviortree_ros/bt_action_node.h>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-#include <rosllm_srvs/ExecuteBehaviour.h>
-#include <rosllm_srvs/ExecuteBehaviourRequest.h>
+#include <rosllm_srvs/VLM.h>
+#include <rosllm_srvs/VLMRequest.h>
+#include <rosllm_srvs/ExecuteBehavior.h>
+#include <rosllm_srvs/ExecuteBehaviorRequest.h>
 
 using namespace BT;
 
-class VLMCheck : public RosServiceNode<rosllm_srvs::VLM>
+class VisualCheck : public RosServiceNode<rosllm_srvs::VLM>
 {
 public:
-    VLMCheck(ros::NodeHandle& handle, const std::string& node_name, const NodeConfiguration & conf)
+    VisualCheck(ros::NodeHandle& handle, const std::string& node_name, const NodeConfiguration & conf)
         : RosServiceNode<rosllm_srvs::VLM>(handle, node_name, conf) {}
 
     static PortsList providedPorts()
     {
         return {
             InputPort<sensor_msgs::Image>("img"),
+            OutputPort<std::string>("response")
         };
     }
 
@@ -46,22 +49,13 @@ public:
         ROS_ERROR("YuMi Action request failed %d", static_cast<int>(failure));
         return NodeStatus::FAILURE;
     }
-    void halt() override
-    {
-        if (status() == NodeStatus::RUNNING)
-        {
-            ROS_WARN("YuMi Action halted");
-            BaseClass::halt();
-        }
-    }
-
 };
 
-class YumiNode : public RosServiceNode<rosllm_srvs::ExecuteBehaviour>
+class YumiAction : public RosServiceNode<rosllm_srvs::ExecuteBehavior>
 {
 public:
-    YumiNode(ros::NodeHandle& handle, const std::string& node_name, const NodeConfiguration & conf)
-        : RosServiceNode<rosllm_srvs::ExecuteBehaviour>(handle, node_name, conf) {}
+    YumiAction(ros::NodeHandle& handle, const std::string& node_name, const NodeConfiguration & conf)
+        : RosServiceNode<rosllm_srvs::ExecuteBehavior>(handle, node_name, conf) {}
 
     static PortsList providedPorts()
     {
@@ -87,7 +81,7 @@ public:
         ROS_INFO("YuMi Action: Executed");
         if (rep.success)
         {
-            setOutput<string>("message", rep.task);
+            setOutput<std::string>("message", rep.description);
             return NodeStatus::SUCCESS;
         }
         else
@@ -102,17 +96,10 @@ public:
         ROS_ERROR("YuMi Action request failed %d", static_cast<int>(failure));
         return NodeStatus::FAILURE;
     }
-    void halt() override
-    {
-        if (status() == NodeStatus::RUNNING)
-        {
-            ROS_WARN("YuMi Action halted");
-            BaseClass::halt();
-        }
-    }
+
 };
 
-int main(int argc, char** argv)
+int main(int argc, char** argv )
 {
     ros::init(argc, argv, "bt_executor_node");
     ros::NodeHandle nh;
@@ -120,9 +107,22 @@ int main(int argc, char** argv)
     BehaviorTreeFactory factory;
 
     ROS_INFO("Registering BT nodes...");
-    factory.registerNodeType<YumiNode>("YumiNode");
-
+    RegisterRosService<YumiAction>(factory, "YumiAction", nh);
+    RegisterRosService<VisualCheck>(factory, "VisualCheck", nh);
     ROS_INFO("Starting BT executor service...");
-    ros::spin();
-    return 0;
-}
+    auto tree = factory.createTreeFromFile("/home/rosllm/catkin_ws/src/ROSLLM/behavior_executor/behavior_tree/bt_yumi.xml");
+    
+    NodeStatus status = NodeStatus::IDLE;
+
+    ROS_INFO("Starting BT executor...");
+    while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
+      {
+        ros::spinOnce();
+        status = tree.tickRoot();
+        std::cout << status << std::endl;
+        ros::Duration sleep_time(0.01);
+        sleep_time.sleep();
+      }
+
+      return 0;
+    }

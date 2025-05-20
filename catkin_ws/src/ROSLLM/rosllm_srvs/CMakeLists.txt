@@ -4,7 +4,6 @@ project(rosllm_srvs)
 find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
-  rosllm_msgs
   message_generation
   message_runtime
 )
@@ -12,16 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ExecuteBehavior.srv
-  AtomicAction/DetectRope.srv
-  AtomicAction/DetectTarget.srv
-  AtomicAction/ObserveScene.srv
-  AtomicAction/Gripper.srv
-  AtomicAction/HandOver.srv
-  AtomicAction/InsertObject.srv
-  AtomicAction/MoveArm.srv
-  AtomicAction/MoveDefault.srv 
-  AtomicAction/PullObject.srv
-  LLM.srv
+  DetectRope.srv
+  DetectTarget.srv
+  ObserveScene.srv
   VLM.srv
 )
 
@@ -29,7 +21,6 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   sensor_msgs
-  rosllm_msgs
 )
 
 catkin_package()

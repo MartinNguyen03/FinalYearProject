@@ -9,13 +9,25 @@ project(behavior_executor)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rosllm_msgs
+  roscpp std_msgs
+  actionlib_msgs
+  actionlib
+  message_generation
   rosllm_srvs
   rospy
-  # behaviortree_ros
   behaviortree_cpp_v3
 )
 
+# add_message_files(
+#   FILES
+#   rosllm_msgs/msg/VLMResponse.msg
+# )
+
+# add_service_files(
+#   FILES
+#   rosllm_srvs/srv/VLM.srv
+#   rosllm_srvs/srv/ExecuteBehavior.srv
+# )
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -48,6 +60,9 @@ catkin_python_setup()
 ##     and list every .msg/.srv/.action file to be processed
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
+catkin_package(
+  CATKIN_DEPENDS roscpp rospy std_msgs actionlib_msgs rosllm_srvs
+)
 
 ## Generate messages in the 'msg' folder
 # add_message_files(
@@ -121,6 +136,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/extern/BehaviorTree.ROS/include
 )
 
 ## Declare a C++ library
@@ -136,9 +152,9 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(behavior_tree_executor_node src/yumi_tree.cpp)
-add_dependencies(behavior_tree_executor_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(behavior_tree_executor_node ${catkin_LIBRARIES} )
+add_executable(behavior_executor src/yumi_tree.cpp)
+add_dependencies(behavior_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(behavior_executor ${catkin_LIBRARIES} )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -165,7 +181,6 @@ target_link_libraries(behavior_tree_executor_node ${catkin_LIBRARIES} )
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/code_executor
   scripts/sequence_executor
   test/test_code_executor
   test/test_sequence_executor

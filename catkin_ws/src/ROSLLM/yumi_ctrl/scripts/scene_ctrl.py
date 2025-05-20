@@ -26,7 +26,7 @@ class ScenePrimitives:
     rope_srv = 'find_ropes'
     scene_srv = 'observe_scene'
     vlm_srv = 'vlm'
-    bt_srv = 'bt'
+    bt_srv = 'execute_behaviour'
     log_topic = 'scene_logs'
     rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
     marker_ids_topic = ['marker_a', 'marker_b']

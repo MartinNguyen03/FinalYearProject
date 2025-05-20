@@ -1,4 +1,10 @@
 string prompt    # Prompt for the VLM
 sensor_msgs/Image img # Image input for the VLM
 ---
-rosllm_msgs/VLMResponse response # Prompt from VLM
+Header header    # Header information
+int64 req        # Request number
+bool success     # True if the VLM successfully responded
+string info      # Human-readable information (e.g., errors or status)
+string response  # Text response from the VLM
+uint64 req_time  # Time prompt sent to VLM (nanoseconds)
+uint64 res_time  # Time response received from VLM (nanoseconds)

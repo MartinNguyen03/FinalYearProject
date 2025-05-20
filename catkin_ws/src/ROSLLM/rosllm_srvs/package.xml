@@ -9,6 +9,7 @@
 
   <author email="christopher.mower@huawei.com">cmower</author>
 
+  
   <build_depend>message_generation</build_depend>
   <build_export_depend>message_generation</build_export_depend>
   <exec_depend>message_runtime</exec_depend>

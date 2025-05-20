@@ -82,17 +82,41 @@ class CtrlNode:
         global latest_image
         latest_image = msg
 
+# EXAMPLE BT XML 
+# R"(
+#  <root >
+#      <BehaviorTree>
+#         <Sequence>
+#             <AddTwoInts service_name = "add_two_ints"
+#                         first_int = "3" second_int = "4"
+#                         sum = "{add_two_result}" />
+#             <PrintValue message="{add_two_result}"/>
+
+#             <RetryUntilSuccessful num_attempts="4">
+#                 <Timeout msec="300">
+#                     <Fibonacci server_name="fibonacci" order="5"
+#                                result="{fibonacci_result}" />
+#                 </Timeout>
+#             </RetryUntilSuccessful>
+#             <PrintValue message="{fibonacci_result}"/>
+#         </Sequence>
+#      </BehaviorTree>
+#  </root>
+#  )";
+
     def parse_vlm_response_to_bt(self, vlm_response: str) -> str:
         """
         Parses the VLM output (assumed to be BT in simplified format) into BT-XML string.
         """
         # Basic mock-up parsing. Adjust based on your VLM format.
-        xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-            <root main_tree_to_execute="MainTree">
-              <BehaviorTree ID="MainTree">
-                {vlm_response}
-              </BehaviorTree>
-            </root>
+        xml = f"""R"(
+            <root>
+                <BehaviorTree>
+                    <Sequence>
+                        {vlm_response}
+                    </Sequence>
+                </BehaviorTree>
+        )
             """
         return xml
     
