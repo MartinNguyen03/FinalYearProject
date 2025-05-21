@@ -7,6 +7,7 @@
 #include <rosllm_srvs/ExecuteBehavior.h>
 #include <rosllm_srvs/ExecuteBehaviorRequest.h>
 
+
 using namespace BT;
 
 class VisualCheck : public RosServiceNode<rosllm_srvs::VLM>
@@ -110,7 +111,16 @@ int main(int argc, char** argv )
     RegisterRosService<YumiAction>(factory, "YumiAction", nh);
     RegisterRosService<VisualCheck>(factory, "VisualCheck", nh);
     ROS_INFO("Starting BT executor service...");
-    auto tree = factory.createTreeFromFile("/home/rosllm/catkin_ws/src/ROSLLM/behavior_executor/behavior_tree/bt_yumi.xml");
+
+    // Read the XML file into a string
+    ROS_INFO("Reading XML file...");
+    std::ifstream xml_file("/home/rosllm/catkin_ws/src/ROSLLM/behavior_executor/config/gen_tree.xml");
+    std::stringstream buffer;
+    buffer << xml_file.rdbuf();
+    std::string xml_text = buffer.str();
+    ROS_INFO("XML file read successfully.");
+
+    auto tree = factory.createTreeFromFile(xml_text);
     
     NodeStatus status = NodeStatus::IDLE;
 

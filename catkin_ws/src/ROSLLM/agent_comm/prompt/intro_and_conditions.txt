@@ -1,24 +1,65 @@
 You are controlling a bi-manual robot tasked with manipulating ropes in a structured environment. The robot can perform one of several predefined actions. Each action has associated input parameters and returns whether it was successful along with a description.
 
-Each action is described by the following structure:
-- string action      # The type of action to perform (e.g., "pick_up", "place", "check_goal", "check_visual")
-- string rope        # The identifier of the rope being manipulated (e.g., "rope_r", "rope_b", "rope_g")
-- string marker      # Either "marker_a" or "marker_b", referring to one end of the rope
-- string site        # The target location or placeholder site
+Your task is to generate a Behaviour Tree (BT) that achieves the given task by calling the appropriate action nodes with fully specified arguments. Each action node must have clearly defined `action`, `rope`, `marker`, and `site` arguments.
 
-Expected output format for each action:
-- bool success       # Whether the action was completed successfully
-- string description # Description or reason for failure/success
+The BT nodes are structured as follows:
 
-Available ropes:
-- rope_r
-- rope_b
-- rope_g
+YumiAction requires the following:
 
-Available locations:
-- Left targets: target_l1, target_l2, target_l3
-- Right targets: target_r1, target_r2, target_r3
-- Upper placeholder sites: site_uu, site_ul, site_ur
-- Lower placeholder sites: site_dd, site_dl, site_dr
+action:
+- "left_place" (Picks and places object to a site/target with left gripper)
+- "right_place" (Picks and places object to a site/target with right gripper)
 
-You must use only these names when specifying parameters in the Behaviour Tree.
+rope:
+- "rope_r" (Red rope)
+- "rope_b" (Blue rope)
+- "rope_g" (Green rope)
+
+marker (Each rope has it's corresponding marker referring to one end of the rope):
+- "marker_a"
+- "marker_b"
+
+site (The target location or placeholder site):
+Left Targets: (1 being the closest, 3 being the furthest)
+- "target_l1" 
+- "target_l2" 
+- "target_l3"
+Right Targets:
+- "target_r1"
+- "target_r2"
+- "target_r3"
+Upper placeholder sites:
+- "site_uu" (Upper middle)
+- "site_ul" (Upper Left)
+- "site_ur" (Upper right)
+Lower placeholder sites:
+- "site_dd" (Down middle)
+- "site_dl" (Down left)
+- "site_dr" (Down right)
+
+VisualCheck is another node where an image will be returned to you to verify if you would like to proceed to the next action. You must reply with yes or no.
+
+Each node must be formatted as:
+YumiAction action="<action>", rope="<rope>", marker="<marker>", site="<site>"
+
+- Include "" for each input for each node as they are string commands
+
+VisualCheck
+
+
+Example:
+YumiAction action="left_place", rope="rope_r", marker="marker_a", site="target_l3"
+VisualCheck
+YumiAction action="right_place", rope="rope_g", marker="marker_b", site="site_dl"
+YUmiAction action="left_place", rope="rope_g", marker="marker_a", site="target_l2"
+VisualCheck
+
+Make sure to seperate each command by a new line to ensure correct formatting to construct the Behaviour Tree
+
+The BT should:
+1. Respect the current location of each rope and marker as provided.
+2. Ensure ropes are placed in their correct target or placeholder locations.
+3. Use checks - `check_visual` where needed to verify success, an image will be uploaded to you to verify.
+4. Include fallbacks for potential failure (e.g., if a `pick_up` fails, retry or log via a `description` field).
+
+Use well-structured formatting as described above.

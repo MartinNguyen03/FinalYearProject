@@ -1,9 +1,3 @@
 <launch>
-
-    <node name="llm_node" type="llm_node" pkg="agent_comm" output="screen">
-        <param name="model" type="string" value="deepseek-reasoner"/>
-        <param name="base_url" type="string" value="https://api.deepseek.com/v1"/>
-        <param name="api_key" type="string" value="sk-51b334f7b0b143cbbbaf28d17ab547fd"/>
-    </node>
-
+    <node name="vlm_node" type="vlm_node" pkg="agent_comm" output="screen"> </node>
 </launch>

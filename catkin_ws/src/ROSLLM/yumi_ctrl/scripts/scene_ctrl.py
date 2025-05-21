@@ -27,7 +27,7 @@ class ScenePrimitives:
     scene_srv = 'observe_scene'
     vlm_srv = 'vlm'
     bt_srv = 'execute_behaviour'
-    log_topic = 'scene_logs'
+    log_topic = '/scene_ctrl/action'
     rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
     marker_ids_topic = ['marker_a', 'marker_b']
     hand_pose_topic = 'hand_pose'
@@ -135,12 +135,8 @@ class ScenePrimitives:
         site = req.site
         
         self.add_to_log(f'Executing action: {action} on {rope} {marker} to {site}')
-        
-        if action == 'left_pick':
-            self.left_pick(rope, marker)
-        elif action == 'right_pick':
-            self.right_pick(rope, marker)
-        elif action == 'left_place':
+         
+        if action == 'left_place':
             self.left_place(rope, marker, site)
         elif action == 'right_place':
             self.right_place(rope, marker, site)
