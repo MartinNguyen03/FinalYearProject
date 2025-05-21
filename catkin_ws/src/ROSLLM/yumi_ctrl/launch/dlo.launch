@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch> <!-- Launch file for the Yumi robot control system, Taken from UNILACE - WE WILL MAKE A TOP LEVEL LAUNCH SO THIS MAY BE DELETED -->
+    <env name="ROSCONSOLE_CONFIG_FILE" value="$(find yumi_ctrl)/config/rosconsole.conf"/>
+    
+    <!-- Launch moveit -->
+    <include file="$(find yumi_moveit)/yumi_moveit_config/launch/moveit_planning_execution.launch">
+        <arg name="rviz" value="false"/>
+    </include>
+
+    <!-- Launch the vision module -->
+    <include file="$(find yumi_vsn)/launch/yumi_vsn.launch">
+    </include>
+
+    <!-- Launch the primitive sequence planner -->
+    <include file="$(find agent_comm)/launch/ros_agent.launch">
+    </include>
+
+    <include file="$(find behavior_executor)/launch/ctrl_node.launch">
+
+    <node pkg="sl_ctrl" name="sl_logger" type="sl_logger.py" output="screen">
+    </node>
+
+</launch>

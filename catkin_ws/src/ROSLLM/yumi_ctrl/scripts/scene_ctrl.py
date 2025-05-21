@@ -19,7 +19,7 @@ from tf.transformations import euler_from_quaternion, compose_matrix
 
 
 class ScenePrimitives:
-    package_name = 'scene_ctrl'
+    package_name = 'yumi_ctrl'
     marker_topic = '/visualization_marker'
     # robot_frame = "yumi_base_link"
     target_srv = 'find_targets'
@@ -27,7 +27,7 @@ class ScenePrimitives:
     scene_srv = 'observe_scene'
     vlm_srv = 'vlm'
     bt_srv = 'execute_behaviour'
-    log_topic = '/scene_ctrl/action'
+    log_topic = 'scene_logs'
     rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
     marker_ids_topic = ['marker_a', 'marker_b']
     hand_pose_topic = 'hand_pose'

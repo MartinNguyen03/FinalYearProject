@@ -36,6 +36,13 @@ install-from-source:
 		martinnguyen03/fyp:latest
 	docker exec fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
 	docker container stop fypContainer
+	
+dlo:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	sleep 1
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl dlo.launch"
+	docker container stop fypContainer
 
 demo:
 	xhost +si:localuser:root >> /dev/null
@@ -81,6 +88,7 @@ get_observation:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /get_observation"
 	docker container stop fypContainer
+
 debug:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
