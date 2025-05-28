@@ -14,12 +14,13 @@ from ros_numpy import msgify
 from rosllm_srvs.srv import VLM, VLMRequest
 from sensor_msgs.msg import Image
 from std_msgs.msg import String, Int16, Int8, Int8MultiArray, Float32MultiArray
+import cv2
+from cv_bridge import CvBridge 
+from scene_ctrl import ScenePrimitives
 
-from yumi_ctrl.scripts.scene_ctrl import ScenePrimitives
-
-BT_XML_PATH = '/catkin_ws/src/ROSLLM/behaviour_executor/config/gen_tree.xml'
-BT_EXEC_PATH = '/catkin_ws/src/ROSLLM/behaviour_executor/src/yumi_tree.cpp'
-
+BT_XML_PATH =  os.path.expanduser('/catkin_ws/src/ROSLLM/behaviour_executor/config/gen_tree.xml')
+BT_EXEC_PATH = os.path.expanduser( '/catkin_ws/src/ROSLLM/behaviour_executor/src/yumi_tree.cpp')
+PROMPT_PATH = os.path.expanduser('/catkin_ws/src//ROSLLM/agent_comm/prompt/intro_and_conditions.txt')
 class CtrlNode:
     bt_srv = 'get_behaviour'
     vlm_srv = 'get_vlm'
@@ -27,6 +28,8 @@ class CtrlNode:
     def __init__(self):
         auto_exec = True
         reset = True
+        self.debug = True
+        self.bridge = CvBridge()
         self.latest_image = None
         self.image_sub = rospy.Subscriber(self.image_topic, Image, self.image_callback)
         self.action_pub = rospy.Publisher('/scene_ctrl/action', String, queue_size=10)
@@ -34,9 +37,10 @@ class CtrlNode:
         self.get_vlm_srv = rospy.ServiceProxy(self.vlm_srv, VLM)
         
         self.action_pub.publish(String('Initialising YuMi ...'))
+        rospy.loginfo("Setting Scene Primitives...")
         self.scene_ctrl = ScenePrimitives(auto_exec, reset)
+        rospy.loginfo("Scene Primitives set.")
         self.action_pub.publish(String('YuMi initialised.'))
-        self.handleVLMTree()
         signal.signal(signal.SIGINT, self.signal_handler)
         
     def run(self):
@@ -47,28 +51,35 @@ class CtrlNode:
         response = self.handleVLMTree()
         self.action_pub.publish(String("VLM response received."))
         self.action_pub.publish(String("Generating BT XML..."))
-        self.vlm_to_bt(response)
-        bt_construct_time = time() - bt_construct_time
-        rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
-        self.launch_bt_exec()
-        rospy.loginfo("Mission accomplished in {}".format(str(time()-start_time)))
+        if self.debug == False:
+            self.vlm_to_bt(response)
+            bt_construct_time = time() - bt_construct_time
+            rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
+            self.launch_bt_exec()
+            rospy.loginfo("Mission accomplished in {}".format(str(time()-start_time)))
         
         
         
         
     def handleVLMTree(self):
-
+        rospy.loginfo("Waiting for VLM service...")
         self.action_pub.publish(String("Waiting for images and VLM service..."))
 
         rospy.wait_for_service(self.vlm_srv)
+        rospy.loginfo("VLM service is available.")
         try:
             while not rospy.is_shutdown():
                 if self.scene_ctrl.pm.img_frame is not None:
                     
-                    self.latest_image = self.scene_ctrl.pm.img_frame                     
+                    self.latest_image = self.scene_ctrl.pm.img_frame
+                    rospy.loginfo("Image received, proceeding with VLM request.")
+                    rospy.loginfo(f"ENter prompt")                     
                     prompt = input("Enter your prompt: ")
-                    prompt = self.init_prompt(prompt) 
-                    req = VLMRequest(prompt=prompt, img=msgify(self.latest_image, encoding='rgb8'))
+                    if self.debug == False:
+                        prompt = self.init_prompt(prompt) 
+                    # img = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding='bgr8')
+                    # comp_img = self.bridge.cv2_to_compressed_imgmsg(img)
+                    req = VLMRequest(prompt=prompt, img=self.latest_image)
                     resp = self.get_vlm_srv(req)
                     rospy.loginfo(f"VLM Response:\n{resp.response}")
                     return resp.response
@@ -100,7 +111,7 @@ class CtrlNode:
         """
         scene_str = ""
         scene_desc = []
-        intro_prompt = self.read_prompt('intro_and_conditions.txt')
+        intro_prompt = self.read_prompt(PROMPT_PATH)
         
         rope_dict = self.scene_ctrl.pm.rope_dict
         for detected_rope in rope_dict.values():
@@ -125,8 +136,7 @@ class CtrlNode:
         return final_prompt
     
     def read_prompt(self, filename):
-        prompt_dir = "/ROSLLM/agent_comm/prompt"
-        with open(os.path.join(prompt_dir, filename), 'r') as file:
+        with open(filename, 'r') as file:
             return file.read()
         
     # VLM TO BT FUNCTIONS

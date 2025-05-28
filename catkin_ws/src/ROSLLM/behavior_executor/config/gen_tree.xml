@@ -1,0 +1,58 @@
+<root>
+    <BehaviorTree>
+    <Sequence>
+        <YumiAction service_name = "execute_behavior"
+                    action="left_place"
+                    rope="rope_o"
+                    marker="marker_a"
+                    site="site_ul"
+                    message="{task}" />
+        <PrintValue message="{task}" />
+        <RetryUntilSuccessful num_attempts="4">
+                <Timeout msec="300">
+                    <VisualCheck service_name="get_vlm"
+                    img="{img}"
+                    response="{vlm_response}"  />
+                </Timeout>
+        </RetryUntilSuccessful>
+        <PrintValue message="{vlm_response}" />
+        <YumiAction service_name = "execute_behavior"
+                    action="right_place"
+                    rope="rope_o"
+                    marker="marker_a"
+                    site="site_ur"
+                    message="{task}" />
+        <PrintValue message="{task}" />
+        <RetryUntilSuccessful num_attempts="4">
+                <Timeout msec="300">
+                    <VisualCheck service_name="get_vlm"
+                    img="{img}"
+                    response="{vlm_response}"  />
+                </Timeout>
+        </RetryUntilSuccessful>
+        <PrintValue message="{vlm_response}" />
+        <YumiAction service_name = "execute_behavior"
+                    action="left_place"
+                    rope="rope_b"
+                    marker="marker_b"
+                    site="site_ll"
+                    message="{task}" />
+        <PrintValue message="{task}" />
+        <RetryUntilSuccessful num_attempts="4">
+                <Timeout msec="300">
+                    <VisualCheck service_name="get_vlm"
+                    img="{img}"
+                    response="{vlm_response}"  />
+                </Timeout>
+        </RetryUntilSuccessful>
+        <PrintValue message="{vlm_response}" />
+        <YumiAction service_name = "execute_behavior"
+                    action="right_place"
+                    rope="rope_b"
+                    marker="marker_b"
+                    site="site_lr"
+                    message="{task}" />
+        <PrintValue message="{task}" />
+        </Sequence>
+    </BehaviorTree>
+</root>                    

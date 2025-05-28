@@ -1,3 +1,7 @@
 <launch>
-    <node name="vlm_node" type="vlm_node" pkg="agent_comm" output="screen"> </node>
+    <arg name="model_path" default="deepseek-ai/deepseek-vl-7b-chat"/>
+    <node pkg="agent_comm" name="vlm_node" type="vlm_node.py" output="screen">
+        <param name="model_path" value="$(arg model_path)" />
+     </node>
+
 </launch>

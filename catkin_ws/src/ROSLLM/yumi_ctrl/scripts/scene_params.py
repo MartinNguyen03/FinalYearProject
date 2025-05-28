@@ -43,8 +43,8 @@ class SceneParameters:
     sites_dict = {"site_uu": -1, "site_ul": -1, "site_ur": 1, "site_dd": 1, "site_dl": -1, "site_dr": 1, "target_l1":-1, "target_l2":-1, "target_l3":-1, "target_r1": 1, "target_r2":1,"target_r3":1, 'left_gripper':-2, 'right_gripper':2}
     
     rope_dict = {
-        'rope_r': Rope('rope_r', 'gray', 'cyan'),
-        'rope_g': Rope( 'rope_g','orange', 'brown'),
+        'rope_o': Rope('rope_o', 'purple', 'cyan'),
+        'rope_g': Rope( 'rope_g','red', 'brown'),
         'rope_b': Rope( 'rope_b','yellow', 'pink')
     }
     # aglets_dict = {"aglet_a":0, "aglet_b":1}
@@ -52,6 +52,13 @@ class SceneParameters:
 
     def __init__(self, reset, start_id, config_path, result_path, log_handle):
         self.config_path = config_path
+        self.site_poses = {}
+        self.site_occupency = {}
+        self.heirarchy = []
+        self.img_frame = None
+        self.target_poses = []
+        self.hand_poses = [[0,0,0,0,0,0], [0,0,0,0,0,0]]
+        self.add_to_log = log_handle
         self.dynamic_param_path = path.join(config_path, 'dynamic_params.yaml')
         self.static_param_path = path.join(config_path, 'static_params.yaml')
         self.shoe_param_path = path.join(result_path, 'scene_params.yaml')
@@ -60,14 +67,10 @@ class SceneParameters:
         # self.left_cursor = start_id if start_id%2==0 else start_id-1
         # self.right_cursor = start_id+1 if start_id%2==0 else start_id
         # self.aglet_poses = {"aglet_a":[0,0,0,0,0,0], "aglet_b":[0,0,0,0,0,0]}
-        self.target_poses = []
-        self.hand_poses = [[0,0,0,0,0,0], [0,0,0,0,0,0]]
-        self.add_to_log = log_handle
+        
         # self.aglet_at = {"aglet_a":"site_l1", "aglet_b":"site_r1"}
-        self.site_occupency = {}
-        self.heirarchy = []
-        self.img_frame = None
-        self.site_poses = {}
+        
+        
         
     def update_yumi_constriants(self):
         pass
@@ -283,6 +286,12 @@ class SceneParameters:
         self.site_poses['site_ul'] = [0.53, 0.13, table_height] # centre of the left section c
         self.site_poses['site_ur'] = [0.53, -0.13, table_height] # centre of the right section c
         self.site_poses['site_uu'] = [0.53, 0, table_height] # centre of the left section d
+        self.site_poses['target_l1'] = [0.38, 0.16, table_height] # left target 1
+        self.site_poses['target_l2'] = [0.38, 0, table_height]
+        self.site_poses['target_l3'] = [0.38, -0.16, table_height] # left target 3
+        self.site_poses['target_r1'] = [0.53, 0.13, table_height]
+        self.site_poses['target_r2'] = [0.53, 0, table_height]
+        self.site_poses['target_r3'] = [0.53, -0.13, table_height] # right target 3
         self.pre_grasp = ls_add(self.scene_centre, [0, 0, 0.1])
         self.pre_insert_l = [0.3, 0.2, 0.2]
         self.pre_insert_r = [0.3, -0.2, 0.2]
@@ -311,8 +320,8 @@ class SceneParameters:
             self.b_root = self.dynamic_params["b_root"]
             self.sites_availabilty = np.array(self.dynamic_params["sites_availabilty"])
 
-        self.e_l_offset = np.array(self.dynamic_params["e_l_offset"]).tolist()
-        self.e_r_offset = np.array(self.dynamic_params["e_r_offset"]).tolist()
+        # self.e_l_offset = np.array(self.dynamic_params["e_l_offset"]).tolist()
+        # self.e_r_offset = np.array(self.dynamic_params["e_r_offset"]).tolist()
         self.l_l_offset = np.array(self.dynamic_params["l_l_offset"]).tolist()
         self.l_r_offset = np.array(self.dynamic_params["l_r_offset"]).tolist()
         print('Parameters read from file.')

@@ -1,7 +1,7 @@
 string prompt    # Prompt for the VLM
 sensor_msgs/Image img # Image input for the VLM
 ---
-Header header    # Header information
 bool success     # True if the VLM successfully responded
 string info      # Human-readable information (e.g., errors or status)
 string response  # Text response from the VLM
+    

@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch> 
-    
-    <node pkg="behavior_executor" name="ctrl_node" type="ctrl_node.py" output="screen">
-    </node>
-
-</launch>

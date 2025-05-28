@@ -179,5 +179,5 @@
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find realsense2_description)/urdf/yumi_l515_camera.urdf.xacro' use_nominal_extrinsics:=false"/>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find realsense2_description)/rviz/yumi_camera_urdf.rviz" required="true"/>
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find realsense2_description)/rviz/yumi_camera_urdf.rviz" required="true"/> -->
 </launch>

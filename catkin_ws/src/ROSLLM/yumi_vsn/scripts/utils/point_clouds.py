@@ -6,6 +6,7 @@ from ctypes import * # convert float to uint32
 
 datatype = {1:1, 2:1, 3:2, 4:2, 5:4, 6:4, 7:4, 8:8}
 
+
 def read_point(point_2d, pc):
     """ get 3d point position from sensor_msgs point cloud """  
     arrayPosition = point_2d[0]*pc.row_step + point_2d[1]*pc.point_step # point_2d: y,x

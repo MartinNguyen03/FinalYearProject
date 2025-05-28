@@ -1,14 +1,38 @@
 #include <behaviortree_ros/bt_service_node.h>
 #include <behaviortree_ros/bt_action_node.h>
+#include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <rosllm_srvs/VLM.h>
 #include <rosllm_srvs/VLMRequest.h>
 #include <rosllm_srvs/ExecuteBehavior.h>
 #include <rosllm_srvs/ExecuteBehaviorRequest.h>
+#include <fstream>
 
 
 using namespace BT;
+class PrintValue : public BT::SyncActionNode
+{
+public:
+  PrintValue(const std::string& name, const BT::NodeConfiguration& config)
+  : BT::SyncActionNode(name, config) {}
+
+  BT::NodeStatus tick() override {
+    int value = 0;
+    if( getInput("message", value ) ){
+      std::cout << "PrintValue: " << value << std::endl;
+      return NodeStatus::SUCCESS;
+    }
+    else{
+      std::cout << "PrintValue FAILED "<< std::endl;
+      return NodeStatus::FAILURE;
+    }
+  }
+
+  static BT::PortsList providedPorts() {
+    return{ BT::InputPort<int>("message") };
+  }
+};
 
 class VisualCheck : public RosServiceNode<rosllm_srvs::VLM>
 {
@@ -108,20 +132,89 @@ int main(int argc, char** argv )
     BehaviorTreeFactory factory;
 
     ROS_INFO("Registering BT nodes...");
+    factory.registerNodeType<PrintValue>("PrintValue");
     RegisterRosService<YumiAction>(factory, "YumiAction", nh);
     RegisterRosService<VisualCheck>(factory, "VisualCheck", nh);
     ROS_INFO("Starting BT executor service...");
 
+    // BT_REGISTER_NODES(factory)
+    // {
+    //     factory.registerNodeType<YumiAction>("YumiAction");
+    //     factory.registerNodeType<VisualCheck>("VisualCheck");
+    // }
+    ROS_INFO("BT nodes registered successfully.");
     // Read the XML file into a string
     ROS_INFO("Reading XML file...");
-    std::ifstream xml_file("/home/rosllm/catkin_ws/src/ROSLLM/behavior_executor/config/gen_tree.xml");
-    std::stringstream buffer;
-    buffer << xml_file.rdbuf();
-    std::string xml_text = buffer.str();
-    ROS_INFO("XML file read successfully.");
+    // std::ifstream xml_file("/home/martin/Documents/FinalYearProject/FinalYearProject/catkin_ws/src/ROSLLM/behavior_executor/config/gen_tree.xml");
+    // std::stringstream buffer;
+    // buffer << xml_file.rdbuf();
+    // std::string xml_text = buffer.str();
+    // ROS_INFO("XML file read successfully.");
+    // ROS_INFO("XML content: %s", xml_text.c_str());
+    static const char* xml_text = R"(
+        <root>
+        <BehaviorTree>
+        <Sequence>
+            <YumiAction service_name = "execute_behavior"
+                        action="left_place"
+                        rope="rope_o"
+                        marker="marker_a"
+                        site="site_ul"
+                        message="{task}" />
+            <PrintValue message="{task}" />
+            <RetryUntilSuccessful num_attempts="4">
+                    <Timeout msec="300">
+                        <VisualCheck service_name="get_vlm"
+                        img="{img}"
+                        response="{vlm_response}"  />
+                    </Timeout>
+            </RetryUntilSuccessful>
+            <PrintValue message="{vlm_response}" />
+            <YumiAction service_name = "execute_behavior"
+                        action="right_place"
+                        rope="rope_o"
+                        marker="marker_a"
+                        site="site_ur"
+                        message="{task}" />
+            <PrintValue message="{task}" />
+            <RetryUntilSuccessful num_attempts="4">
+                    <Timeout msec="300">
+                        <VisualCheck service_name="get_vlm"
+                        img="{img}"
+                        response="{vlm_response}"  />
+                    </Timeout>
+            </RetryUntilSuccessful>
+            <PrintValue message="{vlm_response}" />
+            <YumiAction service_name = "execute_behavior"
+                        action="left_place"
+                        rope="rope_b"
+                        marker="marker_b"
+                        site="site_ll"
+                        message="{task}" />
+            <PrintValue message="{task}" />
+            <RetryUntilSuccessful num_attempts="4">
+                    <Timeout msec="300">
+                        <VisualCheck service_name="get_vlm"
+                        img="{img}"
+                        response="{vlm_response}"  />
+                    </Timeout>
+            </RetryUntilSuccessful>
+            <PrintValue message="{vlm_response}" />
+            <YumiAction service_name = "execute_behavior"
+                        action="right_place"
+                        rope="rope_b"
+                        marker="marker_b"
+                        site="site_lr"
+                        message="{task}" />
+            <PrintValue message="{task}" />
+            </Sequence>
+        </BehaviorTree>
+    </root>       
+    )";
+    auto tree = factory.createTreeFromText(xml_text);
+    ROS_INFO("Behavior Tree created successfully.");
+    PublisherZMQ publisher(tree);
 
-    auto tree = factory.createTreeFromFile(xml_text);
-    
     NodeStatus status = NodeStatus::IDLE;
 
     ROS_INFO("Starting BT executor...");

@@ -1,5 +1,5 @@
 ROS_IP := 127.0.0.1
-
+DISPLAY:=$(shell echo $$DISPLAY)
 .PHONY: .compile
 
 install-from-hub:
@@ -16,13 +16,13 @@ install-from-source:
 
 
 .compile:
-	git -C ${PWD}/catkin_ws/src clone https://github.com/Unity-Technologies/ROS-TCP-Endpoint.git
+	
 	docker container stop fypContainer || true && docker container rm fypContainer || true
 	docker run \
 		-it \
 		-e ROS_IP="${ROS_IP}" \
 		-e ROS_MASTER_URI="http://${ROS_IP}:11311" \
-		-e DISPLAY \
+		-e DISPLAY=${DISPLAY} \
     	-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v /dev:/dev \
 		-v ${PWD}/catkin_ws:/catkin_ws:rw \
@@ -44,6 +44,16 @@ dlo:
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl dlo.launch"
 	docker container stop fypContainer
 
+ctrl:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	sleep 1
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl ctrl_node.launch"
+	docker container stop fypContainer
+vlm:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True -it fypContainer bash -c "source devel/setup.bash && roslaunch agent_comm ros_agent.launch"
 demo:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -82,7 +92,10 @@ observation_manager:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch observation_manager test.launch"
 	docker container stop fypContainer
-
+vsn:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_vsn yumi_vsn.launch"
 get_observation:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -119,7 +132,7 @@ l_camera:
 l515:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_l515.launch camera:=yumi_l515 serial_no:=f0232155 filters:=spatial,temporal,pointcloud"
+	docker exec -e DISPLAY=${DISPLAY} -it fypContainer bash -c "source devel/setup.bash && source ~/.bashrc &&  roslaunch realsense2_camera rs_l515.launch camera:=yumi_l515 serial_no:=f0232155 filters:=spatial,temporal,pointcloud"
 	docker container stop fypContainer
 
 record:
@@ -138,7 +151,22 @@ llmClient:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && rosrun agent_comm llm_client"
 	docker container stop fypContainer
+	
+groot:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && rosrun groot Groot"
+	
+checkdisp:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "echo \$DISPLAY"
+	docker container stop fypContainer
+# => returns empty
 
+# => returns empty
+
+	docker container stop fypContainer
 terminal:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -159,3 +187,6 @@ push:
 	docker commit fypContainer martinnguyen03/fyp:latest
 	docker tag martinnguyen03/fyp martinnguyen03/fyp
 	docker push martinnguyen03/fyp
+
+.display:
+	docker fypContainer bash -c "export DISPLAY=$(DISPLAY)"

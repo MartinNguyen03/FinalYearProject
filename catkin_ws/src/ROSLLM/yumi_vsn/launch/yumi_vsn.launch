@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+   
     <node pkg="yumi_vsn" name="dlo_vsn_node" type="dlo_vsn_node.py" output="screen" >
         <!-- load params -->
         <rosparam command="load" file="$(find yumi_vsn)/config/params_real.yaml"/>

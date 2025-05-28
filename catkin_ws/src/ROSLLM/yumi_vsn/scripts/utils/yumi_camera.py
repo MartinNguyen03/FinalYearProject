@@ -28,6 +28,7 @@ class RealCamera:
         self.img_msg = None
         self.depth_msg = None
         rospy.Subscriber(self.image_topic_compressed, CompressedImage, self.img_sub, queue_size=1)
+        rospy.loginfo(f"Subscribed to compressed image topic: {self.image_topic_compressed}")
         rospy.Subscriber(self.depth_topic, Image, self.depth_sub, queue_size=1)
 
     def img_sub(self, msg):
@@ -48,7 +49,7 @@ class RealCamera:
         '''
         self.depth_msg = msg
 
-    def read_image(self):
+    def read_image(self) -> np.ndarray:
         '''
         Retrieves the latest colour image (compressed) from the camera.
 
@@ -62,6 +63,7 @@ class RealCamera:
         '''
         while self.img_msg is None:
             rospy.sleep(0.01)
+            rospy.logwarn("Waiting for image message...")
         img_msg = self.img_msg
         np_arr = np.frombuffer(img_msg.data, np.uint8)
         img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)

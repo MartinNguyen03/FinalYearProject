@@ -6,11 +6,11 @@ from math import cos, sin, pi, sqrt
 
 from scene_params import SceneParameters
 from utils import list_to_pose_msg, ls_concat, ls_add, tf_ls2mat, tf_mat2ls, pose_msg_to_list, is_sorted
-from catkin_ws.src.ROSLLM.yumi_ctrl.scripts.yumi_wrapper import YumiWrapper
+from yumi_wrapper import YumiWrapper
 import tf
 import rospy
 import rospkg
-from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest, VLM, VLMResponse, ExecuteBehaviour, ExecuteBehaviour, ExecuteBehaviourResponse
+from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectRope, DetectRopeRequest, ObserveScene, ObserveSceneRequest, VLM, VLMResponse, ExecuteBehavior, ExecuteBehavior, ExecuteBehaviorResponse
 from std_msgs.msg import String, Int32MultiArray
 from geometry_msgs.msg import PoseArray
 from tf.transformations import euler_from_quaternion, compose_matrix
@@ -28,7 +28,7 @@ class ScenePrimitives:
     vlm_srv = 'vlm'
     bt_srv = 'execute_behaviour'
     log_topic = 'scene_logs'
-    rope_names_topic = ['rope_r', 'rope_b', 'rope_g']
+    rope_names_topic = ['rope_o', 'rope_b', 'rope_g']
     marker_ids_topic = ['marker_a', 'marker_b']
     hand_pose_topic = 'hand_pose'
     target_pose_topic = 'target_pose'
@@ -36,6 +36,7 @@ class ScenePrimitives:
 
     def __init__(self, auto_execution, reset=True, start_id=0):
         # ros related initialisation
+        self.debug = True
         self.logs_pub = rospy.Publisher(self.log_topic, String, queue_size=1)
         
         # Initialise nested dictionary for rope → marker → topic publishers
@@ -61,16 +62,18 @@ class ScenePrimitives:
         self.hand_pose_pub = rospy.Publisher(self.hand_pose_topic, PoseArray, queue_size=1)
         # self.cursor_pub = rospy.Publisher(self.cursor_topic, Int32MultiArray, queue_size=1)
         self.tf_listener = tf.TransformListener()
-        self.find_rope = rospy.ServiceProxy(self.rope_srv, DetectRope)
-        rospy.wait_for_service(self.rope_srv)
-        self.find_targets = rospy.ServiceProxy(self.target_srv, DetectTarget)
-        rospy.wait_for_service(self.target_srv)
+        if self.debug == False:
+            
+            self.find_rope = rospy.ServiceProxy(self.rope_srv, DetectRope)
+            rospy.wait_for_service(self.rope_srv)
+            self.find_targets = rospy.ServiceProxy(self.target_srv, DetectTarget)
+            rospy.wait_for_service(self.target_srv)
         self.observe_scene = rospy.ServiceProxy(self.scene_srv, ObserveScene)
         rospy.wait_for_service(self.scene_srv)
-        rospy.Service(self.bt_srv, ExecuteBehaviour, self.execute)
+        rospy.Service(self.bt_srv, ExecuteBehavior, self.execute)
 
         # load params
-        self.debug = False
+       
         self.pkg_path = rospkg.RosPack().get_path(self.package_name)
         self.pm = SceneParameters(reset=True, start_id=start_id,
                                            config_path=path.join(self.pkg_path, 'params'),
@@ -80,26 +83,26 @@ class ScenePrimitives:
         # self.update_cursor('right', self.pm.right_cursor)
 
 
-       
-        self.yumi = YumiWrapper(auto_execution, rope_dict=self.pm.rope_dict,
-            workspace=self.pm.workspace,
-            vel_scale=self.pm.vel_scale,
-            gp_opening=self.pm.marker_thickness*1000*2, # to mm
-            table_offset=self.pm.table_offset,
-            grasp_states=self.pm.grasp_states,
-            grasp_states2=self.pm.grasp_states2,
-            observe_states=self.pm.observe_states)
+        if self.debug == False:
+            self.yumi = YumiWrapper(auto_execution, rope_dict=self.pm.rope_dict,
+                workspace=self.pm.workspace,
+                vel_scale=self.pm.vel_scale,
+                gp_opening=self.pm.aglet_thickness*1000*2, # to mm #CHANGEEE
+                table_offset=self.pm.table_offset,
+                grasp_states=self.pm.grasp_states,
+                grasp_states2=self.pm.grasp_states2,
+                observe_states=self.pm.observe_states)
 
-        # scan the shoe
-        self.pm.update_yumi_constriants = self.yumi.update_rope_constriants
+            # scan the shoe
+            self.pm.update_yumi_constriants = self.yumi.update_rope_constriants
         self.init_target_poses()
         
         rospy.loginfo('Execution module ready.')
 
         # create and start the tf listener thread
-        self.side_queue = []
-        self.side_thread = threading.Thread(target=self.tf_thread_func, daemon=True)
-        self.side_thread.start()
+        # self.side_queue = []
+        # self.side_thread = threading.Thread(target=self.tf_thread_func, daemon=True)
+        # self.side_thread.start()
 
     def tf_thread_func(self):
         rate = rospy.Rate(10.0)
@@ -128,7 +131,7 @@ class ScenePrimitives:
         pick: gripper aglet site
         ''' 
         
-        res = ExecuteBehaviourResponse()
+        res = ExecuteBehaviorResponse()
         action = req.action
         rope = req.rope
         marker = req.marker
@@ -846,18 +849,15 @@ class ScenePrimitives:
         while not rospy.is_shutdown():
             # get the target pose
             response = self.observe_scene(request)
-            if len(response.success) == False:
+            if response.success == False:
                 if not self.yumi.check_command('Got empty reply. Try again?'):
                     print('Cancelled action. Exiting.')
                     exit()
             else:
-                if self.yumi.check_command('Satisfied with the result?'):
-                    break
-        for rope in response.ropes:
-            self.pm.heirarchy.append(rope)
-        self.pm.img_frame = response.img_frame
+                # if self.yumi.check_command('Satisfied with the result?'):
+                break
         
-        return response.ropes, response.img
+        return response.ropes, response.img, 
 
     def pub_hand_poses(self, hand, pose):
         self.pm.hand_poses[self.pm.gripper_dict[hand]] = pose
@@ -898,7 +898,7 @@ class ScenePrimitives:
 
     def get_rope_poses(self, rope, marker):
         '''
-        input: rope (colour e.g. rope_r, rope_b), marker (marker_a, marker_b)
+        input: rope (colour e.g. rope_o, rope_b), marker (marker_a, marker_b)
         output: marker_pose, yaw
         '''
         site = self.pm.check_marker_location(rope, marker) 
@@ -1039,23 +1039,24 @@ class ScenePrimitives:
         rospy.sleep(0.5)
 
     def init_target_poses(self):
-        targets_l = self.get_target_poses('targets_l') # left side
-        targets_l = self.get_target_poses('targets_l', target_id=len(targets_l)//2, fine=True) # left side
-        self.yumi.left_go_observe()
-        targets_r = self.get_target_poses('targets_r') # right side
-        targets_r = self.get_target_poses('targets_r', target_id=len(targets_r)//2, fine=True) # right side
-        self.yumi.right_go_observe()
-        assert len(targets_l) == len(targets_r), 'Found {} targets on the left and {} on the right.\
-            '.format(len(targets_l), len(targets_r))
-        self.pm.load_target_poses((targets_l, targets_r))
+        if self.debug == False:
+            targets_l = self.get_target_poses('targets_l') # left side
+            targets_l = self.get_target_poses('targets_l', target_id=len(targets_l)//2, fine=True) # left side
+            self.yumi.left_go_observe()
+            targets_r = self.get_target_poses('targets_r') # right side
+            targets_r = self.get_target_poses('targets_r', target_id=len(targets_r)//2, fine=True) # right side
+            self.yumi.right_go_observe()
+            assert len(targets_l) == len(targets_r), 'Found {} targets on the left and {} on the right.\
+                '.format(len(targets_l), len(targets_r))
+            self.pm.load_target_poses((targets_l, targets_r))
 
-        self.pub_target_poses() # publish target poses
-        self.yumi.both_go_grasp()
+            self.pub_target_poses() # publish target poses
+            self.yumi.both_go_grasp()
         
         
-        for rope in self.rope_names_topic:
-            self.get_rope_poses(rope, 'marker_a')
-            self.get_rope_poses(rope, 'marker_b')
+            for rope in self.rope_names_topic:
+                self.get_rope_poses(rope, 'marker_a')
+                self.get_rope_poses(rope, 'marker_b')
 
         self.get_scene_poses()
         

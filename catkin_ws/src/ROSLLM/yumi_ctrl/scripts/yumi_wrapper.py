@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 from moveit.core.planning_scene import PlanningScene
 from yumi_ctrl import YumiCtrl
-from utils import tf_mat_to_list, tf_list_to_mat
+# from utils import tf_mat_to_list, tf_list_to_mat
 
 import rospy
 from rosllm_srvs.srv import *

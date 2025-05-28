@@ -152,9 +152,9 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(behavior_executor src/yumi_tree.cpp)
-add_dependencies(behavior_executor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(behavior_executor ${catkin_LIBRARIES} )
+add_executable(yumi_tree src/yumi_tree.cpp)
+add_dependencies(yumi_tree ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(yumi_tree ${catkin_LIBRARIES} )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

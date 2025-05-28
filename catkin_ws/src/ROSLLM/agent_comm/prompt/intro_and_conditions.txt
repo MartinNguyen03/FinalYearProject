@@ -11,7 +11,7 @@ action:
 - "right_place" (Picks and places object to a site/target with right gripper)
 
 rope:
-- "rope_r" (Red rope)
+- "rope_o" (Orange rope)
 - "rope_b" (Blue rope)
 - "rope_g" (Green rope)
 
@@ -48,7 +48,7 @@ VisualCheck
 
 
 Example:
-YumiAction action="left_place", rope="rope_r", marker="marker_a", site="target_l3"
+YumiAction action="left_place", rope="rope_o", marker="marker_a", site="target_l3"
 VisualCheck
 YumiAction action="right_place", rope="rope_g", marker="marker_b", site="site_dl"
 YUmiAction action="left_place", rope="rope_g", marker="marker_a", site="target_l2"
@@ -59,7 +59,7 @@ Make sure to seperate each command by a new line to ensure correct formatting to
 The BT should:
 1. Respect the current location of each rope and marker as provided.
 2. Ensure ropes are placed in their correct target or placeholder locations.
-3. Use checks - `check_visual` where needed to verify success, an image will be uploaded to you to verify.
-4. Include fallbacks for potential failure (e.g., if a `pick_up` fails, retry or log via a `description` field).
+3. Use checks - `VisualCheck` where needed to verify success, an image will be uploaded to you to verify.
+
 
 Use well-structured formatting as described above.

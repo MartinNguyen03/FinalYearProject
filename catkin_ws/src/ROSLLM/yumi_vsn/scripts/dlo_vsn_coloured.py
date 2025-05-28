@@ -2,7 +2,6 @@
 import os, sys
 import cv2
 from cv_bridge import CvBridge
-bridge = CvBridge()
 import time
 import numpy as np
 import open3d as o3d
@@ -25,12 +24,15 @@ from utils.yumi_camera import RealCamera
 from utils.point_clouds import depth_pixel_to_metric_coordinate, read_point_from_region, read_points_from_region, xy_to_yx, euclidian_distance
 from utils.colour_segmentation import ColourSegmentation
 
-MODEL_DIR = os.path.expanduser('~/Documents/FinalYearProject/FinalYearProject/dlo_perceiver')  # <-- update this
+MODEL_DIR = os.path.expanduser(rospy.get_param("dlo_perceiver", '/catkin_ws/src/ROSLLM/yumi_vsn/scripts/utils/dlo_perceiver/'))  # <-- update this
 if MODEL_DIR not in sys.path:
     sys.path.append(MODEL_DIR)
 MODEL_PATH = os.path.join(MODEL_DIR, "dlo_perceiver.pt")
-from model_contrastive import DLOPerceiver
-from text_encoder import TextEncoder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULT_PATH = os.path.join(BASE_DIR, "../results")
+TEST_DIR = os.path.join(MODEL_DIR, 'images')
+from utils.dlo_perceiver.dlo_perceiver.model_contrastive import DLOPerceiver
+from utils.dlo_perceiver.dlo_perceiver.text_encoder import TextEncoder
 from transformers import DistilBertTokenizer
 
 # SCENE:
@@ -43,14 +45,7 @@ from transformers import DistilBertTokenizer
 # Target L_6 -->  | ----------- | <-- Target R_6        Each Rope will have it's own unique colour
 # etc.             x        x     x                     X: Free space / intermediate checkpoints (Hardcoded/Or Not) to place rope avoid collision
 
-class dloVision:
-    debug = False
-    processed_frame_topic = '/dlo_vsn/frame_processed'
-    find_target_srv = 'detect_targets'
-    find_object_srv = 'detect_objects'
-    robot_frame = "yumi_base_link"
-    l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
-    HSV_THRESHOLDS = {
+HSV_THRESHOLDS = {
     'red_1':     {'lower': rospy.get_param("~marker_thresh_red_low", [0, 100, 100]),    'upper': rospy.get_param("~marker_thresh_red_high", [10, 255, 255])},
     'red_2':     {'lower': rospy.get_param("~marker_thresh_red2_low", [160, 100, 100]),  'upper': rospy.get_param("~marker_thresh_red2_high", [179, 255, 255])},
     'green':     {'lower': rospy.get_param("~target_thresh_green_low", [40, 40, 40]),     'upper': rospy.get_param("~target_thresh_green_high", [80, 255, 255])},
@@ -61,45 +56,32 @@ class dloVision:
     'pink':      {'lower': rospy.get_param("~target_thresh_pink_low", [145, 100, 100]),  'upper': rospy.get_param("~target_thresh_pink_high", [170, 255, 255])},
     'brown':     {'lower': rospy.get_param("~target_thresh_brown_low", [10, 100, 20]),    'upper': rospy.get_param("~target_thresh_brown_high", [20, 255, 200])},
     'cyan':      {'lower': rospy.get_param("~target_thresh_cyan_low", [80, 100, 100]),   'upper': rospy.get_param("~target_thresh_cyan_high", [100, 255, 255])},
-    'gray':      {'lower': rospy.get_param("~target_thresh_gray_low", [0, 0, 40]),       'upper': rospy.get_param("~target_thresh_gray_high", [179, 30, 200])},
     'white':    {'lower': rospy.get_param("~target_thresh_white_low", [0, 0, 200]),      'upper': rospy.get_param("~target_thresh_white_high", [179, 30, 255])},  # All targets will be white
     }
-    
-    class Rope:
-        def __init__(self, cam, rope_name, auto_execution, marker_a_colour, marker_b_colour):
-            self.name = rope_name
-            self.cam = cam
-            self.marker_a_colour = marker_a_colour
-            self.marker_b_colour = marker_b_colour
-            self.auto_execution = auto_execution
-            self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, self.auto_execution)
-            self.priority = 0
-            self.mask = None
-            self.target_l_colour = None
-            self.target_r_colour = None
-            self.curr_target_l_colour = None       
-            self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
-                      
-        def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
-            self.curr_target_l_colour = curr_target_l_colour
-            self.curr_target_r_colour = curr_target_r_colour
-            self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(curr_target_l_colour, curr_target_r_colour)
-            
-        def updateThreshold(self, colour_1, colour_2):
-            thresh_low_1 = self.HSV_THRESHOLDS[colour_1]['lower']
-            thresh_high_1 = self.HSV_THRESHOLDS[colour_1]['upper']
-            thresh_low_2 = self.HSV_THRESHOLDS[colour_2]['lower']
-            thresh_high_2 = self.HSV_THRESHOLDS[colour_2]['upper']
-            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam.read_image, live_adjust=not self.auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam.read_image, live_adjust=not self.auto_execution)
-             
-    class RopePerceiver:
-        def __init__(self, cam):
+
+RGB_THRESHOLDS = {
+    'red_1':   {'lower': (255, 85, 85),     'upper': (255, 0, 0)},
+    'red_2':   {'lower': (255, 0, 0),       'upper': (255, 85, 85)},
+    'green':   {'lower': (27, 40, 24),      'upper': (255, 255, 0)},
+    'blue':    {'lower': (0, 0, 150),       'upper': (0, 255, 255)},
+    'yellow':  {'lower': (255, 170, 0),     'upper': (255, 255, 0)},
+    'orange':  {'lower': (255, 170, 0),     'upper': (255, 213, 0)},
+    'purple':  {'lower': (170, 0, 170),     'upper': (255, 0, 127)},
+    'pink':    {'lower': (255, 0, 170),     'upper': (255, 0, 127)},
+    'brown':   {'lower': (92, 51, 20),      'upper': (204, 102, 0)},
+    'cyan':    {'lower': (0, 255, 255),     'upper': (0, 255, 170)},
+    'white':   {'lower': (200, 200, 200),   'upper': (255, 255, 255)},
+}
+
+class RopePerceiver:
+        def __init__(self):
             """
             Initialise model, tokenizer, and colour/view prompts.
             """
-            self.cam = cam
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            rospy.loginfo(f"Using device: {self.device}")
             self.model_dict = torch.load(MODEL_PATH)
+            rospy.loginfo(f"Loaded model from {MODEL_PATH}")
             self.model_config = self.model_dict["config"]
             self.model_weights = self.model_dict["model"]
             self.model = DLOPerceiver(
@@ -114,22 +96,26 @@ class dloVision:
             self.model.to(device=self.device)
             self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
             self.textEncoder = TextEncoder(model_name="distilbert-base-uncased")
-
-            self.colours = {"red": "rope_r",
+            self.model.eval()  # Set model to evaluation mode
+            total_val_loss = 0
+            self.colours = {"orange": "rope_o",
                             "green": "rope_g",
                             "blue": "rope_b"}
             self.views = ["top", "bottom"]
 
 
-        def _prepareImage(self, img):
+        def _prepareImage(self, img) :
             """
             Resize and normalise image for model input.
             """
+
+            
             img = cv2.resize(img, (self.model_config["img_w"], self.model_config["img_h"]))
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = img / 255.0
             img = img.transpose(2, 0, 1)
-            img = torch.from_numpy(img).float().unsqueeze(0).to(self.device)
+            img = torch.from_numpy(img).type(torch.FloatTensor).unsqueeze(0).to(device=self.device)
+            
             return img
 
         def _predictMask(self, imgTensor, textEmb):
@@ -161,15 +147,23 @@ class dloVision:
             union = np.logical_or(mask1_bin, mask2_bin).sum()
             return intersection / union if union != 0 else 0
 
-        def segmentRope(self, imgTensor, colour, view):
+        def _segmentRope(self, imgTensor, colour):
             """
             Segment a rope by given colour and view. Returns binary mask.
             """
-            prompt = f"rope {colour} {view}"
-            tokens = self.tokenizer([prompt], return_tensors="pt", padding=True)["input_ids"]
+            
+            x = f"rope,{colour},top"
+            x = x.split(",")
+            rospy.loginfo(f"Segmenting rope with prompt: {x}")
+            prompt = {"object": x[0], "color": x[1], "top_down": x[2]}
+            text = f"{prompt['object']} {prompt['color']} {prompt['top_down']}"
+            texts = [text]
+            tokens = self.tokenizer(texts, return_tensors="pt", padding=True)["input_ids"]
             textEmb = self.textEncoder(tokens).to(self.device)       
             mask = self._predictMask(imgTensor, textEmb)
-            return (mask > 0.5).astype(np.uint8)
+            mask = ((mask * 255)).astype("uint8") 
+            
+            return mask  # Convert to binary mask
 
         def _rankRopesByHierarchy(self, ropeList):
             """
@@ -186,59 +180,122 @@ class dloVision:
             rope_visibility.sort(reverse=True, key=lambda x: x[0])
 
             return [r for _, r in rope_visibility]
+        def _cleanMask(self, uniqueRopes):
+            """
+            Clean masks by removing duplicates based on IoU.
+            """
+            binary_masks = [((r["mask"] > 127).astype(np.uint8)) for r in uniqueRopes]
+            # Step 2: Sum all masks to find overlaps
+            sum_mask = np.sum(binary_masks, axis=0)
 
-        def countRopes(self, frame):
+            # Step 3: Build exclusive mask by subtracting overlapping pixels
+            cleaned_masks = []
+            for i, m in enumerate(uniqueRopes):
+                binary = binary_masks[i]
+                # Keep only pixels where this mask is on and no other
+                exclusive = np.logical_and(binary == 1, sum_mask == 1).astype(np.uint8)
+                cleaned = (exclusive * 255).astype(np.uint8)
+                cleaned_masks.append({
+                    "colour": m["colour"],
+                    "mask": cleaned,
+                    "score": cleaned.sum()
+                })
+
+            return cleaned_masks
+        def countRopes(self, frame) -> list:
             """
             Detect and count unique ropes using mask similarity.
             Returns list of unique rope dicts with colour, view, prompt, and mask.
             """
-            imgTensor = self._prepareImage(frame)
+            rospy.loginfo("Counting ropes in the frame")
+            imgJpg = self._prepareImage(frame)
+            rospy.loginfo("Image prepared for model input")
             uniqueRopes = []
             existingMasks = []
             ropeList = []
             for colour in self.colours.keys():
-                for view in self.views:
-                    mask = self.segmentRope(imgTensor, colour, view)
-
-                    if mask.max() < 0.1:
-                        continue  # No activation
-
-                    if not self._isDuplicate(mask, existingMasks):
-                        existingMasks.append(mask)
-                        uniqueRopes.append({
-                            "colour": colour,
-                            "mask": mask,
-                            "score": mask.sum()
-                        })
+                rospy.loginfo(f"Segmenting rope of colour: {colour}")
+                mask = self._segmentRope(imgJpg, colour)
+                if mask.max() < 0.1:
+                    continue  # No activation
+                # if not self._isDuplicate(mask, existingMasks):
+                #     existingMasks.append(mask)
+                uniqueRopes.append({
+                    "colour": colour,
+                    "mask": mask,
+                    "score": mask.sum()
+                })
                 
+            uniqueRopes = self._cleanMask(uniqueRopes)
             return self._rankRopesByHierarchy(uniqueRopes)
-
+        
+class Rope:
+        def __init__(self, cam_img, rope_name, auto_execution, marker_a_colour, marker_b_colour):
+            self.cam_img = cam_img
+            self.name = rope_name
+            self.marker_a_colour = marker_a_colour
+            self.marker_b_colour = marker_b_colour
+            self.auto_execution = auto_execution
+            # self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, self.auto_execution)
+            self.priority = 0
+            self.mask = None
+            self.target_l_colour = None
+            self.target_r_colour = None
+            self.curr_target_l_colour = None       
+            # self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
+                      
+        def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
+            self.curr_target_l_colour = curr_target_l_colour
+            self.curr_target_r_colour = curr_target_r_colour
+            self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(curr_target_l_colour, curr_target_r_colour)
+            
+        def updateThreshold(self, colour_1, colour_2):
+            thresh_low_1 = RGB_THRESHOLDS[colour_1]['lower']
+            thresh_high_1 = RGB_THRESHOLDS[colour_1]['upper']
+            thresh_low_2 = RGB_THRESHOLDS[colour_2]['lower']
+            thresh_high_2 = RGB_THRESHOLDS[colour_2]['upper']
+            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam_img, live_adjust=not self.auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam_img, live_adjust=not self.auto_execution)
+        
+class dloVision:
+    debug = True
+    debug_name = None
+    processed_frame_topic = '/dlo_vsn/frame_processed'
+    scene_pub_topic = '/dlo_vsn/scene'
+    observe_scene_srv = 'observe_scene'
+    find_target_srv = 'detect_targets'
+    find_rope_srv = 'detect_ropes'
+    robot_frame = "yumi_base_link"
+    l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
+    
+    
         
     def __init__(self, auto_execution):
         
         # read ROS parameters
         self.robot_name = rospy.get_param("~robot_name", "yumi")
-        
+        self.bridge = CvBridge()
         self.auto_execution = auto_execution
         
         
         
         self.l515 = RealCamera(self.robot_name+'_l515', roi=self.l515_roi, jetson=True)
-        self.d435_l = RealCamera(self.robot_name+'_d435_l')
-        self.d435_r = RealCamera(self.robot_name+'_d435_r')
+        rospy.loginfo(f"Using camera {self.l515.frame} for rope perception")
+        # self.d435_l = RealCamera(self.robot_name+'_d435_l')
+        # self.d435_r = RealCamera(self.robot_name+'_d435_r')
 
-        self.dloPerciever = self.RopePerceiver(self.l515)
+        self.dloPerciever = RopePerceiver()
+        rospy.loginfo("Loaded DLO Perceiver model and tokenizer")
         
         self.rope_config = {
-            'rope_r': self.Rope(self.l515, 'rope_r', self.auto_execution, 'gray', 'cyan'),
-            'rope_g': self.Rope(self.l515, 'rope_g', self.auto_execution, 'orange', 'brown'),
-            'rope_b': self.Rope(self.l515, 'rope_b', self.auto_execution, 'yellow', 'pink')
+            'rope_o': Rope(self.l515.read_image, 'rope_o', self.auto_execution, 'purple', 'cyan'),
+            'rope_g': Rope(self.l515.read_image, 'rope_g', self.auto_execution, 'red', 'brown'),
+            'rope_b': Rope(self.l515.read_image, 'rope_b', self.auto_execution, 'yellow', 'pink')
         }
         
-        self.target_config = {
-            'left': ColourSegmentation(self.HSV_THRESHOLDS['white']['lower'], self.HSV_THRESHOLDS['white']['upper'], self.l515.read_image, live_adjust=False),
-            'right': ColourSegmentation(self.HSV_THRESHOLDS['white']['lower'], self.HSV_THRESHOLDS['white']['upper'], self.l515.read_image, live_adjust=False)
-        }
+        # self.target_config = {
+        #     'left': ColourSegmentation(RGB_THRESHOLDS['white']['lower'], RGB_THRESHOLDS['white']['upper'], self.d435_l.read_image, live_adjust=False),
+        #     'right': ColourSegmentation(RGB_THRESHOLDS['white']['lower'], RGB_THRESHOLDS['white']['upper'], self.d435_r.read_image, live_adjust=False)
+        # }
         
         
         self.targets = {'targets_l': [], 'targets_r': []}
@@ -247,11 +304,11 @@ class dloVision:
         self.listener = TransformListener()
         
         # define the services
-        rospy.Service(self.find_target_srv, ObserveScene, self.srvPubScene)
+        rospy.Service(self.observe_scene_srv, ObserveScene, self.srvPubScene)
         rospy.loginfo('Find targets service ready')
-        rospy.Service(self.find_object_srv, DetectRope, self.pubMarkers)
+        rospy.Service(self.find_rope_srv, DetectRope, self.pubMarkers)
         rospy.loginfo('Find objects service ready')
-        rospy.Service('dlo_vsn/targets', DetectTarget, self.pubTargets)
+        rospy.Service(self.find_target_srv, DetectTarget, self.pubTargets)
         rospy.loginfo('Find targets service ready')
         
         # define the publishers
@@ -261,26 +318,60 @@ class dloVision:
             for rope_name, _ in self.rope_config.items():       
                 self.edge_pub = rospy.Publisher(f'dlo_vsn/{rope_name}/edge', Image, queue_size=10)
                 self.mask_pub = rospy.Publisher(f'dlo_vsn/{rope_name}/masks', Image, queue_size=10)
+                self.rope_o_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
+                self.rope_g_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
+                self.rope_b_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
                 self.marker_pub_a = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_a", PoseArray, queue_size=1)
                 self.marker_pub_b = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_b", PoseArray, queue_size=1)
                 self.target_pub = rospy.Publisher(f"dlo_vsn/{rope_name}/a", PoseArray, queue_size=1)
                 self.target_pub_r = rospy.Publisher(f"dlo_vsn/{rope_name}/b", PoseArray, queue_size=1)
-
+                
 
         if self.debug:
             rospy.sleep(1)
             self.find_targets = rospy.ServiceProxy(self.find_target_srv, DetectTarget)
-            self.find_objects = rospy.ServiceProxy('find_objects', DetectRope)
-            rospy.wait_for_service(self.find_target_srv)
-            request = DetectTargetRequest()
-            request.target_name = 'marker_b' # targets_b, targets_r, marker_a, marker_b
-            request.camera_name = 'l515' # d435_l, d435_r, l515
-            while not rospy.is_shutdown():
-                start = time.perf_counter()
-                response = self.find_targets(request)
-                stop = time.perf_counter()
-                print(stop-start)
-                rospy.sleep(0.5)
+            self.find_rope = rospy.ServiceProxy(self.find_rope_srv, DetectRope)
+            self.observe_scene = rospy.ServiceProxy(self.observe_scene_srv, ObserveScene)
+            if self.debug_name == 'marker':
+                rospy.wait_for_service(self.find_rope_srv)
+                request = DetectRopeRequest()
+                request.rope = 'rope_o' # rope_o, rope_g, rope_b
+                request.target_name = 'marker_a' # targets_b, targets_r, marker_a, marker_b
+                request.camera_name = 'l515' # d435_l, d435_r, l515
+                while not rospy.is_shutdown():
+                    start = time.perf_counter()
+                    response = self.find_rope(request)
+                    stop = time.perf_counter()
+                    print(stop-start)
+                    rospy.sleep(0.5)
+            elif self.debug_name == 'target':
+                rospy.wait_for_service(self.find_target_srv)
+                request = DetectTargetRequest()
+                request.target_name = 'targets_l1'
+                while not rospy.is_shutdown():
+                    start = time.perf_counter()
+                    response = self.find_targets(request)
+                    stop = time.perf_counter()
+                    print(stop-start)
+                    rospy.sleep(0.5)
+            else:
+                rospy.loginfo("Starting to observe scene")
+                rospy.wait_for_service(self.observe_scene_srv)
+                rospy.loginfo("Observe scene service is ready")
+                request = ObserveSceneRequest()
+                rospy.loginfo("Requesting scene observation")
+                response = None
+                while response is None:
+                    start = time.perf_counter()
+                    rospy.loginfo("Calling observe_scene service")
+                    response = self.observe_scene(request)
+                    rospy.loginfo(f"Detected ropes: {response.ropes}")
+                    stop = time.perf_counter()
+                    rospy.loginfo(stop-start)
+                    rospy.sleep(0.5)
+            
+                
+            
     
     
     ''' Callback of find overall scene service '''
@@ -288,15 +379,23 @@ class dloVision:
         # generate an empty response
         response = ObserveSceneResponse()
         # turn the img msg to numpy array
+        rospy.loginfo("Observing scene")
         l515_img = self.l515.read_image()
-        l515_depth = self.l515.read_depth()
-        l515_camera_intrinsics = self.l515.read_camera_info()
-        (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
-        l515_transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
-      
+        files = os.listdir(TEST_DIR)
+        for i, file in enumerate(tqdm(files)):
+            print(f"Processing image {i+1}/{len(files)}: {file}")
 
-        detected_ropes = self.dloPerciever.countRopes(l515_img)
+            l515_img = cv2.imread(os.path.join(TEST_DIR, file), cv2.IMREAD_COLOR)
         
+        
+      
+        rospy.loginfo("Counting ropes in the scene")
+        detected_ropes = self.dloPerciever.countRopes(l515_img)
+        rgb_img = cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB)
+        raw_img_out_path = os.path.join(RESULT_PATH, "img_raw.png")
+        raw_img_bgr_path = os.path.join(RESULT_PATH, "img_raw_bgr.png")
+        cv2.imwrite(raw_img_out_path, rgb_img)
+        cv2.imwrite(raw_img_bgr_path, cv2.cvtColor(rgb_img, cv2.COLOR_RGB2BGR))
         rope_list = []
         for rope in detected_ropes:
             colour = rope["colour"]
@@ -305,13 +404,26 @@ class dloVision:
                 rospy.logerr(f"Unknown rope name: {ropeName}")
                 continue
             rope_list.append(ropeName)
-            rospy.loginfo(f"Detected rope: {ropeName}")
+            rospy.loginfo(f"Detected rope: {ropeName}, Score: {rope['score']}")
             ropeObj = self.rope_config[ropeName]
             ropeObj.mask = rope["mask"]
             
+            if colour == 'orange':
+                rospy.loginfo("Saving mask for orange rope")
+                cv2.imwrite(os.path.join(RESULT_PATH, "rope_o_mask.png"), rope['mask'])
+            elif colour == 'green':
+                rospy.loginfo("Saving mask for green rope")
+                cv2.imwrite(os.path.join(RESULT_PATH, "rope_g_mask.png"), rope['mask'])
+            else:
+                rospy.loginfo("Saving mask for blue rope")
+                cv2.imwrite(os.path.join(RESULT_PATH, "rope_b_mask.png"), rope['mask'])
+            
+        response.img = self.bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_RGB2BGR), encoding="rgb8")
         response.success = True
         response.ropes = rope_list 
-        response.img = bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), encoding="rgb8")
+        
+        rospy.loginfo(f"Detected ropes Heirarchy: {rope_list}")
+        # response.img = cv_bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), encoding="rgb8")
         
         self.frame_pub.publish(msgify(Image, cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), 'rgb8'))
         return response
