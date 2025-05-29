@@ -260,16 +260,16 @@ class SceneParameters:
         self.app_os = params["app_os"]
         self.da_os_x = params["da_os_x"]
         self.da_os_z = params["da_os_z"]
-        self.target_to_edge = params["target_to_edge"]
+        self.target_to_holder = params["target_to_holder"]
         self.target_diameter = params["target_diameter"]
         self.target_radius = self.target_diameter/2
-        self.eyestay_thickness = params["eyestay_thickness"]
-        self.eyestay_opening = params["eyestay_opening"]
+        self.target_thickness = params["target_thickness"]
+        self.target_diameter = params["target_diameter"]
         self.table_offset = params["table_offset"]
         self.scene_centre = np.array(params["scene_centre"])
-        self.sl_length = params["sl_length"]
-        self.aglet_thickness = params["aglet_thickness"]
-        self.aglet_length = params["aglet_length"]
+        self.sl_length = params["rope_length"]
+        self.marker_thickness = params["marker_thickness"]
+        self.marker_length = params["marker_length"]
 
         # primitive parameters
         self.grasp_rot_l = eval_list(params["grasp_rot_l"])
@@ -280,18 +280,27 @@ class SceneParameters:
         self.hand_over_centre_2 = ls_add(self.scene_centre, [-0.05, 0, -0.05]) # adjusting orientation
         table_height = self.table_offset+0.02
        
+
         self.site_poses['site_dl'] = [0.38, 0.16, table_height] # centre of the left section a
         self.site_poses['site_dd'] = [0.38, 0, table_height] # centre of the left section a
         self.site_poses['site_dr'] = [0.38, -0.16, table_height] # centre of the right section b
         self.site_poses['site_ul'] = [0.53, 0.13, table_height] # centre of the left section c
         self.site_poses['site_ur'] = [0.53, -0.13, table_height] # centre of the right section c
         self.site_poses['site_uu'] = [0.53, 0, table_height] # centre of the left section d
-        self.site_poses['target_l1'] = [0.38, 0.16, table_height] # left target 1
-        self.site_poses['target_l2'] = [0.38, 0, table_height]
-        self.site_poses['target_l3'] = [0.38, -0.16, table_height] # left target 3
-        self.site_poses['target_r1'] = [0.53, 0.13, table_height]
-        self.site_poses['target_r2'] = [0.53, 0, table_height]
-        self.site_poses['target_r3'] = [0.53, -0.13, table_height] # right target 3
+        self.site_poses['target_l1'] = [0.38 + 0.02, 0.475 - 0.0535, table_height + 0.035] # left target 1 x -0.014
+        self.site_poses['target_l2'] = [0.38 + 0.02, 0.475, table_height + 0.035]
+        self.site_poses['target_l3'] = [0.38 + 0.02, 0.475 + 0.055, table_height + 0.035] # left target 3
+        self.site_poses['target_r1'] = [0.53 - 0.02 , 0.475 - 0.0535, table_height + 0.035]
+        self.site_poses['target_r2'] = [0.53 - 0.02, 0.475, table_height + 0.035]
+        self.site_poses['target_r3'] = [0.53 - 0.02, 0.475 + 0.055, table_height + 0.035] # right target 3
+        self.target_h_l1 = ls_add(self.site_poses['target_l1'], [-self.target_to_holder, 0, 0])
+        self.target_h_l2 = ls_add(self.site_poses['target_l2'], [-self.target_to_holder, 0, 0])
+        self.target_h_l3 = ls_add(self.site_poses['target_l3'], [-self.target_to_holder, 0, 0])
+        self.target_h_r1 = ls_add(self.site_poses['target_r1'], [self.target_to_holder, 0, 0])
+        self.target_h_r2 = ls_add(self.site_poses['target_r2'], [self.target_to_holder, 0, 0])
+        self.target_h_r3 = ls_add(self.site_poses['target_r3'], [self.target_to_holder, 0, 0])
+        
+        
         self.pre_grasp = ls_add(self.scene_centre, [0, 0, 0.1])
         self.pre_insert_l = [0.3, 0.2, 0.2]
         self.pre_insert_r = [0.3, -0.2, 0.2]

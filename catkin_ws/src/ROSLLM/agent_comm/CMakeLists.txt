@@ -161,7 +161,8 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/llm_node
   scripts/llm_client
-  scripts/vlm_node
+  scripts/vlm_node.py
+  scripts/vlm.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

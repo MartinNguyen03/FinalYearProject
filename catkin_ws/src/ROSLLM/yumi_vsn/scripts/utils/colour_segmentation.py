@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-
+import rospy
+import os
 class ColourSegmentation:
     """
     ColourSegmentation allows segmentation of regions in an image based on RGB colour thresholds.
@@ -45,6 +46,7 @@ class ColourSegmentation:
         Displays OpenCV trackbars for adjusting RGB thresholds live. The updated thresholds
         are applied to the image to generate and show the binary mask in real-time.
         """
+        rospy.loginfo(f"DISPLAY: {os.environ.get('DISPLAY')}")
         cv2.namedWindow('Mask')  # Create window for trackbars and mask display
 
         # Create trackbars for each RGB channel (lower and upper bounds)

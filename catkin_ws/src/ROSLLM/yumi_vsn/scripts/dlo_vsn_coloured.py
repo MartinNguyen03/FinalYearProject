@@ -45,32 +45,16 @@ from transformers import DistilBertTokenizer
 # Target L_6 -->  | ----------- | <-- Target R_6        Each Rope will have it's own unique colour
 # etc.             x        x     x                     X: Free space / intermediate checkpoints (Hardcoded/Or Not) to place rope avoid collision
 
-HSV_THRESHOLDS = {
-    'red_1':     {'lower': rospy.get_param("~marker_thresh_red_low", [0, 100, 100]),    'upper': rospy.get_param("~marker_thresh_red_high", [10, 255, 255])},
-    'red_2':     {'lower': rospy.get_param("~marker_thresh_red2_low", [160, 100, 100]),  'upper': rospy.get_param("~marker_thresh_red2_high", [179, 255, 255])},
-    'green':     {'lower': rospy.get_param("~target_thresh_green_low", [40, 40, 40]),     'upper': rospy.get_param("~target_thresh_green_high", [80, 255, 255])},
-    'blue':      {'lower': rospy.get_param("~marker_thresh_blue_low", [100, 150, 0]),    'upper': rospy.get_param("~marker_thresh_blue_high", [140, 255, 255])},
-    'yellow':    {'lower': rospy.get_param("~target_thresh_yellow_low", [20, 100, 100]),   'upper': rospy.get_param("~target_thresh_yellow_high", [30, 255, 255])},
-    'orange':    {'lower': rospy.get_param("~target_thresh_orange_low", [10, 100, 100]),   'upper': rospy.get_param("~target_thresh_orange_high", [20, 255, 255])},
-    'purple':    {'lower': rospy.get_param("~target_thresh_purple_low", [130, 100, 100]),  'upper': rospy.get_param("~target_thresh_purple_high", [160, 255, 255])},
-    'pink':      {'lower': rospy.get_param("~target_thresh_pink_low", [145, 100, 100]),  'upper': rospy.get_param("~target_thresh_pink_high", [170, 255, 255])},
-    'brown':     {'lower': rospy.get_param("~target_thresh_brown_low", [10, 100, 20]),    'upper': rospy.get_param("~target_thresh_brown_high", [20, 255, 200])},
-    'cyan':      {'lower': rospy.get_param("~target_thresh_cyan_low", [80, 100, 100]),   'upper': rospy.get_param("~target_thresh_cyan_high", [100, 255, 255])},
-    'white':    {'lower': rospy.get_param("~target_thresh_white_low", [0, 0, 200]),      'upper': rospy.get_param("~target_thresh_white_high", [179, 30, 255])},  # All targets will be white
-    }
+
 
 RGB_THRESHOLDS = {
-    'red_1':   {'lower': (255, 85, 85),     'upper': (255, 0, 0)},
-    'red_2':   {'lower': (255, 0, 0),       'upper': (255, 85, 85)},
-    'green':   {'lower': (27, 40, 24),      'upper': (255, 255, 0)},
-    'blue':    {'lower': (0, 0, 150),       'upper': (0, 255, 255)},
-    'yellow':  {'lower': (255, 170, 0),     'upper': (255, 255, 0)},
-    'orange':  {'lower': (255, 170, 0),     'upper': (255, 213, 0)},
-    'purple':  {'lower': (170, 0, 170),     'upper': (255, 0, 127)},
-    'pink':    {'lower': (255, 0, 170),     'upper': (255, 0, 127)},
-    'brown':   {'lower': (92, 51, 20),      'upper': (204, 102, 0)},
-    'cyan':    {'lower': (0, 255, 255),     'upper': (0, 255, 170)},
-    'white':   {'lower': (200, 200, 200),   'upper': (255, 255, 255)},
+    'purple':   {'lower': rospy.get_param("~purple_lower", [22, 0, 137]),   'upper':    rospy.get_param("~purple_upper", [255, 97, 255])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [162,0,0]),     'upper':    rospy.get_param("~magenta_upper", [212, 102, 0])},
+    'red':      {'lower': rospy.get_param("~red_lower", [213, 62, 0]),      'upper':    rospy.get_param("~red_upper", [250, 113, 0])},
+    'pink':     {'lower': rospy.get_param("~pink_lower", [237, 105, 0]),    'upper':    rospy.get_param("~pink_upper", [255, 189, 0])},
+    'cyan':     {'lower': rospy.get_param("~cyan_lower", [0, 175, 100]),    'upper':    rospy.get_param("~cyan_upper", [0, 130, 170])},
+    'grey':     {'lower': rospy.get_param("~grey_lower", [108, 128, 67]),   'upper':    rospy.get_param("~grey_upper", [162, 150, 165])},
+    'yellow':   {'lower': rospy.get_param("~yellow_lower", [0, 186, 0]),    'upper':    rospy.get_param("~yellow_upper", [255, 255, 117])}
 }
 
 class RopePerceiver:
@@ -236,7 +220,7 @@ class Rope:
             self.marker_a_colour = marker_a_colour
             self.marker_b_colour = marker_b_colour
             self.auto_execution = auto_execution
-            # self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour, self.auto_execution)
+            self.threshold_a, self.threshold_b = self.updateThreshold(marker_a_colour, marker_b_colour)
             self.priority = 0
             self.mask = None
             self.target_l_colour = None
@@ -244,7 +228,7 @@ class Rope:
             self.curr_target_l_colour = None       
             # self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
                       
-        def updateCurrTarget(self, curr_target_l_colour, curr_target_r_colour):
+        def updateCurrMarker(self, curr_target_l_colour, curr_target_r_colour):
             self.curr_target_l_colour = curr_target_l_colour
             self.curr_target_r_colour = curr_target_r_colour
             self.threshold_curr_l, self.threshold_curr_r = self.updateThreshold(curr_target_l_colour, curr_target_r_colour)
@@ -254,7 +238,13 @@ class Rope:
             thresh_high_1 = RGB_THRESHOLDS[colour_1]['upper']
             thresh_low_2 = RGB_THRESHOLDS[colour_2]['lower']
             thresh_high_2 = RGB_THRESHOLDS[colour_2]['upper']
-            return ColourSegmentation(thresh_low_1, thresh_high_1, self.cam_img, live_adjust=not self.auto_execution), ColourSegmentation(thresh_low_2, thresh_high_2, self.cam_img, live_adjust=not self.auto_execution)
+            rospy.loginfo(f"Updating thresholds for {self.name} with colours {colour_1}")
+            marker_a= ColourSegmentation(thresh_low_1, thresh_high_1, self.cam_img, live_adjust=not self.auto_execution) 
+            rospy.loginfo(f"Marker A thresholds: {thresh_low_1}, {thresh_high_1}")
+            rospy.loginfo(f"Updating thresholds for {self.name} with colours {colour_2}")
+            marker_b = ColourSegmentation(thresh_low_2, thresh_high_2, self.cam_img, live_adjust=not self.auto_execution)
+            rospy.loginfo(f"Marker B thresholds: {thresh_low_2}, {thresh_high_2}")
+            return marker_a, marker_b
         
 class dloVision:
     debug = True
@@ -503,71 +493,7 @@ class dloVision:
         return response
 
                     
-    def pubTargets(self, request):
-        response = DetectTargetResponse()
-        if request.target_name == "targets_r":
-            targets, img, confidence = self.target_detection(self.d435_r, self.target_config['right'])
-            # generate the target point messages
-            target = PoseArray()
-            target.header.stamp = rospy.Time.now()
-            target.header.frame_id = self.robot_frame
-            for target in targets:
-                target_pose = Pose()
-                target_pose.position = Point(*target[:3])
-                normal = target[3:]
-                if any(np.isnan(normal)):
-                    quaternion = [0,0,0,1]
-                else:
-                    if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
-                    roll = 0 # marker has 2 degree of rotational freedom
-                    yaw = atan2(normal[1], normal[0]) 
-                    # if yaw<0: yaw += pi # only defined to the left side 
-                    pitch = -atan2(normal[2], sqrt(normal[0]**2+normal[1]**2))
-                    # pitch = 0 # set pitch to 0 to avoid bumping into the sheo tongue during pulling after the insertion
-                    # quaternion = [roll, pitch, yaw, 0]
-                    quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
-                target_pose.orientation = Quaternion(*quaternion)   
-                target.poses.append(target_pose)
-            response.success = True
-            response.target_poses = target
-            conf_msg = Float64MultiArray()
-            conf_msg.data = confidence
-            response.confidence = conf_msg
-            if self.debug:
-                self.target_pub_r.publish(target)   
-        if request.target_name == "targets_l":
-            targets, img, confidence = self.target_detection(self.d435_l, self.target_config['left'])
-            # generate the target point messages
-            target = PoseArray()
-            target.header.stamp = rospy.Time.now()
-            target.header.frame_id = self.robot_frame
-            for target in targets:
-                target_pose = Pose()
-                target_pose.position = Point(*target[:3])
-                normal = target[3:]
-                if any(np.isnan(normal)):
-                    quaternion = [0,0,0,1]
-                else:
-                    if normal[1]>0: normal = [ -v for v in normal]
-                    roll = 0 # marker has 2 degree of rotational freedom
-                    yaw = atan2(normal[1], normal[0]) 
-                    # if yaw>0: yaw -= pi # only defined to the left side 
-                    pitch = atan2(-normal[2], sqrt(normal[0]**2+normal[1]**2))
-                    # pitch = 0 # set pitch to 0 to avoid bumping into the shoe tongue during pulling after the insertion
-                    quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
-                    # quaternion = [roll, pitch, yaw, 0]
-                target_pose.orientation = Quaternion(*quaternion)
-                target.poses.append(target_pose)
-                
-            response.target_poses = target
-            conf_msg = Float64MultiArray()
-            conf_msg.data = confidence
-            response.confidence = conf_msg
-            if self.debug:
-                self.target_pub.publish(target) 
-            
-        self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
-        return response
+   
                      
 
     
@@ -654,128 +580,8 @@ class dloVision:
         else:
             return None, img
 
-    def target_detection(self, camera, seg):
-        '''
-        [Main recognition function to detect the targets]
-        Input: image
-        output: list of poses (n*7, n for number of targets), result image
-        camera is RealCamera instance
-        seg is ColourSegmentation instance
-        '''
-
-        img = camera.read_image()
-        depth = camera.read_depth()
-        camera_intrinsics = camera.read_camera_info()
-        # if True:
-        #     pose = camera.read_camera_pose()
-        #     (trans,quat) = pose[:3], pose[3:]
-        # else:
-        (trans,quat) = self.listener.lookupTransform(self.robot_frame, camera.frame, rospy.Time(0))
-        transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans)
-        
-        mask = seg.predict_img(img)
-
-        # cap with depth
-        mask = mask*(depth<400) # remove everything beyond 0.5m
-        
-        if self.debug:
-            self.mask_pub.publish(msgify(Image, mask, 'mono8'))
-        
-        h,w = mask.shape
-        mask[int(350/480*h):, int(620/848*w):int(700/848*w)] = 0 # remove markers
-
-        # smooth the mask
-        # mask = cv2.GaussianBlur(mask,(5,5),0)
-
-        # hierarchy: [Next, Previous, First_Child, Parent]
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        if contours is None or hierarchy is None:
-            return [], img, []
-
-        hierarchy = hierarchy[0]
-        # approximate the contours with circles
-        circles = []
-        outer_circles = []
-        outer_contours = []
-        inner_circle_boxes = []
-        outer_circle_boxes = []
-        for i in range(len(contours)):
-            if hierarchy[i,3] == -1:
-                continue
-            inner_circle = cv2.minEnclosingCircle(contours[i]) # (x,y),radius inner_circle
-            outer_circle = cv2.minEnclosingCircle(contours[hierarchy[i, 3]]) # (x,y),radius outer_circle
-            if outer_circle[1] >= 30 or inner_circle[1] <= 5: # remove unreasonable circles
-                continue
-            circles.append(inner_circle)
-            outer_circles.append(outer_circle)
-            outer_contours.append(contours[hierarchy[i, 3]])
-            # radius = inner_circle[1]*2
-            radius = (outer_circle[1]/sqrt(2)+inner_circle[1])
-            inner_circle_box = (inner_circle[0], (radius, radius), 0) #(center(x, y), (width, height), angle of rotation)
-            outer_circle_box = (outer_circle[0], (outer_circle[1]/sqrt(2), outer_circle[1]/sqrt(2)), 0) #(center(x, y), (width, height), angle of rotation)
-            outer_circle_boxes.append(outer_circle_box)
-            inner_circle_boxes.append(inner_circle_box)
-        n_circles = len(circles)
-        n_obs = 5
-            
-        # get poses of the circles
-        poses_observations = []
-        circles_points_observations = []
-        for _ in range(n_circles):
-            circles_points_observations.append([])
-        for i in range(n_obs):
-            depth = camera.read_depth()
-            poses = []
-            for id in range(n_circles):
-                inner_circle_box = cv2.boxPoints(inner_circle_boxes[id])
-                inner_circle_box = np.int0(inner_circle_box)
-
-                # get the centre of the boxes
-                box_3d = read_points_from_region(xy_to_yx(inner_circle_box), depth, region=5, camera_intrinsics=camera_intrinsics)
-                # position_cam = np.mean(box_3d, axis=0)
-                box_3d = [self.transform_point(v, transform) for v in box_3d]
-                position = np.mean(box_3d, axis=0)
-
-                # get all points on the outer contour
-                for p in outer_contours[id]:
-                    p_3d = depth_pixel_to_metric_coordinate(xy_to_yx(p[0]), depth, camera_intrinsics)
-                    if not isnan(p_3d[0]):
-                        p_3d = self.transform_point(p_3d, transform)
-                        circles_points_observations[id].append(p_3d)
-
-                poses.append(np.concatenate((position, [0]*3)))
-
-            poses_observations.append(poses)
-        poses = np.mean(poses_observations, axis=0) # average out
-
-        for id in range(n_circles):
-            open3d_cloud = o3d.geometry.PointCloud()
-            open3d_cloud.points = o3d.utility.Vector3dVector(circles_points_observations[id])
-            plane_model, inliers = open3d_cloud.segment_plane(distance_threshold=0.005,
-                                                    ransac_n=3,
-                                                    num_iterations=1500)
-            normal = plane_model[:3]/np.linalg.norm(plane_model[:3]) # renormalise
-            if camera == self.d435_l:
-                if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
-            else:
-                if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
-            poses[id, 3:] = normal
-        
-        confidences = []
-        for pose in poses:
-            # normal = pose[3:]/np.linalg.norm(pose[3:]) # renormalise
-            normal = pose[3:]
-            # compute confidence
-            ae_vec = np.subtract(pose[:3], trans)
-            # if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
-            c = np.dot(ae_vec,normal)/np.linalg.norm(ae_vec)/np.linalg.norm(normal) # -> cosine of the angle
-            angle = np.arccos(np.clip(c, -1, 1)) # the angle
-            confidence = 1-angle/pi
-            confidences.append(confidence if not np.isnan(confidence) else 0)
-
-        result_img = self.generate_frame(img, outer_circles+circles, list(confidences)*2)
-        result_img = self.generate_frame(result_img, inner_circle_boxes, confidences)
-        return poses, result_img, confidences
+    
+    
 
     
     @staticmethod
@@ -807,5 +613,193 @@ class dloVision:
                 img = cv2.drawContours(img,[box],0,(0,0,color),2)            
         return img
 
+    
+    # def pubTargets(self, request):
+    #    response = DetectTargetResponse()
+    #    if request.target_name == "targets_r":
+    #        targets, img, confidence = self.target_detection(self.d435_r, self.target_config['right'])
+    #        # generate the target point messages
+    #        target = PoseArray()
+    #        target.header.stamp = rospy.Time.now()
+    #        target.header.frame_id = self.robot_frame
+    #        for target in targets:
+    #            target_pose = Pose()
+    #            target_pose.position = Point(*target[:3])
+    #            normal = target[3:]
+    #            if any(np.isnan(normal)):
+    #                quaternion = [0,0,0,1]
+    #            else:
+    #                if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
+    #                roll = 0 # marker has 2 degree of rotational freedom
+    #                yaw = atan2(normal[1], normal[0]) 
+    #                # if yaw<0: yaw += pi # only defined to the left side 
+    #                pitch = -atan2(normal[2], sqrt(normal[0]**2+normal[1]**2))
+    #                # pitch = 0 # set pitch to 0 to avoid bumping into the sheo tongue during pulling after the insertion
+    #                # quaternion = [roll, pitch, yaw, 0]
+    #                quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
+    #            target_pose.orientation = Quaternion(*quaternion)   
+    #            target.poses.append(target_pose)
+    #        response.success = True
+    #        response.target_poses = target
+    #        conf_msg = Float64MultiArray()
+    #        conf_msg.data = confidence
+    #        response.confidence = conf_msg
+    #        if self.debug:
+    #            self.target_pub_r.publish(target)   
+    #    if request.target_name == "targets_l":
+    #        targets, img, confidence = self.target_detection(self.d435_l, self.target_config['left'])
+    #        # generate the target point messages
+    #        target = PoseArray()
+    #        target.header.stamp = rospy.Time.now()
+    #        target.header.frame_id = self.robot_frame
+    #        for target in targets:
+    #            target_pose = Pose()
+    #            target_pose.position = Point(*target[:3])
+    #            normal = target[3:]
+    #            if any(np.isnan(normal)):
+    #                quaternion = [0,0,0,1]
+    #            else:
+    #                if normal[1]>0: normal = [ -v for v in normal]
+    #                roll = 0 # marker has 2 degree of rotational freedom
+    #                yaw = atan2(normal[1], normal[0]) 
+    #                # if yaw>0: yaw -= pi # only defined to the left side 
+    #                pitch = atan2(-normal[2], sqrt(normal[0]**2+normal[1]**2))
+    #                # pitch = 0 # set pitch to 0 to avoid bumping into the shoe tongue during pulling after the insertion
+    #                quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
+    #                # quaternion = [roll, pitch, yaw, 0]
+    #            target_pose.orientation = Quaternion(*quaternion)
+    #            target.poses.append(target_pose)
+               
+    #        response.target_poses = target
+    #        conf_msg = Float64MultiArray()
+    #        conf_msg.data = confidence
+    #        response.confidence = conf_msg
+    #        if self.debug:
+    #            self.target_pub.publish(target) 
+           
+    #    self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
+    #    return response
+    # def target_detection(self, camera, seg):
+    #     '''
+    #     [Main recognition function to detect the targets]
+    #     Input: image
+    #     output: list of poses (n*7, n for number of targets), result image
+    #     camera is RealCamera instance
+    #     seg is ColourSegmentation instance
+    #     '''
+
+    #     img = camera.read_image()
+    #     depth = camera.read_depth()
+    #     camera_intrinsics = camera.read_camera_info()
+    #     # if True:
+    #     #     pose = camera.read_camera_pose()
+    #     #     (trans,quat) = pose[:3], pose[3:]
+    #     # else:
+    #     (trans,quat) = self.listener.lookupTransform(self.robot_frame, camera.frame, rospy.Time(0))
+    #     transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans)
+        
+    #     mask = seg.predict_img(img)
+
+    #     # cap with depth
+    #     mask = mask*(depth<400) # remove everything beyond 0.5m
+        
+    #     if self.debug:
+    #         self.mask_pub.publish(msgify(Image, mask, 'mono8'))
+        
+    #     h,w = mask.shape
+    #     mask[int(350/480*h):, int(620/848*w):int(700/848*w)] = 0 # remove markers
+
+    #     # smooth the mask
+    #     # mask = cv2.GaussianBlur(mask,(5,5),0)
+
+    #     # hierarchy: [Next, Previous, First_Child, Parent]
+    #     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #     if contours is None or hierarchy is None:
+    #         return [], img, []
+
+    #     hierarchy = hierarchy[0]
+    #     # approximate the contours with circles
+    #     circles = []
+    #     outer_circles = []
+    #     outer_contours = []
+    #     inner_circle_boxes = []
+    #     outer_circle_boxes = []
+    #     for i in range(len(contours)):
+    #         if hierarchy[i,3] == -1:
+    #             continue
+    #         inner_circle = cv2.minEnclosingCircle(contours[i]) # (x,y),radius inner_circle
+    #         outer_circle = cv2.minEnclosingCircle(contours[hierarchy[i, 3]]) # (x,y),radius outer_circle
+    #         if outer_circle[1] >= 30 or inner_circle[1] <= 5: # remove unreasonable circles
+    #             continue
+    #         circles.append(inner_circle)
+    #         outer_circles.append(outer_circle)
+    #         outer_contours.append(contours[hierarchy[i, 3]])
+    #         # radius = inner_circle[1]*2
+    #         radius = (outer_circle[1]/sqrt(2)+inner_circle[1])
+    #         inner_circle_box = (inner_circle[0], (radius, radius), 0) #(center(x, y), (width, height), angle of rotation)
+    #         outer_circle_box = (outer_circle[0], (outer_circle[1]/sqrt(2), outer_circle[1]/sqrt(2)), 0) #(center(x, y), (width, height), angle of rotation)
+    #         outer_circle_boxes.append(outer_circle_box)
+    #         inner_circle_boxes.append(inner_circle_box)
+    #     n_circles = len(circles)
+    #     n_obs = 5
+            
+    #     # get poses of the circles
+    #     poses_observations = []
+    #     circles_points_observations = []
+    #     for _ in range(n_circles):
+    #         circles_points_observations.append([])
+    #     for i in range(n_obs):
+    #         depth = camera.read_depth()
+    #         poses = []
+    #         for id in range(n_circles):
+    #             inner_circle_box = cv2.boxPoints(inner_circle_boxes[id])
+    #             inner_circle_box = np.int0(inner_circle_box)
+
+    #             # get the centre of the boxes
+    #             box_3d = read_points_from_region(xy_to_yx(inner_circle_box), depth, region=5, camera_intrinsics=camera_intrinsics)
+    #             # position_cam = np.mean(box_3d, axis=0)
+    #             box_3d = [self.transform_point(v, transform) for v in box_3d]
+    #             position = np.mean(box_3d, axis=0)
+
+    #             # get all points on the outer contour
+    #             for p in outer_contours[id]:
+    #                 p_3d = depth_pixel_to_metric_coordinate(xy_to_yx(p[0]), depth, camera_intrinsics)
+    #                 if not isnan(p_3d[0]):
+    #                     p_3d = self.transform_point(p_3d, transform)
+    #                     circles_points_observations[id].append(p_3d)
+
+    #             poses.append(np.concatenate((position, [0]*3)))
+
+    #         poses_observations.append(poses)
+    #     poses = np.mean(poses_observations, axis=0) # average out
+
+    #     for id in range(n_circles):
+    #         open3d_cloud = o3d.geometry.PointCloud()
+    #         open3d_cloud.points = o3d.utility.Vector3dVector(circles_points_observations[id])
+    #         plane_model, inliers = open3d_cloud.segment_plane(distance_threshold=0.005,
+    #                                                 ransac_n=3,
+    #                                                 num_iterations=1500)
+    #         normal = plane_model[:3]/np.linalg.norm(plane_model[:3]) # renormalise
+    #         if camera == self.d435_l:
+    #             if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
+    #         else:
+    #             if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
+    #         poses[id, 3:] = normal
+        
+    #     confidences = []
+    #     for pose in poses:
+    #         # normal = pose[3:]/np.linalg.norm(pose[3:]) # renormalise
+    #         normal = pose[3:]
+    #         # compute confidence
+    #         ae_vec = np.subtract(pose[:3], trans)
+    #         # if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
+    #         c = np.dot(ae_vec,normal)/np.linalg.norm(ae_vec)/np.linalg.norm(normal) # -> cosine of the angle
+    #         angle = np.arccos(np.clip(c, -1, 1)) # the angle
+    #         confidence = 1-angle/pi
+    #         confidences.append(confidence if not np.isnan(confidence) else 0)
+
+    #     result_img = self.generate_frame(img, outer_circles+circles, list(confidences)*2)
+    #     result_img = self.generate_frame(result_img, inner_circle_boxes, confidences)
+    #     return poses, result_img, confidences
 if __name__ == "__main__":
     dlo_vsn_node = dloVision()

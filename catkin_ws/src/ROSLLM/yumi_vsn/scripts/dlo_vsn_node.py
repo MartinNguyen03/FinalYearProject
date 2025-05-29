@@ -4,7 +4,7 @@ from dlo_vsn_coloured import dloVision
 
 
 class dloVisionNode:
-    auto_execution = True
+    auto_execution = False
     
     def __init__(self):
         # read parameters

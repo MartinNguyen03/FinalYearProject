@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 from moveit.core.planning_scene import PlanningScene
 from yumi_ctrl import YumiCtrl
-# from utils import tf_mat_to_list, tf_list_to_mat
+from utils import tf_mat2ls, tf_ls2mat
 
 import rospy
 from rosllm_srvs.srv import *
@@ -110,16 +110,16 @@ class YumiWrapper(YumiCtrl):
             
     def left_tip_go_to(self, target_tip, statement, velocity_scaling=None, main=True):
         ''' Set target in finger tip frame rather than ee frame '''
-        target_mat = tf_list_to_mat(target_tip)
-        target = tf_mat_to_list(target_mat@self.marker_to_gripper_l)
+        target_mat = tf_ls2mat(target_tip)
+        target = tf_mat2ls(target_mat@self.marker_to_gripper_l)
         self.left_go_to(target, statement, velocity_scaling=velocity_scaling, main=main)
         # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_l)
         # self.left_go_to(np.concatenate((target, target_euler)), statement, velocity_scaling=velocity_scaling, main=main)
 
     def right_tip_go_to(self, target_tip, statement, velocity_scaling=None, main=True):
         ''' Set target in finger tip frame rather than ee frame '''
-        target_mat = tf_list_to_mat(target_tip)
-        target = tf_mat_to_list(target_mat@self.marker_to_gripper_r)
+        target_mat = tf_ls2mat(target_tip)
+        target = tf_mat2ls(target_mat@self.marker_to_gripper_r)
         self.right_go_to(target, statement, velocity_scaling=velocity_scaling, main=main)
         # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_r)
         # self.right_go_to(np.concatenate((target, target_euler)), statement, velocity_scaling=velocity_scaling, main=main)
@@ -137,8 +137,8 @@ class YumiWrapper(YumiCtrl):
         ''' Set target in finger tip frame rather than ee frame '''
         points = []
         for p_tip in points_tip:
-            target_mat = tf_list_to_mat(p_tip)
-            points.append(tf_mat_to_list(target_mat@self.marker_to_gripper_l))
+            target_mat = tf_ls2mat(p_tip)
+            points.append(tf_mat2ls(target_mat@self.marker_to_gripper_l))
             # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_l)
             # points.append(np.concatenate((target, target_euler)))
         self.left_go_thro(points, statement, eef_step=eef_step, jump_threshold=jump_threshold, velocity_scaling=velocity_scaling, main=main)
@@ -147,8 +147,8 @@ class YumiWrapper(YumiCtrl):
         ''' Set target in finger tip frame rather than ee frame '''
         points = []
         for p_tip in points_tip:
-            target_mat = tf_list_to_mat(p_tip)
-            points.append(tf_mat_to_list(target_mat@self.marker_to_gripper_r))
+            target_mat = tf_ls2mat(p_tip)
+            points.append(tf_mat2ls(target_mat@self.marker_to_gripper_r))
             # _, _, target_euler, target, _ = decompose_matrix(target_mat@self.aglet_to_gripper_r)
             # points.append(np.concatenate((target, target_euler)))
         self.right_go_thro(points, statement, eef_step=eef_step, jump_threshold=jump_threshold, velocity_scaling=velocity_scaling, main=main)
@@ -459,14 +459,22 @@ class YumiWrapper(YumiCtrl):
 
     def add_collision_objs(self, ws):
         ''' Add table and walls to the MoveIt planing scene '''
-        self.table_box = [[ws[1]/2, (ws[3]+ws[2])/2, self.table_offset], [ws[1], ws[3]-ws[2], .01]]
-        self.add_collision_box('table', self.table_box[0], self.table_box[1])
-        self.add_collision_box('wall1', [ws[1]/2, ws[2], (ws[5]+ws[4])/2], [ws[1], .01, ws[5]-ws[4]])
-        self.add_collision_box('wall2', [ws[1]/2, ws[3], (ws[5]+ws[4])/2], [ws[1], .01, ws[5]-ws[4]])
+        self.table_box = [[ws[1]/2, (ws[3]+ws[2])/2, self.table_offset],            [ws[1], ws[3]-ws[2], .01]]
+        #table_box: ([0.5, 0, table_offdset/height], [1.0, 1.2, 0.01])
+        self.add_collision_box('table',     self.table_box[0],                      self.table_box[1])
+        self.add_collision_box('wall1',     [ws[1]/2, ws[2], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
+        
+        self.add_collision_box('wall2',     [ws[1]/2, ws[3], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
         self.ceiling_box = [[ws[1]/2, (ws[3]+ws[2])/2, ws[5]], [ws[1], ws[3]-ws[2], .01]]
         self.add_collision_box('ceiling', self.ceiling_box[0], self.ceiling_box[1])
         # self.yumi.add_collision_box('wall3', [ws[1], (ws[3]+ws[2])/2, (ws[5]+ws[4])/2], [.01, ws[3]-ws[2], ws[5]-ws[4]])
-
+        # def add_collision_box(self, name, position, size):
+            # plane_pose = PoseStamped()
+            # plane_pose.header.frame_id = self.robot_frame
+            # plane_pose.pose.position = Point(x=position[0], y=position[1], z=position[2])
+            # plane_pose.pose.orientation = Quaternion(0,0,0,1)
+            # self.scene.add_box(name, plane_pose, tuple(size))
+        
     def remove_table(self):
         ''' Remove the table and shoe model from the MoveIt planing scene '''
         self.remove_collision_objects('table')

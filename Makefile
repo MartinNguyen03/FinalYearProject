@@ -26,7 +26,7 @@ install-from-source:
     	-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v /dev:/dev \
 		-v ${PWD}/catkin_ws:/catkin_ws:rw \
-		-v ${PWD}:/UniLace:rw \
+		-v ${PWD}:/FINALYEARPROJECT:rw \
 		--detach \
 		--privileged \
 		--runtime nvidia \
@@ -95,7 +95,8 @@ observation_manager:
 vsn:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_vsn yumi_vsn.launch"
+	docker exec -e DISPLAY=${DISPLAY} -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_vsn yumi_vsn.launch"
+	
 get_observation:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
@@ -135,11 +136,7 @@ l515:
 	docker exec -e DISPLAY=${DISPLAY} -it fypContainer bash -c "source devel/setup.bash && source ~/.bashrc &&  roslaunch realsense2_camera rs_l515.launch camera:=yumi_l515 serial_no:=f0232155 filters:=spatial,temporal,pointcloud"
 	docker container stop fypContainer
 
-record:
-	xhost +si:localuser:root >> /dev/null
-	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch realsense2_camera rs_from file.launch"
-	docker container stop fypContainer
+
 
 realsense:
 	xhost +si:localuser:root >> /dev/null
