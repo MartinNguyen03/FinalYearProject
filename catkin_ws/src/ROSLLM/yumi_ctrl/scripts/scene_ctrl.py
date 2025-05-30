@@ -87,7 +87,7 @@ class ScenePrimitives:
             self.yumi = YumiWrapper(auto_execution, rope_dict=self.pm.rope_dict,
                 workspace=self.pm.workspace,
                 vel_scale=self.pm.vel_scale,
-                gp_opening=self.pm.aglet_thickness*1000*2, # to mm #CHANGEEE
+                gp_opening=self.pm.marker_thickness*1000*2, # to mm
                 table_offset=self.pm.table_offset,
                 grasp_states=self.pm.grasp_states,
                 grasp_states2=self.pm.grasp_states2,
@@ -373,8 +373,8 @@ class ScenePrimitives:
         prev_target_pos = self.pm.target_poses[target_id][:3]
 
         # 4. Refine target pose using vision
-        self.get_target_poses(target_group, target_id=target_id//2, init=False, fine=True,
-                              compare_with=prev_target_pos)
+        # self.get_target_poses(target_group, target_id=target_id//2, init=False, fine=True,
+        #                       compare_with=prev_target_pos)
         target_pos = self.pm.target_poses[target_id][:3]
 
         # 5. Define insertion parameters

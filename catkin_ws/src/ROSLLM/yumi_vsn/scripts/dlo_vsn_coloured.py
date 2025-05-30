@@ -48,13 +48,13 @@ from transformers import DistilBertTokenizer
 
 
 RGB_THRESHOLDS = {
-    'purple':   {'lower': rospy.get_param("~purple_lower", [22, 0, 137]),   'upper':    rospy.get_param("~purple_upper", [255, 97, 255])},
-    'magenta':  {'lower': rospy.get_param("~magenta_lower", [162,0,0]),     'upper':    rospy.get_param("~magenta_upper", [212, 102, 0])},
-    'red':      {'lower': rospy.get_param("~red_lower", [213, 62, 0]),      'upper':    rospy.get_param("~red_upper", [250, 113, 0])},
-    'pink':     {'lower': rospy.get_param("~pink_lower", [237, 105, 0]),    'upper':    rospy.get_param("~pink_upper", [255, 189, 0])},
-    'cyan':     {'lower': rospy.get_param("~cyan_lower", [0, 175, 100]),    'upper':    rospy.get_param("~cyan_upper", [0, 130, 170])},
-    'grey':     {'lower': rospy.get_param("~grey_lower", [108, 128, 67]),   'upper':    rospy.get_param("~grey_upper", [162, 150, 165])},
-    'yellow':   {'lower': rospy.get_param("~yellow_lower", [0, 186, 0]),    'upper':    rospy.get_param("~yellow_upper", [255, 255, 117])}
+    'purple':   {'lower': rospy.get_param("~purple_lower", [203, 134, 142]),   'upper':    rospy.get_param("~purple_upper", [255, 198, 255])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [124, 64, 124] ),     'upper':    rospy.get_param("~magenta_upper", [196, 153, 255])},
+    'red':      {'lower': rospy.get_param("~red_lower", [0, 77, 221]),      'upper':    rospy.get_param("~red_upper", [130, 147, 255])},
+    'pink':     {'lower': rospy.get_param("~pink_lower", [181, 194, 234]),    'upper':    rospy.get_param("~pink_upper", [244, 252, 255])},
+    'cyan':     {'lower': rospy.get_param("~cyan_lower", [203, 0, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 211, 19])},
+    'grey':     {'lower': rospy.get_param("~grey_lower", [177, 191, 118]),   'upper':    rospy.get_param("~grey_upper", [237, 250, 228])},
+    'yellow':   {'lower': rospy.get_param("~yellow_lower", [78, 173, 220]),    'upper':    rospy.get_param("~yellow_upper", [197, 255, 249])}
 }
 
 class RopePerceiver:
@@ -273,7 +273,7 @@ class dloVision:
         # self.d435_l = RealCamera(self.robot_name+'_d435_l')
         # self.d435_r = RealCamera(self.robot_name+'_d435_r')
 
-        self.dloPerciever = RopePerceiver()
+        # self.dloPerciever = RopePerceiver()
         rospy.loginfo("Loaded DLO Perceiver model and tokenizer")
         
         self.rope_config = {

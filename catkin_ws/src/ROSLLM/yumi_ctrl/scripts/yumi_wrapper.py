@@ -462,10 +462,14 @@ class YumiWrapper(YumiCtrl):
         self.table_box = [[ws[1]/2, (ws[3]+ws[2])/2, self.table_offset],            [ws[1], ws[3]-ws[2], .01]]
         #table_box: ([0.5, 0, table_offdset/height], [1.0, 1.2, 0.01])
         self.add_collision_box('table',     self.table_box[0],                      self.table_box[1])
-        self.add_collision_box('wall1',     [ws[1]/2, ws[2], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
         
+        self.add_collision_box('wall1',     [ws[1]/2, ws[2], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
+        # wall 1: ([0.5, -0.6, 0.385], [1.0, 0.01, 0.77])
         self.add_collision_box('wall2',     [ws[1]/2, ws[3], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
+        # wall 2: ([0.5, 0.6, 0.385], [1.0, 0.01, 0.77])
         self.ceiling_box = [[ws[1]/2, (ws[3]+ws[2])/2, ws[5]], [ws[1], ws[3]-ws[2], .01]]
+        # ceiling: ([0.5, 0, 0.77], [1.0, 1.2, 0.01])
+        
         self.add_collision_box('ceiling', self.ceiling_box[0], self.ceiling_box[1])
         # self.yumi.add_collision_box('wall3', [ws[1], (ws[3]+ws[2])/2, (ws[5]+ws[4])/2], [.01, ws[3]-ws[2], ws[5]-ws[4]])
         # def add_collision_box(self, name, position, size):

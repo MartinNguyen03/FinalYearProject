@@ -15,7 +15,7 @@
 # aglet_thickness: 0.0045
 # aglet_length: 0.03
 
-# # primitive parameters
+# # primitive parameters  
 # app_os: 0.05 # approach offset
 # grasp_rot_l: [0, pi, pi/2]
 # grasp_rot_r: [0, pi, -pi/2]
@@ -34,13 +34,13 @@
 
 # ws[1] - 
 # ws[2] - 
+workspace: [-1.0, 1.0, -0.6, 0.6, 0.0, 0.77] # workspace limits [xmin, xmax, ymin, ymax, zmin, zmax]
 gp_os: 0.137+0.02175
 gp_tip_w: 0.01
 da_os_x: 0.0035
 da_os_z: 0.009
 
 
-workspace: [-1.0, ]
 scene_centre: [0.5, 0.0, 0.35]
 rope_length: 0.315
 

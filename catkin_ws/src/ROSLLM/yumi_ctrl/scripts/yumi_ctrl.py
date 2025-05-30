@@ -190,7 +190,7 @@ class YumiCtrl:
             self.right_go_to(target, statement, velocity_scaling, marker=marker, wait=wait)
         else:
             rospy.logwarn("Action skipped")
-
+    
     def left_go_thro(self, points, statement, eef_step=0.01, jump_threshold=2.0, velocity_scaling=1.0, acceleration_scaling=1.0, marker=True, wait=True):
         """ send left arm to go through a couple of way points """
         self.left_arm_group.stop()

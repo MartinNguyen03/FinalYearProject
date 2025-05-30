@@ -37,6 +37,20 @@ install-from-source:
 	docker exec fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
 	docker container stop fypContainer
 	
+yumi_terminal:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -e ROS_MASTER_URI="http://${ROS_IP}:10.0.1.111" -it fypContainer bash 
+
+ssh:
+
+yumi:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_driver yumi_drivers.launch"
+
+	
+
 dlo:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
