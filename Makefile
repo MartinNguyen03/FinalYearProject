@@ -1,5 +1,5 @@
-ROS_IP := 127.0.0.1
-DISPLAY:=$(shell echo $$DISPLAY)
+ROS_IP := 10.0.1.111
+
 .PHONY: .compile
 
 install-from-hub:
@@ -22,11 +22,11 @@ install-from-source:
 		-it \
 		-e ROS_IP="${ROS_IP}" \
 		-e ROS_MASTER_URI="http://${ROS_IP}:11311" \
-		-e DISPLAY=${DISPLAY} \
+		-e DISPLAY \
     	-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v /dev:/dev \
 		-v ${PWD}/catkin_ws:/catkin_ws:rw \
-		-v ${PWD}:/FINALYEARPROJECT:rw \
+		-v ${PWD}:/FinalYearProject:rw \
 		--detach \
 		--privileged \
 		--runtime nvidia \
@@ -37,17 +37,39 @@ install-from-source:
 	docker exec fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
 	docker container stop fypContainer
 	
+roscore:
+	docker start fypContainer
+	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
+
+
 yumi_terminal:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -e ROS_MASTER_URI="http://${ROS_IP}:10.0.1.111" -it fypContainer bash 
+	docker exec -e ROS_MASTER_URI="http://10.0.1.111:11311" -it fypContainer bash 
 
-ssh:
+grippper-cameras:
+	ssh -t yumi-NUC "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_cameras.launch"
+
+main-camera:
+	ssh -t prl-orin "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_l515.launch"
 
 yumi:
-	xhost +si:localuser:root >> /dev/null
-	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_driver yumi_drivers.launch"
+	ssh -t prl-orin "source catkin_ws/devel/setup.bash && roslaunch yumi_driver yumi_driver.launch"
+
+get-ee-left:
+	rosrun tf tf_echo yumi_base_link yumi_link_7_l
+
+get-ee-right:
+	rosrun tf tf_echo yumi_base_link yumi_link_7_r
+
+open-ee-right:
+	rostopic pub /yumi/gripper_r_position_cmd std_msgs/Float64 "data: 10.0"
+open-ee-left:
+	rostopic pub /yumi/gripper_l_position_cmd std_msgs/Float64 "data: 10.0"
+close-ee-right:
+	rostopic pub /yumi/gripper_r_position_cmd std_msgs/Float64 "data: 0.0"
+close-ee-left:
+	rostopic pub /yumi/gripper_l_position_cmd std_msgs/Float64 "data: 0.0"
 
 	
 
@@ -106,10 +128,10 @@ observation_manager:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch observation_manager test.launch"
 	docker container stop fypContainer
+
 vsn:
-	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -e DISPLAY=${DISPLAY} -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_vsn yumi_vsn.launch"
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_vsn yumi_vsn.launch"
 	
 get_observation:
 	xhost +si:localuser:root >> /dev/null
@@ -168,20 +190,16 @@ groot:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && rosrun groot Groot"
 	
-checkdisp:
-	xhost +si:localuser:root >> /dev/null
-	docker start fypContainer
-	docker exec -it fypContainer bash -c "echo \$DISPLAY"
-	docker container stop fypContainer
+
 # => returns empty
 
 # => returns empty
 
 	docker container stop fypContainer
+
 terminal:
-	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -it fypContainer bash
+	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash
 
 debug_dependencies:
 	docker start fypContainer
