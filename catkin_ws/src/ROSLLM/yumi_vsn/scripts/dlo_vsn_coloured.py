@@ -249,7 +249,7 @@ class dloVision:
         
         
         
-        self.l515 = RealCamera(self.robot_name+'_l515', roi=self.l515_roi, jetson=True)
+        self.l515 = RealCamera(self.robot_name+'_l515', roi=self.l515_roi, jetson=False)
         rospy.loginfo(f"Using camera {self.l515.frame} for rope perception")
         # self.d435_l = RealCamera(self.robot_name+'_d435_l')
         # self.d435_r = RealCamera(self.robot_name+'_d435_r')
