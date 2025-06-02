@@ -1,5 +1,5 @@
 ROS_IP := 10.0.1.111
-
+DISPLAY := $(shell echo $${DISPLAY})
 .PHONY: .compile
 
 install-from-hub:
@@ -45,7 +45,7 @@ roscore:
 yumi_terminal:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -e ROS_MASTER_URI="http://10.0.1.111:11311" -it fypContainer bash 
+	docker exec -e DISPLAY=${DISPLAY} -e ROS_IP="10.0.1.111" -e ROS_MASTER_URI="http://10.0.1.111:11311" -it fypContainer bash 
 
 grippper-cameras:
 	ssh -t yumi-NUC "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_cameras.launch"
