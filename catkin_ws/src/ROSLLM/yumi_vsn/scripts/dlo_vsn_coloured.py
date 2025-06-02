@@ -23,6 +23,8 @@ from rosllm_srvs.srv import ObserveScene, ObserveSceneRequest, ObserveSceneRespo
 from utils.yumi_camera import RealCamera
 from utils.point_clouds import depth_pixel_to_metric_coordinate, read_point_from_region, read_points_from_region, xy_to_yx, euclidian_distance
 from utils.colour_segmentation import ColourSegmentation
+from platform_registration import PlatformRegistration
+
 
 MODEL_DIR = os.path.expanduser(rospy.get_param("dlo_perceiver", '/catkin_ws/src/ROSLLM/yumi_vsn/scripts/utils/dlo_perceiver/'))  # <-- update this
 if MODEL_DIR not in sys.path:
