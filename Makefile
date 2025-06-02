@@ -1,6 +1,6 @@
-ROS_IP := 10.0.1.111
+export ROS_IP := 10.0.1.111
 
-.PHONY: .compile
+
 
 install-from-hub:
 	docker pull martinnguyen03/fyp:latest
@@ -39,7 +39,7 @@ install-from-source:
 	
 roscore:
 	docker start fypContainer
-	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
 
 
 yumi_terminal:
@@ -51,7 +51,7 @@ grippper-cameras:
 	ssh -t yumi-NUC "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_cameras.launch"
 
 main-camera:
-	ssh -t prl-orin "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_l515.launch"
+	ssh -t yumi-NUC "source catkin_ws/devel/setup.bash && roslaunch yumi_realsense yumi_l515.launch"
 
 yumi:
 	ssh -t prl-orin "source catkin_ws/devel/setup.bash && roslaunch yumi_driver yumi_driver.launch"
@@ -199,7 +199,7 @@ groot:
 
 terminal:
 	docker start fypContainer
-	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash
+	docker exec -it fypContainer bash
 
 debug_dependencies:
 	docker start fypContainer
