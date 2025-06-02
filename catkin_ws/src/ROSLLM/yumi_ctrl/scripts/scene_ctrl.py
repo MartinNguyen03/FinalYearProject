@@ -66,8 +66,7 @@ class ScenePrimitives:
             
             self.find_rope = rospy.ServiceProxy(self.rope_srv, DetectRope)
             rospy.wait_for_service(self.rope_srv)
-            self.find_targets = rospy.ServiceProxy(self.target_srv, DetectTarget)
-            rospy.wait_for_service(self.target_srv)
+
         self.observe_scene = rospy.ServiceProxy(self.scene_srv, ObserveScene)
         rospy.wait_for_service(self.scene_srv)
         rospy.Service(self.bt_srv, ExecuteBehavior, self.execute)

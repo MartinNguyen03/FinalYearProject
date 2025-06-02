@@ -8,7 +8,7 @@ from scipy.spatial import distance
 import rospy
 from sensor_msgs.msg import Image, PointCloud2
 
-from vision_utils.images import msg_to_img
+from utils.images import msg_to_img
 from utils.point_clouds import xy_to_yx, read_point_from_region
 from tf.transformations import euler_from_quaternion, quaternion_from_matrix, euler_from_matrix
 
@@ -17,22 +17,23 @@ class PlatformRegistration:
     img_topic = "/yumi_l515/color/image_raw"
     def __init__(self):
         # Load the ArUco dictionary
-        self.aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_7X7_100)
-        self.aruco_params = cv2.aruco.DetectorParameters_create()
-
+        self.aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_7X7_100)
+        self.aruco_params = cv2.aruco.DetectorParameters()
+        self.aruco_detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
+        
     def print_markers(self):
         ''' Print required Aruco tags onto imgs '''
         img = np.zeros((300, 300, 1), dtype="uint8")
         for id in range(81,85):
-            cv2.aruco.drawMarker(self.aruco_dict, id, 300, img, 1)
+            self.aruco_detector.drawMarker(self.aruco_dict, id, 300, img, 1)
             cv2.imwrite("aruco_{}.png".format(id), img)
             cv2.imshow("ArUCo Tag", img)
             cv2.waitKey(0)
 
     def register_platform(self, img, depth, camera_intrinsics, offset=None):
         # Detect ArUco markers
-        (corners, ids, _) = cv2.aruco.detectMarkers(img, self.aruco_dict, parameters=self.aruco_params)
-
+        corners, ids, _ = cv2.aruco.detectMarkers(img, self.aruco_dict)
+        
         # Check that at least one ArUco marker was detected
         if len(corners) > 0:
         # Flatten the ArUco IDs list
@@ -65,7 +66,7 @@ class PlatformRegistration:
 
     def check_markers(self, frame):        
         # Detect ArUco markers in the video frame
-        (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, self.aruco_dict, parameters=self.aruco_params)
+        corners, ids, _ = self.aruco_detector.detectMarkers(frame, self.aruco_dict)
         
         # Check that at least one ArUco marker was detected
         if len(corners) > 0:
@@ -104,6 +105,9 @@ class PlatformRegistration:
             cv2.putText(frame, str(marker_id), (top_left[0], top_left[1] - 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         return frame
 
+    
+    
+    
 if __name__ == '__main__':
     print(cv2.__version__)
     rospy.init_node('platform_registration', anonymous=True)

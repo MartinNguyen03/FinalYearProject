@@ -1,4 +1,4 @@
-# Install script for directory: /catkin_ws/src/yumi-moveit/yumi_moveit_config
+# Install script for directory: /catkin_ws/src/yumi-prl/yumi_moveit_config
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -140,7 +140,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/yumi_moveit_config" TYPE FILE FILES "/catkin_ws/src/yumi-moveit/yumi_moveit_config/package.xml")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/yumi_moveit_config" TYPE FILE FILES "/catkin_ws/src/yumi-prl/yumi_moveit_config/package.xml")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)

@@ -24,9 +24,9 @@ PROMPT_PATH = os.path.expanduser('/catkin_ws/src//ROSLLM/agent_comm/prompt/intro
 class CtrlNode:
     bt_srv = 'get_behaviour'
     vlm_srv = 'get_vlm'
-    image_topic = "/camera/color/image_raw"  # Update with your RealSense topic
+    image_topic = "/yumi_l515/camera/color/image_raw"  # Update with your RealSense topic
     def __init__(self):
-        auto_exec = True
+        auto_execution = False
         reset = True
         self.debug = True
         self.bridge = CvBridge()
@@ -38,7 +38,7 @@ class CtrlNode:
         
         self.action_pub.publish(String('Initialising YuMi ...'))
         rospy.loginfo("Setting Scene Primitives...")
-        self.scene_ctrl = ScenePrimitives(auto_exec, reset)
+        self.scene_ctrl = ScenePrimitives(auto_execution, reset)
         rospy.loginfo("Scene Primitives set.")
         self.action_pub.publish(String('YuMi initialised.'))
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -204,7 +204,7 @@ class CtrlNode:
         Launches the BT executor with the generated XML file.
         """
         # Ensure the BT XML file is saved before launching
-        cmd = ['rosrun', 'behaviour_executor', 'yumi_tree.cpp']
+        cmd = ['rosrun', 'behaviour_executor', 'yumi_tree']
         self.bt = subprocess.Popen(cmd)
         time.sleep(1)
         

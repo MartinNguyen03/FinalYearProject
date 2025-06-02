@@ -12,7 +12,6 @@ add_service_files(
   FILES
   ExecuteBehavior.srv
   DetectRope.srv
-  DetectTarget.srv
   ObserveScene.srv
   VLM.srv
 )

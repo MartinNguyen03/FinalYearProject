@@ -67,7 +67,7 @@ set(yumi_description_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(yumi_description_SOURCE_PREFIX /catkin_ws/src/yumi-moveit/yumi_description)
+  set(yumi_description_SOURCE_PREFIX /catkin_ws/src/yumi-prl/yumi_description)
   set(yumi_description_DEVEL_PREFIX /catkin_ws/devel/.private/yumi_description)
   set(yumi_description_INSTALL_PREFIX "")
   set(yumi_description_PREFIX ${yumi_description_DEVEL_PREFIX})

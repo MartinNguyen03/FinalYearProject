@@ -17,7 +17,6 @@ from ros_numpy import msgify
 from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, Point, PoseArray, Quaternion
-from rosllm_srvs.srv import DetectTarget, DetectTargetRequest, DetectTargetResponse
 from rosllm_srvs.srv import DetectRope, DetectRopeRequest, DetectRopeResponse
 from rosllm_srvs.srv import ObserveScene, ObserveSceneRequest, ObserveSceneResponse
 from utils.yumi_camera import RealCamera
@@ -113,25 +112,6 @@ class RopePerceiver:
             mask = pred.sigmoid().squeeze().detach().cpu().numpy()
             return mask
 
-        def _isDuplicate(self, newMask, existingMasks, threshold=0.9):
-            """
-            Check if new mask is a duplicate based on IoU.
-            """
-            for mask in existingMasks:
-                iou = self._maskIoU(newMask, mask)
-                if iou > threshold:
-                    return True
-            return False
-
-        def _maskIoU(self, mask1, mask2):
-            """
-            Compute Intersection over Union (IoU) between two masks.
-            """
-            mask1_bin = (mask1 > 0.5).astype(np.uint8)
-            mask2_bin = (mask2 > 0.5).astype(np.uint8)
-            intersection = np.logical_and(mask1_bin, mask2_bin).sum()
-            union = np.logical_or(mask1_bin, mask2_bin).sum()
-            return intersection / union if union != 0 else 0
 
         def _segmentRope(self, imgTensor, colour):
             """
@@ -212,7 +192,7 @@ class RopePerceiver:
                     "score": mask.sum()
                 })
                 
-            uniqueRopes = self._cleanMask(uniqueRopes)
+            # uniqueRopes = self._cleanMask(uniqueRopes)
             return self._rankRopesByHierarchy(uniqueRopes)
         
 class Rope:
@@ -254,7 +234,6 @@ class dloVision:
     processed_frame_topic = '/dlo_vsn/frame_processed'
     scene_pub_topic = '/dlo_vsn/scene'
     observe_scene_srv = 'observe_scene'
-    find_target_srv = 'detect_targets'
     find_rope_srv = 'detect_ropes'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
@@ -275,33 +254,25 @@ class dloVision:
         # self.d435_l = RealCamera(self.robot_name+'_d435_l')
         # self.d435_r = RealCamera(self.robot_name+'_d435_r')
 
-        # self.dloPerciever = RopePerceiver()
+        self.dloPerciever = RopePerceiver()
         rospy.loginfo("Loaded DLO Perceiver model and tokenizer")
         
         self.rope_config = {
-            'rope_o': Rope(self.l515.read_image, 'rope_o', self.auto_execution, 'purple', 'cyan'),
-            'rope_g': Rope(self.l515.read_image, 'rope_g', self.auto_execution, 'red', 'brown'),
-            'rope_b': Rope(self.l515.read_image, 'rope_b', self.auto_execution, 'yellow', 'pink')
+            'rope_o': Rope(self.l515.read_image, 'rope_o', self.auto_execution, 'grey', 'cyan'),
+            'rope_g': Rope(self.l515.read_image, 'rope_g', self.auto_execution, 'purple', 'red'),
+            'rope_b': Rope(self.l515.read_image, 'rope_b', self.auto_execution, 'pink', 'yellow')
         }
-        
-        # self.target_config = {
-        #     'left': ColourSegmentation(RGB_THRESHOLDS['white']['lower'], RGB_THRESHOLDS['white']['upper'], self.d435_l.read_image, live_adjust=False),
-        #     'right': ColourSegmentation(RGB_THRESHOLDS['white']['lower'], RGB_THRESHOLDS['white']['upper'], self.d435_r.read_image, live_adjust=False)
-        # }
-        
-        
-        self.targets = {'targets_l': [], 'targets_r': []}
+
         
         # initialise the tf listener
         self.listener = TransformListener()
         
         # define the services
         rospy.Service(self.observe_scene_srv, ObserveScene, self.srvPubScene)
-        rospy.loginfo('Find targets service ready')
+        rospy.loginfo('Find Scene service ready')
         rospy.Service(self.find_rope_srv, DetectRope, self.pubMarkers)
         rospy.loginfo('Find objects service ready')
-        rospy.Service(self.find_target_srv, DetectTarget, self.pubTargets)
-        rospy.loginfo('Find targets service ready')
+       
         
         # define the publishers
         # Crrently Unused
@@ -321,7 +292,7 @@ class dloVision:
 
         if self.debug:
             rospy.sleep(1)
-            self.find_targets = rospy.ServiceProxy(self.find_target_srv, DetectTarget)
+            # self.find_targets = rospy.ServiceProxy(self.find_target_srv, DetectTarget)
             self.find_rope = rospy.ServiceProxy(self.find_rope_srv, DetectRope)
             self.observe_scene = rospy.ServiceProxy(self.observe_scene_srv, ObserveScene)
             if self.debug_name == 'marker':
@@ -333,16 +304,6 @@ class dloVision:
                 while not rospy.is_shutdown():
                     start = time.perf_counter()
                     response = self.find_rope(request)
-                    stop = time.perf_counter()
-                    print(stop-start)
-                    rospy.sleep(0.5)
-            elif self.debug_name == 'target':
-                rospy.wait_for_service(self.find_target_srv)
-                request = DetectTargetRequest()
-                request.target_name = 'targets_l1'
-                while not rospy.is_shutdown():
-                    start = time.perf_counter()
-                    response = self.find_targets(request)
                     stop = time.perf_counter()
                     print(stop-start)
                     rospy.sleep(0.5)
@@ -373,11 +334,10 @@ class dloVision:
         # turn the img msg to numpy array
         rospy.loginfo("Observing scene")
         l515_img = self.l515.read_image()
-        files = os.listdir(TEST_DIR)
-        for i, file in enumerate(tqdm(files)):
-            print(f"Processing image {i+1}/{len(files)}: {file}")
-
-            l515_img = cv2.imread(os.path.join(TEST_DIR, file), cv2.IMREAD_COLOR)
+        depth = self.l515.read_depth()
+        camera_intrinsics = self.l515.read_camera_info()
+        (trans, quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
+        cam_to_rob = compose_matrix(angles=euler_from_quaternion(quat), translate=trans)
         
         
       
@@ -410,12 +370,14 @@ class dloVision:
                 rospy.loginfo("Saving mask for blue rope")
                 cv2.imwrite(os.path.join(RESULT_PATH, "rope_b_mask.png"), rope['mask'])
             
+        response.centre, aruco_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
         response.img = self.bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_RGB2BGR), encoding="rgb8")
         response.success = True
         response.ropes = rope_list 
         
+        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
         rospy.loginfo(f"Detected ropes Heirarchy: {rope_list}")
-        # response.img = cv_bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), encoding="rgb8")
+        
         
         self.frame_pub.publish(msgify(Image, cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), 'rgb8'))
         return response
@@ -495,10 +457,6 @@ class dloVision:
         return response
 
                     
-   
-                     
-
-    
     def marker_detection(self, img, mask, depth, transform, camera_intrinsics):
         '''
         [Main recognition function to detect the markers]
@@ -583,7 +541,27 @@ class dloVision:
             return None, img
 
     
-    
+    def scene_detection(self, img, depth, transform, camera_intrinsics):
+        ''' Fake scene detection with Aruco markers '''
+        pr = PlatformRegistration()
+        makers_3d = pr.register_platform(img, depth, camera_intrinsics, offset=self.l515_roi[:2])
+        if len(makers_3d) == 4:
+            makers_3d = [self.transform_point(m, transform) for m in makers_3d]
+            # estimate the centre
+            centre = np.mean(makers_3d, axis=0)
+            # estimate the orientation
+            top_centre = np.mean(makers_3d[2:], axis=0)
+            bot_centre = np.mean(makers_3d[:2], axis=0)
+            top_centre_prime = top_centre-bot_centre
+            yaw = atan2(top_centre_prime[1], top_centre_prime[0])
+            euler = [0, 0, yaw]
+            target = np.concatenate((centre, quaternion_from_euler(*euler)))
+        else:
+            rospy.logwarn("Not enough Aruco markers detected! Expected 4, got {}".format(len(makers_3d)))
+            target = None
+        # draw the markers
+        img = pr.check_markers(img)
+        return target, img
 
     
     @staticmethod
@@ -616,192 +594,6 @@ class dloVision:
         return img
 
     
-    # def pubTargets(self, request):
-    #    response = DetectTargetResponse()
-    #    if request.target_name == "targets_r":
-    #        targets, img, confidence = self.target_detection(self.d435_r, self.target_config['right'])
-    #        # generate the target point messages
-    #        target = PoseArray()
-    #        target.header.stamp = rospy.Time.now()
-    #        target.header.frame_id = self.robot_frame
-    #        for target in targets:
-    #            target_pose = Pose()
-    #            target_pose.position = Point(*target[:3])
-    #            normal = target[3:]
-    #            if any(np.isnan(normal)):
-    #                quaternion = [0,0,0,1]
-    #            else:
-    #                if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
-    #                roll = 0 # marker has 2 degree of rotational freedom
-    #                yaw = atan2(normal[1], normal[0]) 
-    #                # if yaw<0: yaw += pi # only defined to the left side 
-    #                pitch = -atan2(normal[2], sqrt(normal[0]**2+normal[1]**2))
-    #                # pitch = 0 # set pitch to 0 to avoid bumping into the sheo tongue during pulling after the insertion
-    #                # quaternion = [roll, pitch, yaw, 0]
-    #                quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
-    #            target_pose.orientation = Quaternion(*quaternion)   
-    #            target.poses.append(target_pose)
-    #        response.success = True
-    #        response.target_poses = target
-    #        conf_msg = Float64MultiArray()
-    #        conf_msg.data = confidence
-    #        response.confidence = conf_msg
-    #        if self.debug:
-    #            self.target_pub_r.publish(target)   
-    #    if request.target_name == "targets_l":
-    #        targets, img, confidence = self.target_detection(self.d435_l, self.target_config['left'])
-    #        # generate the target point messages
-    #        target = PoseArray()
-    #        target.header.stamp = rospy.Time.now()
-    #        target.header.frame_id = self.robot_frame
-    #        for target in targets:
-    #            target_pose = Pose()
-    #            target_pose.position = Point(*target[:3])
-    #            normal = target[3:]
-    #            if any(np.isnan(normal)):
-    #                quaternion = [0,0,0,1]
-    #            else:
-    #                if normal[1]>0: normal = [ -v for v in normal]
-    #                roll = 0 # marker has 2 degree of rotational freedom
-    #                yaw = atan2(normal[1], normal[0]) 
-    #                # if yaw>0: yaw -= pi # only defined to the left side 
-    #                pitch = atan2(-normal[2], sqrt(normal[0]**2+normal[1]**2))
-    #                # pitch = 0 # set pitch to 0 to avoid bumping into the shoe tongue during pulling after the insertion
-    #                quaternion = quaternion_from_euler(roll, pitch, yaw, axes='sxyz')
-    #                # quaternion = [roll, pitch, yaw, 0]
-    #            target_pose.orientation = Quaternion(*quaternion)
-    #            target.poses.append(target_pose)
-               
-    #        response.target_poses = target
-    #        conf_msg = Float64MultiArray()
-    #        conf_msg.data = confidence
-    #        response.confidence = conf_msg
-    #        if self.debug:
-    #            self.target_pub.publish(target) 
-           
-    #    self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
-    #    return response
-    # def target_detection(self, camera, seg):
-    #     '''
-    #     [Main recognition function to detect the targets]
-    #     Input: image
-    #     output: list of poses (n*7, n for number of targets), result image
-    #     camera is RealCamera instance
-    #     seg is ColourSegmentation instance
-    #     '''
-
-    #     img = camera.read_image()
-    #     depth = camera.read_depth()
-    #     camera_intrinsics = camera.read_camera_info()
-    #     # if True:
-    #     #     pose = camera.read_camera_pose()
-    #     #     (trans,quat) = pose[:3], pose[3:]
-    #     # else:
-    #     (trans,quat) = self.listener.lookupTransform(self.robot_frame, camera.frame, rospy.Time(0))
-    #     transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans)
-        
-    #     mask = seg.predict_img(img)
-
-    #     # cap with depth
-    #     mask = mask*(depth<400) # remove everything beyond 0.5m
-        
-    #     if self.debug:
-    #         self.mask_pub.publish(msgify(Image, mask, 'mono8'))
-        
-    #     h,w = mask.shape
-    #     mask[int(350/480*h):, int(620/848*w):int(700/848*w)] = 0 # remove markers
-
-    #     # smooth the mask
-    #     # mask = cv2.GaussianBlur(mask,(5,5),0)
-
-    #     # hierarchy: [Next, Previous, First_Child, Parent]
-    #     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    #     if contours is None or hierarchy is None:
-    #         return [], img, []
-
-    #     hierarchy = hierarchy[0]
-    #     # approximate the contours with circles
-    #     circles = []
-    #     outer_circles = []
-    #     outer_contours = []
-    #     inner_circle_boxes = []
-    #     outer_circle_boxes = []
-    #     for i in range(len(contours)):
-    #         if hierarchy[i,3] == -1:
-    #             continue
-    #         inner_circle = cv2.minEnclosingCircle(contours[i]) # (x,y),radius inner_circle
-    #         outer_circle = cv2.minEnclosingCircle(contours[hierarchy[i, 3]]) # (x,y),radius outer_circle
-    #         if outer_circle[1] >= 30 or inner_circle[1] <= 5: # remove unreasonable circles
-    #             continue
-    #         circles.append(inner_circle)
-    #         outer_circles.append(outer_circle)
-    #         outer_contours.append(contours[hierarchy[i, 3]])
-    #         # radius = inner_circle[1]*2
-    #         radius = (outer_circle[1]/sqrt(2)+inner_circle[1])
-    #         inner_circle_box = (inner_circle[0], (radius, radius), 0) #(center(x, y), (width, height), angle of rotation)
-    #         outer_circle_box = (outer_circle[0], (outer_circle[1]/sqrt(2), outer_circle[1]/sqrt(2)), 0) #(center(x, y), (width, height), angle of rotation)
-    #         outer_circle_boxes.append(outer_circle_box)
-    #         inner_circle_boxes.append(inner_circle_box)
-    #     n_circles = len(circles)
-    #     n_obs = 5
-            
-    #     # get poses of the circles
-    #     poses_observations = []
-    #     circles_points_observations = []
-    #     for _ in range(n_circles):
-    #         circles_points_observations.append([])
-    #     for i in range(n_obs):
-    #         depth = camera.read_depth()
-    #         poses = []
-    #         for id in range(n_circles):
-    #             inner_circle_box = cv2.boxPoints(inner_circle_boxes[id])
-    #             inner_circle_box = np.int0(inner_circle_box)
-
-    #             # get the centre of the boxes
-    #             box_3d = read_points_from_region(xy_to_yx(inner_circle_box), depth, region=5, camera_intrinsics=camera_intrinsics)
-    #             # position_cam = np.mean(box_3d, axis=0)
-    #             box_3d = [self.transform_point(v, transform) for v in box_3d]
-    #             position = np.mean(box_3d, axis=0)
-
-    #             # get all points on the outer contour
-    #             for p in outer_contours[id]:
-    #                 p_3d = depth_pixel_to_metric_coordinate(xy_to_yx(p[0]), depth, camera_intrinsics)
-    #                 if not isnan(p_3d[0]):
-    #                     p_3d = self.transform_point(p_3d, transform)
-    #                     circles_points_observations[id].append(p_3d)
-
-    #             poses.append(np.concatenate((position, [0]*3)))
-
-    #         poses_observations.append(poses)
-    #     poses = np.mean(poses_observations, axis=0) # average out
-
-    #     for id in range(n_circles):
-    #         open3d_cloud = o3d.geometry.PointCloud()
-    #         open3d_cloud.points = o3d.utility.Vector3dVector(circles_points_observations[id])
-    #         plane_model, inliers = open3d_cloud.segment_plane(distance_threshold=0.005,
-    #                                                 ransac_n=3,
-    #                                                 num_iterations=1500)
-    #         normal = plane_model[:3]/np.linalg.norm(plane_model[:3]) # renormalise
-    #         if camera == self.d435_l:
-    #             if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
-    #         else:
-    #             if normal[1]<0: normal = [ -v for v in normal] # force to face the shoe centre
-    #         poses[id, 3:] = normal
-        
-    #     confidences = []
-    #     for pose in poses:
-    #         # normal = pose[3:]/np.linalg.norm(pose[3:]) # renormalise
-    #         normal = pose[3:]
-    #         # compute confidence
-    #         ae_vec = np.subtract(pose[:3], trans)
-    #         # if normal[1]>0: normal = [ -v for v in normal] # force to face the shoe centre
-    #         c = np.dot(ae_vec,normal)/np.linalg.norm(ae_vec)/np.linalg.norm(normal) # -> cosine of the angle
-    #         angle = np.arccos(np.clip(c, -1, 1)) # the angle
-    #         confidence = 1-angle/pi
-    #         confidences.append(confidence if not np.isnan(confidence) else 0)
-
-    #     result_img = self.generate_frame(img, outer_circles+circles, list(confidences)*2)
-    #     result_img = self.generate_frame(result_img, inner_circle_boxes, confidences)
-    #     return poses, result_img, confidences
+    
 if __name__ == "__main__":
     dlo_vsn_node = dloVision()

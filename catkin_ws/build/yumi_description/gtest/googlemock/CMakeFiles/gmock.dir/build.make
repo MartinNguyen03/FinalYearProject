@@ -43,7 +43,7 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /catkin_ws/src/yumi-moveit/yumi_description
+CMAKE_SOURCE_DIR = /catkin_ws/src/yumi-prl/yumi_description
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /catkin_ws/build/yumi_description
@@ -94,6 +94,6 @@ gtest/googlemock/CMakeFiles/gmock.dir/clean:
 .PHONY : gtest/googlemock/CMakeFiles/gmock.dir/clean
 
 gtest/googlemock/CMakeFiles/gmock.dir/depend:
-	cd /catkin_ws/build/yumi_description && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /catkin_ws/src/yumi-moveit/yumi_description /usr/src/googletest/googlemock /catkin_ws/build/yumi_description /catkin_ws/build/yumi_description/gtest/googlemock /catkin_ws/build/yumi_description/gtest/googlemock/CMakeFiles/gmock.dir/DependInfo.cmake --color=$(COLOR)
+	cd /catkin_ws/build/yumi_description && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /catkin_ws/src/yumi-prl/yumi_description /usr/src/googletest/googlemock /catkin_ws/build/yumi_description /catkin_ws/build/yumi_description/gtest/googlemock /catkin_ws/build/yumi_description/gtest/googlemock/CMakeFiles/gmock.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : gtest/googlemock/CMakeFiles/gmock.dir/depend
 

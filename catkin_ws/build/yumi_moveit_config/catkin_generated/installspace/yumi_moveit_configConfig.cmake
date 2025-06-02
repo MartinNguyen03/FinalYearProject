@@ -67,7 +67,7 @@ set(yumi_moveit_config_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(yumi_moveit_config_SOURCE_PREFIX /catkin_ws/src/yumi-moveit/yumi_moveit_config)
+  set(yumi_moveit_config_SOURCE_PREFIX /catkin_ws/src/yumi-prl/yumi_moveit_config)
   set(yumi_moveit_config_DEVEL_PREFIX /catkin_ws/devel/.private/yumi_moveit_config)
   set(yumi_moveit_config_INSTALL_PREFIX "")
   set(yumi_moveit_config_PREFIX ${yumi_moveit_config_DEVEL_PREFIX})

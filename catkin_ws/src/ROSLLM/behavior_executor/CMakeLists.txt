@@ -180,12 +180,7 @@ target_link_libraries(yumi_tree ${catkin_LIBRARIES} )
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-catkin_install_python(PROGRAMS
-  scripts/sequence_executor
-  test/test_code_executor
-  test/test_sequence_executor
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

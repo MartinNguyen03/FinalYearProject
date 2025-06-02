@@ -365,7 +365,7 @@ RT_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/librt.so
 SETUPTOOLS_DEB_LAYOUT:BOOL=ON
 
 //Name of the computer/site where compile is being run
-SITE:STRING=martinNguyen03
+SITE:STRING=yumi-desktop
 
 //LSB Distrib tag
 UBUNTU:BOOL=TRUE
@@ -438,7 +438,7 @@ gtest_main_LIB_DEPENDS:STATIC=general;gtest;
 yumi_description_BINARY_DIR:STATIC=/catkin_ws/build/yumi_description
 
 //Value Computed by CMake
-yumi_description_SOURCE_DIR:STATIC=/catkin_ws/src/yumi-moveit/yumi_description
+yumi_description_SOURCE_DIR:STATIC=/catkin_ws/src/yumi-prl/yumi_description
 
 
 ########################
@@ -536,7 +536,7 @@ CMAKE_HAVE_PTHREAD_CREATE:INTERNAL=1
 CMAKE_HAVE_PTHREAD_H:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/catkin_ws/src/yumi-moveit/yumi_description
+CMAKE_HOME_DIRECTORY:INTERNAL=/catkin_ws/src/yumi-prl/yumi_description
 //ADVANCED property for variable: CMAKE_INSTALL_BINDIR
 CMAKE_INSTALL_BINDIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_INSTALL_DATADIR
