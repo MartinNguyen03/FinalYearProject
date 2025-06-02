@@ -32,23 +32,28 @@ class PlatformRegistration:
 
     def register_platform(self, img, depth, camera_intrinsics, offset=None):
         # Detect ArUco markers
-        corners, ids, _ = cv2.aruco.detectMarkers(img, self.aruco_dict)
-        
-        # Check that at least one ArUco marker was detected
-        if len(corners) > 0:
-        # Flatten the ArUco IDs list
-            ids = ids.flatten()
-        else:
-            print("NO Aruco detected!")
-            return None
+        try:
+            corners, ids, _ = cv2.aruco.detectMarkers(img, self.aruco_dict)
 
-        # reorder the corners according to the index
-        ids = np.array(ids)
-        corners = np.array(corners)
-        corners = corners[ids.argsort()]
-        ids = ids[ids.argsort()]
-        if not np.array_equal(ids, [81, 82, 83, 84]):
-            print("Detection incomplete! Detected: {}".format(ids))
+            # Check that at least one ArUco marker was detected
+            if len(corners) > 0:
+            # Flatten the ArUco IDs list
+                ids = ids.flatten()
+            else:
+                print("NO Aruco detected!")
+                return None
+
+            # reorder the corners according to the index
+            ids = np.array(ids)
+            corners = np.array(corners)
+            corners = corners[ids.argsort()]
+            ids = ids[ids.argsort()]
+            if not np.array_equal(ids, [81, 82, 83, 84]):
+                print("Detection incomplete! Detected: {}".format(ids))
+        except cv2.error as e:
+            print("Error in marker detection: {}".format(e))
+            return None
+        
 
         # get the vertices of the operation platform
         op_vertices = []
