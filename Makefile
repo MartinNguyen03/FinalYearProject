@@ -166,7 +166,7 @@ llmClient:
 groot:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && rosrun groot Groot"
+	docker exec -e DISPLAY=${DISPLAY} -it fypContainer bash -c "source devel/setup.bash && rosrun groot Groot"
 	
 checkdisp:
 	xhost +si:localuser:root >> /dev/null

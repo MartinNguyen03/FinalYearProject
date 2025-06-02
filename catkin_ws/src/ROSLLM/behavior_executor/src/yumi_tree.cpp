@@ -155,6 +155,8 @@ int main(int argc, char** argv )
         <root>
         <BehaviorTree>
         <Sequence>
+            <RetryUntilSuccessful num_attempts="4">
+            <TimeOut msec="10000" />
             <YumiAction service_name = "execute_behavior"
                         action="left_place"
                         rope="rope_o"
@@ -162,6 +164,8 @@ int main(int argc, char** argv )
                         site="site_ul"
                         message="{task}" />
             <PrintValue message="{task}" />
+            </TimeOut>
+            </RetryUntilSuccessful>
             <RetryUntilSuccessful num_attempts="4">
                     <Timeout msec="300">
                         <VisualCheck service_name="get_vlm"
