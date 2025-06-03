@@ -230,7 +230,7 @@ class Rope:
         
 class dloVision:
     debug = True
-    debug_name = None
+    debug_name = "marker"
     processed_frame_topic = '/dlo_vsn/frame_processed'
     scene_pub_topic = '/dlo_vsn/scene'
     observe_scene_srv = 'observe_scene'
@@ -298,14 +298,13 @@ class dloVision:
             if self.debug_name == 'marker':
                 rospy.wait_for_service(self.find_rope_srv)
                 request = DetectRopeRequest()
-                request.rope = 'rope_o' # rope_o, rope_g, rope_b
-                request.target_name = 'marker_a' # targets_b, targets_r, marker_a, marker_b
-                request.camera_name = 'l515' # d435_l, d435_r, l515
+                request.rope_colour = 'rope_b' # rope_o, rope_g, rope_b
                 while not rospy.is_shutdown():
                     start = time.perf_counter()
                     response = self.find_rope(request)
                     stop = time.perf_counter()
-                    print(stop-start)
+                    rospy.loginfo(f"Received response from find_rope service")
+                    rospy.loginfo(f"Time Taken: {stop-start}")
                     rospy.sleep(0.5)
             else:
                 rospy.loginfo("Starting to observe scene")
@@ -371,9 +370,9 @@ class dloVision:
                 rospy.loginfo("Saving mask for blue rope")
                 cv2.imwrite(os.path.join(RESULT_PATH, "rope_b_mask.png"), rope['mask'])
             
-        response.centre, aruco_img, new_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
+        response.centre, aruco_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
             
-        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img_new.png"), new_img)
+        
         cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
         response.img = self.bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_RGB2BGR), encoding="rgb8")
         response.success = True
@@ -405,6 +404,9 @@ class dloVision:
                     yaw = atan2(top_centre_prime[1], top_centre_prime[0])
                     euler = [0, 0, yaw]
                     target = np.concatenate((centre, quaternion_from_euler(*euler)))
+                    finalCentre = Pose()
+                    finalCentre.position = Point(*centre)
+                    finalCentre.orientation = Quaternion(*quaternion_from_euler(*euler))
                     break
                 else:
                     rospy.logwarn("Not enough Aruco markers detected! Expected 4, got {}".format(len(makers_3d)))
@@ -415,11 +417,11 @@ class dloVision:
             depth = self.l515.read_depth()
             rospy.sleep(0.5)
         # draw the markers
-        img = pr.check_markers(img, target)
+        img = pr.check_markers(img)
        
         # new_img = pr.new_check_markers(img, target, camera_intrinsics)
         rospy.loginfo("Centre of the platform: {}".format(target))
-        return target, img
+        return finalCentre, img
 
     def pubMarkers(self, request):
         """
@@ -449,11 +451,13 @@ class dloVision:
             if pose_a is not None:
                 pose_list["marker_a"].append(pose_a)
                 img_list["marker_a"].append(img_a)
+                cv2.imwrite(os.path.join(RESULT_PATH, f"{rope.name}_marker_a.png"), img_a)
             else:
                 rospy.logwarn(f"{rope.name}: No pose detected for marker_a")
             if pose_b is not None:
                 pose_list["marker_b"].append(pose_b)
                 img_list["marker_b"].append(img_b)
+                cv2.imwrite(os.path.join(RESULT_PATH, f"{rope.name}_marker_b.png"), img_b)
             else:
                 rospy.logwarn(f"{rope.name}: No pose detected for marker_b")
 

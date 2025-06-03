@@ -2,4 +2,4 @@
 bool success
 sensor_msgs/Image img
 string[] ropes
-geometry_msgs/PoseArray centre
+geometry_msgs/Pose centre
