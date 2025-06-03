@@ -208,7 +208,7 @@ class Rope:
             self.target_l_colour = None
             self.target_r_colour = None
             self.curr_target_l_colour = None       
-            # self.threshold_l, self.threshold_r = self.updateThreshold(self.target_l_colour, self.target_r_colour)
+         
                       
         def updateCurrMarker(self, curr_target_l_colour, curr_target_r_colour):
             self.curr_target_l_colour = curr_target_l_colour
@@ -221,7 +221,7 @@ class Rope:
             thresh_low_2 = RGB_THRESHOLDS[colour_2]['lower']
             thresh_high_2 = RGB_THRESHOLDS[colour_2]['upper']
             rospy.loginfo(f"Updating thresholds for {self.name} with colours {colour_1}")
-            marker_a= ColourSegmentation(thresh_low_1, thresh_high_1, self.cam_img, live_adjust=not self.auto_execution) 
+            marker_a = ColourSegmentation(thresh_low_1, thresh_high_1, self.cam_img, live_adjust=not self.auto_execution) 
             rospy.loginfo(f"Marker A thresholds: {thresh_low_1}, {thresh_high_1}")
             rospy.loginfo(f"Updating thresholds for {self.name} with colours {colour_2}")
             marker_b = ColourSegmentation(thresh_low_2, thresh_high_2, self.cam_img, live_adjust=not self.auto_execution)
@@ -298,10 +298,13 @@ class dloVision:
             if self.debug_name == 'marker':
                 rospy.wait_for_service(self.find_rope_srv)
                 request = DetectRopeRequest()
-                request.rope_colour = 'rope_b' # rope_o, rope_g, rope_b
-                while not rospy.is_shutdown():
+                request.rope = 'rope_b' # rope_o, rope_g, rope_b
+                fini = False
+                while fini == False:
                     start = time.perf_counter()
                     response = self.find_rope(request)
+                    if response.success is True:
+                        fini = True
                     stop = time.perf_counter()
                     rospy.loginfo(f"Received response from find_rope service")
                     rospy.loginfo(f"Time Taken: {stop-start}")
@@ -316,7 +319,7 @@ class dloVision:
                 rospy.loginfo("Calling observe_scene service")
                 response = self.observe_scene(request)
                 rospy.loginfo("Received response from observe_scene service")
-                while response.success is False and not rospy.is_shutdown():
+                while response.success is False:
                     rospy.loginfo(f"Detected ropes: {response.ropes}")
                     rospy.loginfo(f"Detected centre: {response.centre}")
                     stop = time.perf_counter()
@@ -428,7 +431,7 @@ class dloVision:
         Localize the two markers (marker_a and marker_b) from the masks.
         """
         response = DetectRopeResponse()
-        rope = self.rope_config[request.rope_colour]
+        rope = self.rope_config[request.rope]
         camera_intrinsics = self.l515.read_camera_info()
         (trans,quat) = self.listener.lookupTransform(self.robot_frame, self.l515.frame, rospy.Time(0))
         transform = compose_matrix(angles=euler_from_quaternion(quat), translate=trans) # transform from camera to robot
@@ -441,8 +444,13 @@ class dloVision:
             depth = self.l515.read_depth()
 
             # Get masks for both markers
+            rospy.loginfo(f"Detecting markers for rope: {rope.name}, colours: Marker A: {rope.marker_a_colour}, Marker B: {rope.marker_b_colour}")
+            rospy.loginfo(f"Thresholds for Marker A: {rope.threshold_a.thresh_l}, {rope.threshold_a.thresh_h}")
+            rospy.loginfo(f"Thresholds for Marker B: {rope.threshold_b.thresh_l}, {rope.threshold_b.thresh_h}")
             mask_a = rope.threshold_a.predict_img(img)
+            cv2.imwrite(os.path.join(RESULT_PATH, f"{rope.name}_marker_a_mask.png"), mask_a)
             mask_b = rope.threshold_b.predict_img(img)
+            cv2.imwrite(os.path.join(RESULT_PATH, f"{rope.name}_marker_b_mask.png"), mask_b)
 
             # Detect poses for both markers
             pose_a, img_a = self.marker_detection(img, mask_a, depth, transform, camera_intrinsics)
@@ -472,7 +480,7 @@ class dloVision:
 
                 # Generate the response message
                 target = PoseArray()
-                rospy.loginfo(f"MARKERS")
+                rospy.loginfo(f"MARKER {marker}")
                 target.header.stamp = rospy.Time.now()
                 target.header.frame_id = self.robot_frame
                 marker_pose = Pose()
@@ -489,6 +497,8 @@ class dloVision:
                 
         response.marker_a_pose = marker_poses["marker_a"]
         response.marker_b_pose = marker_poses["marker_b"]
+        rospy.loginfo(f"Marker A Pose: {response.marker_a_pose}")
+        rospy.loginfo(f"Marker B Pose: {response.marker_b_pose}")
         if marker_poses["marker_a"] is None:
             rospy.logerr("No marker_a detected!")
             response.success = False

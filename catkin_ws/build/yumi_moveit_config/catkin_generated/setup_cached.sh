@@ -9,6 +9,5 @@
 # modified environment variables
 export CMAKE_PREFIX_PATH="/catkin_ws/devel/.private/yumi_moveit_config:$CMAKE_PREFIX_PATH"
 export PWD='/catkin_ws/build/yumi_moveit_config'
-export PYTHONPATH="/catkin_ws/devel/lib/python3/dist-packages:$PYTHONPATH"
 export ROSLISP_PACKAGE_DIRECTORIES="/catkin_ws/devel/.private/yumi_moveit_config/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
 export ROS_PACKAGE_PATH="/catkin_ws/src/yumi-prl/yumi_moveit_config:$ROS_PACKAGE_PATH"
