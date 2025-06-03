@@ -42,6 +42,8 @@ da_os_z: 0.009
 
 
 scene_centre: [0.5, 0.0, 0.35]
+scene_centre2: [0.46336247, -0.01777989, 0.01] # for the second scene
+
 rope_length: 0.315
 
 target_holder_thickness: 0.014

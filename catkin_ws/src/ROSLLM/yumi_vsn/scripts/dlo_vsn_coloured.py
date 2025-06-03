@@ -313,14 +313,15 @@ class dloVision:
                 rospy.loginfo("Observe scene service is ready")
                 request = ObserveSceneRequest()
                 rospy.loginfo("Requesting scene observation")
-                response = None
-                while response is None:
-                    start = time.perf_counter()
-                    rospy.loginfo("Calling observe_scene service")
-                    response = self.observe_scene(request)
+                start = time.perf_counter()
+                rospy.loginfo("Calling observe_scene service")
+                response = self.observe_scene(request)
+                rospy.loginfo("Received response from observe_scene service")
+                while response.success is False and not rospy.is_shutdown():
                     rospy.loginfo(f"Detected ropes: {response.ropes}")
+                    rospy.loginfo(f"Detected centre: {response.centre}")
                     stop = time.perf_counter()
-                    rospy.loginfo(stop-start)
+                    rospy.loginfo(f"Time Taken: {stop-start}")
                     rospy.sleep(0.5)
             
                 
@@ -370,7 +371,10 @@ class dloVision:
                 rospy.loginfo("Saving mask for blue rope")
                 cv2.imwrite(os.path.join(RESULT_PATH, "rope_b_mask.png"), rope['mask'])
             
-        response.centre, aruco_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
+        response.centre, aruco_img, new_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
+            
+        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img_new.png"), new_img)
+        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
         response.img = self.bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_RGB2BGR), encoding="rgb8")
         response.success = True
         response.ropes = rope_list 
@@ -380,8 +384,42 @@ class dloVision:
         
         
         self.frame_pub.publish(msgify(Image, cv2.cvtColor(l515_img, cv2.COLOR_BGR2RGB), 'rgb8'))
+        rospy.loginfo("Published processed frame")
         return response
 
+    def scene_detection(self, img, depth, transform, camera_intrinsics):
+        ''' Fake scene detection with Aruco markers '''
+        pr = PlatformRegistration()
+        target = None
+        while target is None and not rospy.is_shutdown():
+            makers_3d = pr.register_platform(img, depth, camera_intrinsics, offset=self.l515_roi[:2])
+            if makers_3d is not None:
+                if len(makers_3d) == 4:
+                    makers_3d = [self.transform_point(m, transform) for m in makers_3d]
+                    # estimate the centre
+                    centre = np.mean(makers_3d, axis=0)
+                    # estimate the orientation
+                    top_centre = np.mean(makers_3d[2:], axis=0)
+                    bot_centre = np.mean(makers_3d[:2], axis=0)
+                    top_centre_prime = top_centre-bot_centre
+                    yaw = atan2(top_centre_prime[1], top_centre_prime[0])
+                    euler = [0, 0, yaw]
+                    target = np.concatenate((centre, quaternion_from_euler(*euler)))
+                    break
+                else:
+                    rospy.logwarn("Not enough Aruco markers detected! Expected 4, got {}".format(len(makers_3d)))
+            else:
+                rospy.logwarn("No Aruco markers detected!")
+            rospy.sleep(1)  
+            img = self.l515.read_image()
+            depth = self.l515.read_depth()
+            rospy.sleep(0.5)
+        # draw the markers
+        img = pr.check_markers(img, target)
+       
+        # new_img = pr.new_check_markers(img, target, camera_intrinsics)
+        rospy.loginfo("Centre of the platform: {}".format(target))
+        return target, img
 
     def pubMarkers(self, request):
         """
@@ -430,6 +468,7 @@ class dloVision:
 
                 # Generate the response message
                 target = PoseArray()
+                rospy.loginfo(f"MARKERS")
                 target.header.stamp = rospy.Time.now()
                 target.header.frame_id = self.robot_frame
                 marker_pose = Pose()
@@ -541,27 +580,7 @@ class dloVision:
             return None, img
 
     
-    def scene_detection(self, img, depth, transform, camera_intrinsics):
-        ''' Fake scene detection with Aruco markers '''
-        pr = PlatformRegistration()
-        makers_3d = pr.register_platform(img, depth, camera_intrinsics, offset=self.l515_roi[:2])
-        if len(makers_3d) == 4:
-            makers_3d = [self.transform_point(m, transform) for m in makers_3d]
-            # estimate the centre
-            centre = np.mean(makers_3d, axis=0)
-            # estimate the orientation
-            top_centre = np.mean(makers_3d[2:], axis=0)
-            bot_centre = np.mean(makers_3d[:2], axis=0)
-            top_centre_prime = top_centre-bot_centre
-            yaw = atan2(top_centre_prime[1], top_centre_prime[0])
-            euler = [0, 0, yaw]
-            target = np.concatenate((centre, quaternion_from_euler(*euler)))
-        else:
-            rospy.logwarn("Not enough Aruco markers detected! Expected 4, got {}".format(len(makers_3d)))
-            target = None
-        # draw the markers
-        img = pr.check_markers(img)
-        return target, img
+    
 
     
     @staticmethod
