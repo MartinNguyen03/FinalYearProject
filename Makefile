@@ -1,4 +1,4 @@
-ROS_IP := 10.0.1.111
+ROS_IP:=10.0.1.111
 DISPLAY := $(shell echo $${DISPLAY})
 .PHONY: .compile
 
@@ -21,8 +21,8 @@ install-from-source:
 	docker run \
 		-it \
 		-e ROS_IP="${ROS_IP}" \
-		-e ROS_MASTER_URI="http://${ROS_IP}:11311" \
-		-e DISPLAY \
+		-e ROS_MASTER_URI="http://10.0.1.111:11311" \
+		-e DISPLAY=${DISPLAY} \
     	-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-v /dev:/dev \
 		-v ${PWD}/catkin_ws:/catkin_ws:rw \
@@ -39,11 +39,12 @@ install-from-source:
 	
 roscore:
 	docker start fypContainer
-	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"
 
 description:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_description rviz.launch"
+
 
 yumi_terminal:
 	xhost +si:localuser:root >> /dev/null
@@ -202,7 +203,7 @@ groot:
 
 terminal:
 	docker start fypContainer
-	docker exec -e ROS_IP=10.0.1.111 -e ROS_MASTER_URI=http://10.0.1.111:11311 -it fypContainer bash
+	docker exec -it fypContainer bash
 
 debug_dependencies:
 	docker start fypContainer

@@ -206,6 +206,7 @@ class CtrlNode:
         # Ensure the BT XML file is saved before launching
         cmd = ['rosrun', 'behaviour_executor', 'yumi_tree']
         self.bt = subprocess.Popen(cmd)
+        self.bt.wait()  # Wait for the process to complete
         time.sleep(1)
         
     

@@ -49,13 +49,13 @@ from transformers import DistilBertTokenizer
 
 
 RGB_THRESHOLDS = {
-    'purple':   {'lower': rospy.get_param("~purple_lower", [203, 134, 142]),   'upper':    rospy.get_param("~purple_upper", [255, 198, 255])},
-    'magenta':  {'lower': rospy.get_param("~magenta_lower", [124, 64, 124] ),     'upper':    rospy.get_param("~magenta_upper", [196, 153, 255])},
-    'red':      {'lower': rospy.get_param("~red_lower", [0, 77, 221]),      'upper':    rospy.get_param("~red_upper", [130, 147, 255])},
-    'pink':     {'lower': rospy.get_param("~pink_lower", [181, 194, 234]),    'upper':    rospy.get_param("~pink_upper", [244, 252, 255])},
-    'cyan':     {'lower': rospy.get_param("~cyan_lower", [203, 0, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 211, 19])},
+    'purple':   {'lower': rospy.get_param("~purple_lower", [143, 0, 20]),   'upper':    rospy.get_param("~purple_upper", [255, 194, 206])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [153, 68, 210]   ),     'upper':    rospy.get_param("~magenta_upper", [244, 216, 255])},
+    'red':      {'lower': rospy.get_param("~red_lower", [71, 80, 178]),      'upper':    rospy.get_param("~red_upper", [190, 213, 255])},
+    'pink':     {'lower': rospy.get_param("~pink_lower", [203, 200, 220]),    'upper':    rospy.get_param("~pink_upper", [255, 255, 255])},
+    'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 113, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 164])},
     'grey':     {'lower': rospy.get_param("~grey_lower", [177, 191, 118]),   'upper':    rospy.get_param("~grey_upper", [237, 250, 228])},
-    'yellow':   {'lower': rospy.get_param("~yellow_lower", [78, 173, 220]),    'upper':    rospy.get_param("~yellow_upper", [197, 255, 249])}
+    'green':   {'lower': rospy.get_param("~green_lower", [0, 156, 2] ),    'upper':    rospy.get_param("~green_upper", [245, 255, 133])}
 }
 
 class RopePerceiver:
@@ -237,6 +237,7 @@ class dloVision:
     find_rope_srv = 'detect_ropes'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
+    marker_roi = [380,170,960,730]
     
     
         
@@ -258,9 +259,9 @@ class dloVision:
         rospy.loginfo("Loaded DLO Perceiver model and tokenizer")
         
         self.rope_config = {
-            'rope_o': Rope(self.l515.read_image, 'rope_o', self.auto_execution, 'grey', 'cyan'),
+            'rope_o': Rope(self.l515.read_image, 'rope_o', self.auto_execution, 'magenta', 'cyan'),
             'rope_g': Rope(self.l515.read_image, 'rope_g', self.auto_execution, 'purple', 'red'),
-            'rope_b': Rope(self.l515.read_image, 'rope_b', self.auto_execution, 'pink', 'yellow')
+            'rope_b': Rope(self.l515.read_image, 'rope_b', self.auto_execution, 'pink', 'green')
         }
 
         
@@ -333,6 +334,7 @@ class dloVision:
     ''' Callback of find overall scene service '''
     def srvPubScene(self, request):
         # generate an empty response
+        self.l515.roi = self.l515_roi
         response = ObserveSceneResponse()
         # turn the img msg to numpy array
         rospy.loginfo("Observing scene")
@@ -440,7 +442,11 @@ class dloVision:
         img_list = {"marker_a": [], "marker_b": []}
 
         for _ in range(5):  # Perform multiple observations for robustness
+            rospy.loginfo(f"Iteration {_+1}: Reading image and depth data")
+            self.l515.roi = self.marker_roi
             img = self.l515.read_image()
+            
+            #crop image 
             depth = self.l515.read_depth()
 
             # Get masks for both markers
@@ -494,17 +500,25 @@ class dloVision:
                     elif marker == "marker_b":
                         self.marker_pub_b.publish(target)
                 marker_poses[marker] = target
+            else:
+                rospy.logwarn(f"No poses detected for {marker} in the last 5 iterations")
+                marker_poses[marker] = None
                 
-        response.marker_a_pose = marker_poses["marker_a"]
-        response.marker_b_pose = marker_poses["marker_b"]
-        rospy.loginfo(f"Marker A Pose: {response.marker_a_pose}")
-        rospy.loginfo(f"Marker B Pose: {response.marker_b_pose}")
+        
+        
+        
         if marker_poses["marker_a"] is None:
             rospy.logerr("No marker_a detected!")
             response.success = False
-        if marker_poses["marker_b"] is None:
+        elif marker_poses["marker_b"] is None:
             rospy.logerr("No marker_b detected!")
             response.success = False
+        else:
+            response.marker_a_pose = marker_poses["marker_a"]
+            response.marker_b_pose = marker_poses["marker_b"]
+            rospy.loginfo(f"Marker A Pose: {response.marker_a_pose}")
+            rospy.loginfo(f"Marker B Pose: {response.marker_b_pose}")
+            response.success = True
         
         self.frame_pub.publish(msgify(Image, cv2.cvtColor(img, cv2.COLOR_BGR2RGB), 'rgb8'))
         return response
@@ -546,9 +560,15 @@ class dloVision:
         for i in range(len(contours)):
             box = cv2.minAreaRect(contours[i]) #(center(x, y), (width, height), angle of rotation)
             size = box[1][0]*box[1][1]
-            if size>=1000: # ignore the big contours
+            min_side = min(box[1])
+            max_side = max(box[1])
+            if min_side<8:
                 continue
-            if size<=5: # ignore the small contours
+            # if max_side/min_side>3: # ignore the long and thin contours
+            #     continue
+            if size>=2000: # ignore the big contours
+                continue
+            if size<=50: # ignore the small contours
                 continue
             boxes.append(box)
             sizes.append(size)
@@ -560,7 +580,7 @@ class dloVision:
             for j in range(i):
                 distance = euclidian_distance(boxes[i][0], boxes[j][0])
                 dist_mat[i,j] = dist_mat[j,i] = distance
-                if 10<=distance<=70:
+                if 25<=distance<=40:
                     dist_mat[i,j] = dist_mat[j,i] = 1000 # not needed anymore
                     candidates.append([i, j])
         ids = None
@@ -593,7 +613,10 @@ class dloVision:
         else:
             return None, img
 
-    
+    def test_mask(self, img, mask, depth, transform, camera_intrinsics):
+        contours_temp, hierachy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        if contours_temp is None or hierachy is None:
+            return None, img
     
 
     
