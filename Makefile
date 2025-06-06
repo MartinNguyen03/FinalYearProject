@@ -75,7 +75,9 @@ close-ee-right:
 close-ee-left:
 	rostopic pub /yumi/gripper_l_position_cmd std_msgs/Float64 "data: 0.0"
 
-	
+moveit:
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_moveit_config moveit_planning_execution.launch"
 
 dlo:
 	xhost +si:localuser:root >> /dev/null
@@ -83,9 +85,11 @@ dlo:
 	sleep 1
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl dlo.launch"
 	docker container stop fypContainer
+test1:
+	docker start fypContainer
+	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /execute_behaviour "{action: 'left_place', rope: 'rope_o', marker: 'marker_a', site: 'site_uu'}""
 
 ctrl:
-	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
 	sleep 1
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl ctrl_node.launch"

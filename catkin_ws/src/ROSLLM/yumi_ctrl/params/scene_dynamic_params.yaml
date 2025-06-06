@@ -20,8 +20,7 @@
 
 auto_execution: true
 
-e_l_offset: [0.002, -0.01, 0.0]
-e_r_offset: [-0.009, 0.008, 0.002]
+
 target_id: 0 
 l_l_offset: [0, -0.008, 0.011]
 l_r_offset: [-0.005, 0.01, 0.004]

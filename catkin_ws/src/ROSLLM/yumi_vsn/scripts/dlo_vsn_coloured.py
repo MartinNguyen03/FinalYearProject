@@ -50,7 +50,7 @@ from transformers import DistilBertTokenizer
 
 RGB_THRESHOLDS = {
     'purple':   {'lower': rospy.get_param("~purple_lower", [143, 0, 20]),   'upper':    rospy.get_param("~purple_upper", [255, 194, 206])},
-    'magenta':  {'lower': rospy.get_param("~magenta_lower", [153, 68, 210]   ),     'upper':    rospy.get_param("~magenta_upper", [244, 216, 255])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [133, 0, 190]    ),     'upper':    rospy.get_param("~magenta_upper", [255, 217, 255])},
     'red':      {'lower': rospy.get_param("~red_lower", [71, 80, 178]),      'upper':    rospy.get_param("~red_upper", [190, 213, 255])},
     'pink':     {'lower': rospy.get_param("~pink_lower", [203, 200, 220]),    'upper':    rospy.get_param("~pink_upper", [255, 255, 255])},
     'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 113, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 164])},
@@ -229,7 +229,7 @@ class Rope:
             return marker_a, marker_b
         
 class dloVision:
-    debug = True
+    debug = False
     debug_name = "marker"
     processed_frame_topic = '/dlo_vsn/frame_processed'
     scene_pub_topic = '/dlo_vsn/scene'
@@ -285,11 +285,9 @@ class dloVision:
                 self.rope_o_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
                 self.rope_g_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
                 self.rope_b_pub = rospy.Publisher(f"dlo_vsn/{rope_name}", Image, queue_size=10)
-                self.marker_pub_a = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_a", PoseArray, queue_size=1)
-                self.marker_pub_b = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_b", PoseArray, queue_size=1)
-                self.target_pub = rospy.Publisher(f"dlo_vsn/{rope_name}/a", PoseArray, queue_size=1)
-                self.target_pub_r = rospy.Publisher(f"dlo_vsn/{rope_name}/b", PoseArray, queue_size=1)
-                
+                self.marker_pub_a = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_a", Pose, queue_size=1)
+                self.marker_pub_b = rospy.Publisher(f"dlo_vsn/{rope_name}/marker_b", Pose, queue_size=1)
+
 
         if self.debug:
             rospy.sleep(1)
@@ -297,19 +295,20 @@ class dloVision:
             self.find_rope = rospy.ServiceProxy(self.find_rope_srv, DetectRope)
             self.observe_scene = rospy.ServiceProxy(self.observe_scene_srv, ObserveScene)
             if self.debug_name == 'marker':
-                rospy.wait_for_service(self.find_rope_srv)
-                request = DetectRopeRequest()
-                request.rope = 'rope_b' # rope_o, rope_g, rope_b
-                fini = False
-                while fini == False:
-                    start = time.perf_counter()
-                    response = self.find_rope(request)
-                    if response.success is True:
-                        fini = True
-                    stop = time.perf_counter()
-                    rospy.loginfo(f"Received response from find_rope service")
-                    rospy.loginfo(f"Time Taken: {stop-start}")
-                    rospy.sleep(0.5)
+                for rope in ['rope_o', 'rope_g', 'rope_b']:
+                    rospy.wait_for_service(self.find_rope_srv)
+                    request = DetectRopeRequest()
+                    request.rope = rope # rope_o, rope_g, rope_b
+                    fini = False
+                    while fini == False:
+                        start = time.perf_counter()
+                        response = self.find_rope(request)
+                        if response.success is True:
+                            fini = True
+                        stop = time.perf_counter()
+                        rospy.loginfo(f"Received response from find_rope service")
+                        rospy.loginfo(f"Time Taken: {stop-start}")
+                        rospy.sleep(0.5)
             else:
                 rospy.loginfo("Starting to observe scene")
                 rospy.wait_for_service(self.observe_scene_srv)
@@ -375,15 +374,24 @@ class dloVision:
                 rospy.loginfo("Saving mask for blue rope")
                 cv2.imwrite(os.path.join(RESULT_PATH, "rope_b_mask.png"), rope['mask'])
             
-        response.centre, aruco_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
+        if self.debug:
+            response.centre, aruco_img = self.scene_detection(l515_img, depth, cam_to_rob, camera_intrinsics)
+            cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
+        else:
+            centre = Pose()
+            pos = np.array([0.46336247, -0.01777989, 0.01])
+            centre.position = Point(*pos)
+            euler = [0, 0, 0]
+            centre.orientation = Quaternion(*quaternion_from_euler(*euler))
+            response.centre = centre
+            
             
         
-        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
         response.img = self.bridge.cv2_to_imgmsg(cv2.cvtColor(l515_img, cv2.COLOR_RGB2BGR), encoding="rgb8")
         response.success = True
         response.ropes = rope_list 
         
-        cv2.imwrite(os.path.join(RESULT_PATH, "aruco_img.png"), aruco_img)
+        
         rospy.loginfo(f"Detected ropes Heirarchy: {rope_list}")
         
         
@@ -485,21 +493,21 @@ class dloVision:
                 img = img_list[marker][id]
 
                 # Generate the response message
-                target = PoseArray()
+                # target = PoseArray()
                 rospy.loginfo(f"MARKER {marker}")
-                target.header.stamp = rospy.Time.now()
-                target.header.frame_id = self.robot_frame
+                # target.header.stamp = rospy.Time.now()
+                # target.header.frame_id = self.robot_frame
                 marker_pose = Pose()
                 marker_pose.position = Point(*pose[:3])
                 marker_pose.orientation = Quaternion(*pose[3:])
-                target.poses.append(marker_pose)
+                # target.poses.append(marker_pose)
 
                 if self.debug:
                     if marker == "marker_a":
-                        self.marker_pub_a.publish(target)
+                        self.marker_pub_a.publish(marker_pose)
                     elif marker == "marker_b":
-                        self.marker_pub_b.publish(target)
-                marker_poses[marker] = target
+                        self.marker_pub_b.publish(marker_pose)
+                marker_poses[marker] = marker_pose
             else:
                 rospy.logwarn(f"No poses detected for {marker} in the last 5 iterations")
                 marker_poses[marker] = None
@@ -591,7 +599,7 @@ class dloVision:
 
         # generate the output
         if ids is not None:
-            arrow_pt = np.array(self.list_add(boxes[ids[0]][0], self.l515_roi[:2]))
+            arrow_pt = np.array(self.list_add(boxes[ids[0]][0], self.marker_roi[:2]))
             arrow_pt_3d = read_point_from_region(xy_to_yx(arrow_pt), depth, region=3, camera_intrinsics=camera_intrinsics)
             arrow_pt_3d = self.transform_point(arrow_pt_3d, transform)
 
@@ -599,7 +607,7 @@ class dloVision:
             anchor_box = boxes[ids[1]]
             anchor_half_length = max(anchor_box[1])/2
             anchor_pt = np.array(anchor_box[0])
-            anchor_pt = self.list_add(anchor_pt, self.l515_roi[:2])
+            anchor_pt = self.list_add(anchor_pt, self.marker_roi[:2])
             aa_distance = euclidian_distance(anchor_pt, arrow_pt)
             anchor_pt = anchor_pt+(anchor_pt-arrow_pt)*anchor_half_length/aa_distance/4*3
             anchor_pt_3d = read_point_from_region(xy_to_yx(anchor_pt), depth, region=3, camera_intrinsics=camera_intrinsics)
@@ -608,7 +616,7 @@ class dloVision:
             yaw = atan2(arrow_pt_3d[1]-anchor_pt_3d[1],arrow_pt_3d[0]-anchor_pt_3d[0])
             pose = np.concatenate([anchor_pt_3d, quaternion_from_euler(0, 0, yaw)])
 
-            img = self.generate_frame(img, [boxes[ids[0]], boxes[ids[1]], (tuple(anchor_pt-self.l515_roi[:2]), min(anchor_box[1]))])
+            img = self.generate_frame(img, [boxes[ids[0]], boxes[ids[1]], (tuple(anchor_pt-self.marker_roi[:2]), min(anchor_box[1]))])
             return pose, img
         else:
             return None, img

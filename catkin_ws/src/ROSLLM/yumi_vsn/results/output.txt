@@ -1,0 +1,158 @@
+[INFO] [1749133432.408561]: Marker A Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133432
+    nsecs: 407046318
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.5122019104349872
+      y: 0.08506197299329259
+      z: 0.02428693322770742
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: 0.6816401758647196
+      w: 0.7316875498784396
+[INFO] [1749133432.409869]: Marker B Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133432
+    nsecs: 408218383
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.5152392948896526
+      y: -0.10993930673566586
+      z: 0.023839150437741152
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: -0.6948667887172941
+      w: 0.7191384748000313
+[INFO] [1749133432.411652]: Received response from find_rope service
+[INFO] [1749133432.413019]: Time Taken: 0.26587184699019417
+[INFO] [1749133432.922516]: Iteration 1: Reading image and depth data
+[INFO] [1749133432.945240]: Detecting markers for rope: rope_g, colours: Marker A: purple, Marker B: red
+[INFO] [1749133432.947227]: Thresholds for Marker A: [143, 0, 20], [255, 194, 206]
+[INFO] [1749133432.948946]: Thresholds for Marker B: [71, 80, 178], [190, 213, 255]
+[INFO] [1749133432.987784]: Iteration 2: Reading image and depth data
+[INFO] [1749133433.009980]: Detecting markers for rope: rope_g, colours: Marker A: purple, Marker B: red
+[INFO] [1749133433.011846]: Thresholds for Marker A: [143, 0, 20], [255, 194, 206]
+[INFO] [1749133433.013601]: Thresholds for Marker B: [71, 80, 178], [190, 213, 255]
+[INFO] [1749133433.049717]: Iteration 3: Reading image and depth data
+[INFO] [1749133433.058166]: Detecting markers for rope: rope_g, colours: Marker A: purple, Marker B: red
+[INFO] [1749133433.059530]: Thresholds for Marker A: [143, 0, 20], [255, 194, 206]
+[INFO] [1749133433.060621]: Thresholds for Marker B: [71, 80, 178], [190, 213, 255]
+[INFO] [1749133433.089171]: Iteration 4: Reading image and depth data
+[INFO] [1749133433.097578]: Detecting markers for rope: rope_g, colours: Marker A: purple, Marker B: red
+[INFO] [1749133433.098865]: Thresholds for Marker A: [143, 0, 20], [255, 194, 206]
+[INFO] [1749133433.099918]: Thresholds for Marker B: [71, 80, 178], [190, 213, 255]
+[INFO] [1749133433.128139]: Iteration 5: Reading image and depth data
+[WARN] [1749133433.139899]: Waiting for image message...
+[INFO] [1749133433.162312]: Detecting markers for rope: rope_g, colours: Marker A: purple, Marker B: red
+[INFO] [1749133433.163906]: Thresholds for Marker A: [143, 0, 20], [255, 194, 206]
+[INFO] [1749133433.165413]: Thresholds for Marker B: [71, 80, 178], [190, 213, 255]
+[INFO] [1749133433.199160]: MARKER marker_a
+[INFO] [1749133433.200548]: MARKER marker_b
+[INFO] [1749133433.201919]: Marker A Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133433
+    nsecs: 200387001
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.45836644951245664
+      y: 0.08239837958976574
+      z: 0.0218971358995681
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: 0.6748747745627776
+      w: 0.7379322724063775
+[INFO] [1749133433.203246]: Marker B Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133433
+    nsecs: 201649665
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.4629247370344546
+      y: -0.10969250499527171
+      z: 0.021260088512613018
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: -0.701641665711391
+      w: 0.7125299803781906
+[INFO] [1749133433.205662]: Received response from find_rope service
+[INFO] [1749133433.206847]: Time Taken: 0.2873245520167984
+[INFO] [1749133433.716413]: Iteration 1: Reading image and depth data
+[INFO] [1749133433.744241]: Detecting markers for rope: rope_b, colours: Marker A: pink, Marker B: green
+[INFO] [1749133433.746493]: Thresholds for Marker A: [203, 200, 220], [255, 255, 255]
+[INFO] [1749133433.748372]: Thresholds for Marker B: [0, 156, 2], [245, 255, 133]
+[INFO] [1749133433.794429]: Iteration 2: Reading image and depth data
+[WARN] [1749133433.806023]: Waiting for image message...
+[INFO] [1749133433.817535]: Detecting markers for rope: rope_b, colours: Marker A: pink, Marker B: green
+[INFO] [1749133433.818891]: Thresholds for Marker A: [203, 200, 220], [255, 255, 255]
+[INFO] [1749133433.820090]: Thresholds for Marker B: [0, 156, 2], [245, 255, 133]
+[INFO] [1749133433.848980]: Iteration 3: Reading image and depth data
+[WARN] [1749133433.861032]: Waiting for image message...
+[INFO] [1749133433.884209]: Detecting markers for rope: rope_b, colours: Marker A: pink, Marker B: green
+[INFO] [1749133433.886057]: Thresholds for Marker A: [203, 200, 220], [255, 255, 255]
+[INFO] [1749133433.887685]: Thresholds for Marker B: [0, 156, 2], [245, 255, 133]
+[INFO] [1749133433.920354]: Iteration 4: Reading image and depth data
+[WARN] [1749133433.931851]: Waiting for image message...
+[INFO] [1749133433.943889]: Detecting markers for rope: rope_b, colours: Marker A: pink, Marker B: green
+[INFO] [1749133433.945514]: Thresholds for Marker A: [203, 200, 220], [255, 255, 255]
+[INFO] [1749133433.947024]: Thresholds for Marker B: [0, 156, 2], [245, 255, 133]
+[INFO] [1749133433.978526]: Iteration 5: Reading image and depth data
+[WARN] [1749133433.989904]: Waiting for image message...
+[WARN] [1749133434.002061]: Waiting for image message...
+[INFO] [1749133434.025498]: Detecting markers for rope: rope_b, colours: Marker A: pink, Marker B: green
+[INFO] [1749133434.027214]: Thresholds for Marker A: [203, 200, 220], [255, 255, 255]
+[INFO] [1749133434.028821]: Thresholds for Marker B: [0, 156, 2], [245, 255, 133]
+[INFO] [1749133434.063199]: MARKER marker_a
+[INFO] [1749133434.064574]: MARKER marker_b
+[INFO] [1749133434.065897]: Marker A Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133434
+    nsecs:  64470529
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.40518499022149723
+      y: 0.08321253542028828
+      z: 0.020199614443129454
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: 0.6785154435901088
+      w: 0.7345861370933418
+[INFO] [1749133434.067199]: Marker B Pose: header: 
+  seq: 0
+  stamp: 
+    secs: 1749133434
+    nsecs:  65620660
+  frame_id: "yumi_base_link"
+poses: 
+  - 
+    position: 
+      x: 0.4078811068195467
+      y: -0.11066661744269894
+      z: 0.020409422818464085
+    orientation: 
+      x: 0.0
+      y: 0.0
+      z: -0.7160640054422913
+      w: 0.6980346267270285
+[INFO] [1749133434.068969]: Received response from find_rope service
+[INFO] [1749133434.073015]: Time Taken: 0.35676336399046704

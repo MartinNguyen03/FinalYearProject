@@ -221,7 +221,8 @@ if __name__ == "__main__":
 
     # Run the sequence of actions
     scene_ctrl_node = CtrlNode()
-    scene_ctrl_node.run()
+    # scene_ctrl_node.run()
+    rospy.spin()
 
 
 # EXAMPLE BT XML 

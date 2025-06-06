@@ -1,0 +1,22 @@
+[INFO] [1749231649.235873]: Marker A Pose: position: 
+  x: 0.5066419182948645
+  y: 0.08707602999701389
+  z: 0.024383770934976234
+orientation: 
+  x: 0.0
+  y: 0.0
+  z: 0.6558105760602413
+  w: 0.7549254852815174
+[INFO] [1749231649.236984]: Marker B Pose: position: 
+  x: 0.5115635357855255
+  y: -0.10652670827427296
+  z: 0.023840125197049422
+orientation: 
+  x: 0.0
+  y: 0.0
+  z: -0.6978999653942473
+  w: 0.7161952515220332
+^C[dlo_vsn_node-1] killing on exit
+shutting down processing monitor...
+... shutting down proce
+
