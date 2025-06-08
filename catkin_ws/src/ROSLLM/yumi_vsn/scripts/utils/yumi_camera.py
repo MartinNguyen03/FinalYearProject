@@ -6,7 +6,7 @@ from ros_numpy import numpify
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
 
 class RealCamera:
-    def __init__(self, camera_name, roi=None, depth_thresh=None, jetson=False):
+    def __init__(self, camera_name, roi=None, depth_thresh=None, jetson=True):
         '''
         Initialise a RealCamera object to interface with a RealSense camera over ROS.
 

@@ -1,6 +1,6 @@
 string rope
 ---
 bool success
-geometry_msgs/PoseArray marker_a_pose
-geometry_msgs/PoseArray marker_b_pose
+geometry_msgs/Pose marker_a_pose
+geometry_msgs/Pose marker_b_pose
 

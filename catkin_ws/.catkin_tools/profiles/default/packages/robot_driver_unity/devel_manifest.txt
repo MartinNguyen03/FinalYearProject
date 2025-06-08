@@ -1,7 +1,0 @@
-uni_lace/robot_driver_unity
-/catkin_ws/devel/.private/robot_driver_unity/cmake.lock /catkin_ws/devel/./cmake.lock
-/catkin_ws/devel/.private/robot_driver_unity/share/robot_driver_unity/cmake/robot_driver_unityConfig-version.cmake /catkin_ws/devel/share/robot_driver_unity/cmake/robot_driver_unityConfig-version.cmake
-/catkin_ws/devel/.private/robot_driver_unity/share/robot_driver_unity/cmake/robot_driver_unityConfig.cmake /catkin_ws/devel/share/robot_driver_unity/cmake/robot_driver_unityConfig.cmake
-/catkin_ws/devel/.private/robot_driver_unity/lib/pkgconfig/robot_driver_unity.pc /catkin_ws/devel/lib/pkgconfig/robot_driver_unity.pc
-/catkin_ws/devel/.private/robot_driver_unity/lib/robot_driver_unity/joint_trajectory_action.py /catkin_ws/devel/lib/robot_driver_unity/joint_trajectory_action.py
-/catkin_ws/devel/.private/robot_driver_unity/lib/robot_driver_unity/cmake.lock /catkin_ws/devel/lib/robot_driver_unity/cmake.lock

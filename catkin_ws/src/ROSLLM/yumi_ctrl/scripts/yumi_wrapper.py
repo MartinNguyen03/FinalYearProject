@@ -22,13 +22,17 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion, dec
 
 class YumiWrapper(YumiCtrl):
 
-    def __init__(self, rope_dict, auto_execution, workspace, vel_scale=1.0, gp_opening=0, table_offset=0, grasp_states=None, grasp_states2=None, observe_states=None):
+    def __init__(self, auto_execution, workspace, vel_scale=0.5, gp_opening=0, table_offset=0, grasp_states=None, grasp_states2=None, observe_states=None):
         # super().__init__(auto_execution)
         super().__init__(auto_execution, logger='scene_logs')
-        self.rope_dict = rope_dict
+        self.rope_dict = {
+            'rope_o': {'marker_dict': {'marker_a': {'marker_at': 'left_gripper', 'constraint': Constraints}, 'marker_b': {'marker_at': 'right_gripper', 'constraint': Constraints}}},
+            'rope_b': {'marker_dict': {'marker_a': {'marker_at': 'right_gripper', 'constraint': Constraints}, 'marker_b': {'marker_at': 'left_gripper', 'constraint': Constraints}}},
+            'rope_g': {'marker_dict': {'marker_a': {'marker_at': 'left_gripper', 'constraint': Constraints}, 'marker_b': {'marker_at': 'right_gripper', 'constraint': Constraints}}}
+        }
         # initialise the parameters
         self.auto_execution = auto_execution
-        self.vel_scale = vel_scale
+        self.vel_scale = 0.5
         self.gp_opening = gp_opening
         self.table_offset = table_offset
         self.workspace = workspace
@@ -51,8 +55,6 @@ class YumiWrapper(YumiCtrl):
         # start initialisation
         # self.in_left_arm = None
         # self.in_right_arm = None
-        self.rope_constraint_a = Constraints()
-        self.rope_constraint_b = Constraints()
         self.add_collision_objs(workspace)
         if self.observe_states:
             super().go_to_angles_both(observe_states, 'Observe', velocity_scaling=vel_scale, wait=True)
@@ -381,7 +383,7 @@ class YumiWrapper(YumiCtrl):
         pass
 
     ### Planning Scene ###
-    def update_rope_constriants(self, branch, rope_length, anchor):
+    def update_rope_constriants(self, branch, rope, rope_length, anchor):
         pcm = PositionConstraint()
         # pcm.link_name = self.left_arm_group.get_end_effector_link() if 'l' in group else self.right_arm_group.get_end_effector_link()
         pcm.header.frame_id = self.robot_frame
@@ -400,26 +402,23 @@ class YumiWrapper(YumiCtrl):
         pcm.constraint_region.primitive_poses.append(boundary_pose)
 
         if 'marker_a' == branch:
-            self.rope_constraint_a = pcm
+            self.rope_dict[rope]['marker_dict']['marker_a']['constraint'] = pcm
             # self.plot_sl_constriant_marker(pcm, 0)
         elif 'marker_b' == branch:
-            self.rope_constraint_b = pcm
+            self.rope_dict[rope]['marker_dict']['marker_b']['constraint'] = pcm
             # self.plot_sl_constriant_marker(pcm, 1)
 
-    def set_constraints(self, rope, group):
-        # branch = self.in_left_arm if group==self.left_arm_group else self.in_right_arm
-        # if 'aglet_a' == branch:
-        #     constraint = self.rope_constraint_a
-        # elif 'aglet_b' == branch:
-        #     constraint = self.rope_constraint_b
-        # else:
-        #     return
-        
+    def set_constraints(self, group):
         gripper = 'left_gripper' if group==self.left_arm_group else 'right_gripper'
-        if self.rope_dict[rope].marker_dict['marker_a']['marker_at'] == gripper:
-            constraint = self.rope_constraint_a
-        elif self.rope_dict[rope].marker_dict['marker_b']['marker_at'] == gripper:
-            constraint = self.rope_constraint_b
+        for rope in self.rope_dict.keys():
+            if self.rope_dict[rope]['marker_dict']['marker_a']['marker_at'] == gripper:
+                constraint = self.rope_dict[rope]['marker_dict']['marker_a']['constraint']
+                break
+                # print(f'Setting constraint for {gripper} to {rope} marker_a')
+            elif self.rope_dict[rope]['marker_dict']['marker_b']['marker_at'] == gripper:
+                constraint = self.rope_dict[rope]['marker_dict']['marker_b']['constraint']
+                break
+                # print(f'Setting constraint for {gripper} to {rope} marker_b')
         else:
             return
         constraint.link_name = group.get_end_effector_link()
@@ -460,6 +459,7 @@ class YumiWrapper(YumiCtrl):
     def add_collision_objs(self, ws):
         ''' Add table and walls to the MoveIt planing scene '''
         self.table_box = [[ws[1]/2, (ws[3]+ws[2])/2, self.table_offset],            [ws[1], ws[3]-ws[2], .01]]
+        self.test_bed_box = [[ws[1]/2, 0.0, self.table_offset + 0.01],   [0.16, 0.28, 0.01]]
         #table_box: ([0.5, 0, table_offdset/height], [1.0, 1.2, 0.01])
         self.add_collision_box('table',     self.table_box[0],                      self.table_box[1])
         
@@ -467,8 +467,12 @@ class YumiWrapper(YumiCtrl):
         # wall 1: ([0.5, -0.6, 0.385], [1.0, 0.01, 0.77])
         self.add_collision_box('wall2',     [ws[1]/2, ws[3], (ws[5]+ws[4])/2],      [ws[1], .01, ws[5]-ws[4]])
         # wall 2: ([0.5, 0.6, 0.385], [1.0, 0.01, 0.77])
+        
+        self.add_collision_box('testbed',   self.test_bed_box[0], self.test_bed_box[1])
+        self.add_collision_box('testbed_wall_l', [ws[1]/2, -0.14, 0.035], [0.16, .01, 0.05])
+        self.add_collision_box('testbed_wall_r', [ws[1]/2, 0.14, 0.035], [0.16, .01, 0.05])
         self.ceiling_box = [[ws[1]/2, (ws[3]+ws[2])/2, ws[5]], [ws[1], ws[3]-ws[2], .01]]
-        # ceiling: ([0.5, 0, 0.77], [1.0, 1.2, 0.01])
+        
         
         self.add_collision_box('ceiling', self.ceiling_box[0], self.ceiling_box[1])
         # self.yumi.add_collision_box('wall3', [ws[1], (ws[3]+ws[2])/2, (ws[5]+ws[4])/2], [.01, ws[3]-ws[2], ws[5]-ws[4]])

@@ -3,9 +3,10 @@ import numpy as np
 from os import path
 from json import load
 from yaml import safe_load, dump
+import rospy
 from scipy.spatial import distance
 from math import cos, sin, pi, sqrt
-from tf.transformations import quaternion_from_matrix
+from tf.transformations import quaternion_from_matrix, euler_from_quaternion
 
 from utils import ls_concat, ls_add, eval_list, tf_ls2mat, tf_mat2ls, pose_msg_to_list, is_sorted
 
@@ -18,12 +19,12 @@ class SceneParameters:
             self.marker_dict = {
                 'marker_a': {
                     'colour': marker_a,
-                    'pose': [0,0,0,0,0,0],
+                    'pose': None,
                     'marker_at': None
                 },
                 'marker_b': {
                     'colour': marker_b,
-                    'pose': [0,0,0,0,0,0],
+                    'pose': None,
                     'marker_at': None
                 }
                 
@@ -38,14 +39,13 @@ class SceneParameters:
                       
             
         
-    vel_scale = 2.5
-
+    vel_scale = 0.75
     sites_dict = {"site_uu": -1, "site_ul": -1, "site_ur": 1, "site_dd": 1, "site_dl": -1, "site_dr": 1, "target_l1":-1, "target_l2":-1, "target_l3":-1, "target_r1": 1, "target_r2":1,"target_r3":1, 'left_gripper':-2, 'right_gripper':2}
     
     rope_dict = {
-        'rope_o': Rope('rope_o', 'purple', 'cyan'),
-        'rope_g': Rope( 'rope_g','red', 'brown'),
-        'rope_b': Rope( 'rope_b','yellow', 'pink')
+        'rope_o': Rope('rope_o', 'magenta', 'cyan'),
+        'rope_g': Rope( 'rope_g','purple', 'red'),
+        'rope_b': Rope( 'rope_b','pink', 'green')
     }
     # aglets_dict = {"aglet_a":0, "aglet_b":1}
     
@@ -53,17 +53,18 @@ class SceneParameters:
     def __init__(self, reset, start_id, config_path, result_path, log_handle):
         self.config_path = config_path
         self.site_poses = {}
-        self.site_occupency = {}
+        self.site_occupancy = {}
         self.heirarchy = []
         self.img_frame = None
         self.target_poses = []
         self.hand_poses = [[0,0,0,0,0,0], [0,0,0,0,0,0]]
         self.add_to_log = log_handle
-        self.dynamic_param_path = path.join(config_path, 'dynamic_params.yaml')
-        self.static_param_path = path.join(config_path, 'static_params.yaml')
+        self.dynamic_param_path = path.join(config_path, 'scene_dynamic_params.yaml')
+        self.static_param_path = path.join(config_path, 'scene_static_params.yaml')
         self.shoe_param_path = path.join(result_path, 'scene_params.yaml')
         self.read_static_params()
         self.read_dynamic_params(reset)
+        self.load_target_poses([[self.target_l1, self.target_l2, self.target_l3], [self.target_r1, self.target_r2, self.target_r3]])
         # self.left_cursor = start_id if start_id%2==0 else start_id-1
         # self.right_cursor = start_id+1 if start_id%2==0 else start_id
         # self.aglet_poses = {"aglet_a":[0,0,0,0,0,0], "aglet_b":[0,0,0,0,0,0]}
@@ -100,8 +101,8 @@ class SceneParameters:
             for id2 in range(id1+1, self.n_targets):
                 self.target_distances[id1, id2] = self.target_distances[id2, id1] = distance.euclidean(self.target_poses[id1][:3],self.target_poses[id2][:3])
         # update robot constraints
-        self.update_yumi_constriants('marker_b', self.rope_length_l, self.get_root_position('marker_b'))
-        self.update_yumi_constriants('marker_a', self.rope_length_r, self.get_root_position('marker_a'))
+        
+        
         # save the results
         self.save_scene_params()
 
@@ -120,7 +121,7 @@ class SceneParameters:
         marker_alt_location = self.check_marker_location(rope, marker_alt)
         marker_location = self.check_marker_location(rope, marker)
         
-    def update_site_occupency(self, rope, marker, site, add_site=True):
+    def update_site_occupancy(self, rope, marker, site, add_site=True):
         if add_site:
             if site in self.site_occupancy:
                 print(f"Site '{site}' already occupied by {self.site_occupancy[site]}")
@@ -152,7 +153,7 @@ class SceneParameters:
         """
         Return true if available, false if not
         """
-        if site in self.site_occupency:
+        if site in self.site_occupancy:
             return False
         else:
             return True
@@ -165,7 +166,7 @@ class SceneParameters:
         if self.rope_dict[rope]:
             rope_ = self.rope_dict[rope]
         else:
-            print('Unknown rope!')
+            rospy.logwarn('Unknown rope!')
             return
         if marker == 'marker_b':
             rope_.marker_b_root = position # update the root position of the lace tip
@@ -174,7 +175,7 @@ class SceneParameters:
             rope_.marker_a_root = position # update the root position of the lace tip
             self.update_yumi_constriants(marker, self.rope_length_l, position)
         else:
-            print('Unknown aglet!')
+            rospy.logwarn('Unknown aglet!')
         self.add_to_log('[Root update] '+marker+', '+str(position))
 
     def get_shoelace_length(self, rope, marker):
@@ -183,42 +184,41 @@ class SceneParameters:
         elif marker == 'marker_a':
             return self.rope_length_l
         else:
-            print('Unknown marker!')
+            rospy.logwarn('Unknown marker!')
 
     def get_root_position(self, rope, marker):
         if self.rope_dict[rope]:
             rope_ = self.rope_dict[rope]
         else:
-            print('Unknown rope!')
+            rospy.logwarn('Unknown rope!')
             return
         if marker == 'marker_b':
             return rope_.marker_b_root
         elif marker == 'marker_a':
             return rope_.marker_a_root
         else:
-            print('Unknown marker!')
+            rospy.logwarn('Unknown marker!')
 
 
-    def find_closest_site(self, rope, marker, tol=0.1):
+    def find_closest_site(self, rope, marker, tol=0.2):
         """
         Find the closest site to the given marker
         """
-        marker_location = self.rope_dict[rope].marker_dict[marker]['pose'][:2] # get the 2D position
+        marker_location = self.rope_dict[rope].marker_dict[marker]['pose'][:2]
         closest_site = None
         closest_distance = float('inf')
         for site, site_location in self.site_poses.items():
-            if site in self.site_occupency:
-                continue
             distance = np.linalg.norm(np.array(marker_location) - np.array(site_location[:2]))
             if distance < closest_distance and distance < tol:
                 closest_distance = distance
                 closest_site = site
         if closest_site is not None:
-            self.site_occupency[closest_site] = (rope, marker)
+            self.site_occupancy[closest_site] = (rope, marker)
             self.rope_dict[rope].marker_dict[marker]['marker_at'] = closest_site
+            rospy.loginfo(f"Closest site for {marker} on {rope} is {closest_site} at distance {closest_distance:.2f}.")
             return closest_site
         else:
-            print(f"No available site found for {marker} on {rope} within tolerance {tol}.")
+            rospy.loginfo(f"No available site found for {marker} on {rope} within tolerance {tol}.")
             return None
         
     def get_target_id(self, target):
@@ -244,11 +244,20 @@ class SceneParameters:
             for marker in self.rope_dict[rope].marker_dict:
                 estimated_site = self.find_closest_site(rope, marker)
                 if estimated_site is not None:
-                    self.update_site_occupency(rope, marker, estimated_site)
+                    self.update_site_occupancy(rope, marker, estimated_site)
                 else:
-                    print(f"Failed to find initial site for {marker} on {rope}.")
-                
+                    rospy.logerr(f"Failed to find initial site for {marker} on {rope}.")
+       
+    
+        
+    def process_target_pose(self, target, offset):
+        pos = np.array(target[:3]) + np.array(offset)
+        quat = list(target[3:])
+        euler = euler_from_quaternion(quat)
+        return list(pos) + list(euler)  # [x, y, z, roll, pitch, yaw]   
+      
     def read_static_params(self):
+        rospy.loginfo('Reading static parameters from file...')
         static_param_file = open(self.static_param_path, 'r')
         params = safe_load(static_param_file)
         static_param_file.close()
@@ -264,10 +273,10 @@ class SceneParameters:
         self.target_diameter = params["target_diameter"]
         self.target_radius = self.target_diameter/2
         self.target_thickness = params["target_thickness"]
-        self.target_diameter = params["target_diameter"]
+        
         self.table_offset = params["table_offset"]
         self.scene_centre = np.array(params["scene_centre"])
-        self.sl_length = params["rope_length"]
+        self.rope_length = params["rope_length"]
         self.marker_thickness = params["marker_thickness"]
         self.marker_length = params["marker_length"]
 
@@ -278,27 +287,37 @@ class SceneParameters:
 
         self.hand_over_centre = ls_add(self.scene_centre, [-0.12, 0, -0.07]) # transfer
         self.hand_over_centre_2 = ls_add(self.scene_centre, [-0.05, 0, -0.05]) # adjusting orientation
-        table_height = self.table_offset+0.02
+        table_height = self.table_offset
        
 
-        self.site_poses['site_dl'] = [0.38, 0.16, table_height] # centre of the left section a
-        self.site_poses['site_dd'] = [0.38, 0, table_height] # centre of the left section a
-        self.site_poses['site_dr'] = [0.38, -0.16, table_height] # centre of the right section b
-        self.site_poses['site_ul'] = [0.53, 0.13, table_height] # centre of the left section c
-        self.site_poses['site_ur'] = [0.53, -0.13, table_height] # centre of the right section c
-        self.site_poses['site_uu'] = [0.53, 0, table_height] # centre of the left section d
-        self.site_poses['target_l1'] = [0.38 + 0.02, 0.475 - 0.0535, table_height + 0.035] # left target 1 x -0.014
-        self.site_poses['target_l2'] = [0.38 + 0.02, 0.475, table_height + 0.035]
-        self.site_poses['target_l3'] = [0.38 + 0.02, 0.475 + 0.055, table_height + 0.035] # left target 3
-        self.site_poses['target_r1'] = [0.53 - 0.02 , 0.475 - 0.0535, table_height + 0.035]
-        self.site_poses['target_r2'] = [0.53 - 0.02, 0.475, table_height + 0.035]
-        self.site_poses['target_r3'] = [0.53 - 0.02, 0.475 + 0.055, table_height + 0.035] # right target 3
-        self.target_h_l1 = ls_add(self.site_poses['target_l1'], [-self.target_to_holder, 0, 0])
-        self.target_h_l2 = ls_add(self.site_poses['target_l2'], [-self.target_to_holder, 0, 0])
-        self.target_h_l3 = ls_add(self.site_poses['target_l3'], [-self.target_to_holder, 0, 0])
-        self.target_h_r1 = ls_add(self.site_poses['target_r1'], [self.target_to_holder, 0, 0])
-        self.target_h_r2 = ls_add(self.site_poses['target_r2'], [self.target_to_holder, 0, 0])
-        self.target_h_r3 = ls_add(self.site_poses['target_r3'], [self.target_to_holder, 0, 0])
+        self.site_poses['site_dl'] = [0.32, 0.085, table_height] # centre of the left section a
+        self.site_poses['site_dd'] = [0.32, 0, table_height] # centre of the left section a
+        self.site_poses['site_dr'] = [0.32, -0.1, table_height] # centre of the right section b
+        self.site_poses['site_ul'] = [0.6, 0.085, table_height] # centre of the left section c
+        self.site_poses['site_ur'] = [0.6, -0.1, table_height] # centre of the right section c
+        self.site_poses['site_uu'] = [0.6, 0, table_height] # centre of the left section d
+        self.e_l_offset = params["e_l_offset"]
+        self.e_r_offset = params["e_r_offset"]
+        t_l1 = params['target_l1']
+        t_l2 = params['target_l2']
+        t_l3 = params['target_l3']
+        t_r1 = params['target_r1']
+        t_r2 = params['target_r2']
+        t_r3 = params['target_r3']
+        self.target_l1 = self.process_target_pose(t_l1, self.e_l_offset)
+        self.target_l2 = self.process_target_pose(t_l2, self.e_l_offset)
+        self.target_l3 = self.process_target_pose(t_l3, self.e_l_offset)
+        self.target_r1 = self.process_target_pose(t_r1, self.e_r_offset)
+        self.target_r2 = self.process_target_pose(t_r2, self.e_r_offset)
+        self.target_r3 = self.process_target_pose(t_r3, self.e_r_offset)
+        
+        
+        # self.target_h_l1 = ls_add(self.site_poses['target_l1'], [-self.target_to_holder, 0, 0])
+        # self.target_h_l2 = ls_add(self.site_poses['target_l2'], [-self.target_to_holder, 0, 0])
+        # self.target_h_l3 = ls_add(self.site_poses['target_l3'], [-self.target_to_holder, 0, 0])
+        # self.target_h_r1 = ls_add(self.site_poses['target_r1'], [self.target_to_holder, 0, 0])
+        # self.target_h_r2 = ls_add(self.site_poses['target_r2'], [self.target_to_holder, 0, 0])
+        # self.target_h_r3 = ls_add(self.site_poses['target_r3'], [self.target_to_holder, 0, 0])
         
         
         self.pre_grasp = ls_add(self.scene_centre, [0, 0, 0.1])
@@ -309,13 +328,14 @@ class SceneParameters:
         self.grasp_states2 = params['grasp_states2']
 
     def read_dynamic_params(self, reset=True):
+        rospy.loginfo('Reading dynamic parameters from file...')
         dynamic_param_file = open(self.dynamic_param_path, 'r')
         self.dynamic_params = safe_load(dynamic_param_file)
         dynamic_param_file.close()
         if reset:
             self.target_id = 0
-            self.rope_length_r = self.sl_length/2
-            self.rope_length_l = self.sl_length/2
+            self.rope_length_r = self.rope_length/2
+            self.rope_length_l = self.rope_length/2
             self.r_root = None # root of the red lace tip
             self.b_root = None # root of the blue lace tip
             self.sites_availabilty = np.zeros((len(self.sites_dict), len(self.rope_dict) * 2))
@@ -329,11 +349,10 @@ class SceneParameters:
             self.b_root = self.dynamic_params["b_root"]
             self.sites_availabilty = np.array(self.dynamic_params["sites_availabilty"])
 
-        # self.e_l_offset = np.array(self.dynamic_params["e_l_offset"]).tolist()
-        # self.e_r_offset = np.array(self.dynamic_params["e_r_offset"]).tolist()
+        
         self.l_l_offset = np.array(self.dynamic_params["l_l_offset"]).tolist()
         self.l_r_offset = np.array(self.dynamic_params["l_r_offset"]).tolist()
-        print('Parameters read from file.')
+        rospy.loginfo('Parameters read from file.')
 
     def update_params(self):
         self.dynamic_params["rope_length_l"] = np.array(self.rope_length_l).tolist()
@@ -347,7 +366,7 @@ class SceneParameters:
         dynamic_param_file = open(self.dynamic_param_path, 'w')
         dump(self.dynamic_params, dynamic_param_file, default_flow_style=None)
         dynamic_param_file.close()
-        print("Parameter saved!")
+        rospy.loginfo("Parameter saved!")
 
     def save_scene_params(self):
         content = {
@@ -359,6 +378,6 @@ class SceneParameters:
         shoe_param_file = open(self.shoe_param_path, 'w')
         dump(content, shoe_param_file, default_flow_style=None)
         shoe_param_file.close()
-        print('Shoe parameters saved')
+        rospy.loginfo('Scene parameters saved')
         
     

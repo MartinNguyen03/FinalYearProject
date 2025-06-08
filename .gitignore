@@ -4,7 +4,11 @@ catkin_ws/*
 catkin_ws/src/*
 !catkin_ws/src/uni_lace/
 !catkin_ws/src/ROSLLM/
-
+catkin_ws/.catkin_tools
+catkin_ws/build/*
+catkin_ws/devel/*
+catkin_ws/logs/*
+catkin_ws/src/ROSLLM/yumi-prl
 dlo_perceiver/*.png
 dlo_perceiver/*.pth
 dlo_perceiver/*.h5

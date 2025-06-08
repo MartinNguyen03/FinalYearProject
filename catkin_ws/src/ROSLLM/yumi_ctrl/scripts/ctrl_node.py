@@ -206,6 +206,7 @@ class CtrlNode:
         # Ensure the BT XML file is saved before launching
         cmd = ['rosrun', 'behaviour_executor', 'yumi_tree']
         self.bt = subprocess.Popen(cmd)
+        self.bt.wait()  # Wait for the process to complete
         time.sleep(1)
         
     
@@ -220,7 +221,8 @@ if __name__ == "__main__":
 
     # Run the sequence of actions
     scene_ctrl_node = CtrlNode()
-    scene_ctrl_node.run()
+    # scene_ctrl_node.run()
+    rospy.spin()
 
 
 # EXAMPLE BT XML 
