@@ -1,5 +1,0 @@
-robot_sl/sl_ctrl
-/catkin_ws/devel/.private/sl_ctrl/cmake.lock /catkin_ws/devel/./cmake.lock
-/catkin_ws/devel/.private/sl_ctrl/share/sl_ctrl/cmake/sl_ctrlConfig-version.cmake /catkin_ws/devel/share/sl_ctrl/cmake/sl_ctrlConfig-version.cmake
-/catkin_ws/devel/.private/sl_ctrl/share/sl_ctrl/cmake/sl_ctrlConfig.cmake /catkin_ws/devel/share/sl_ctrl/cmake/sl_ctrlConfig.cmake
-/catkin_ws/devel/.private/sl_ctrl/lib/pkgconfig/sl_ctrl.pc /catkin_ws/devel/lib/pkgconfig/sl_ctrl.pc
