@@ -19,7 +19,7 @@ except ImportError:
             break
     from catkin.environment_cache import generate_environment_script
 
-code = generate_environment_script('/catkin_ws/devel/.private/yumi_moveit_config/env.sh')
+code = generate_environment_script('/catkin_ws/devel/env.sh')
 
 output_filename = '/catkin_ws/build/yumi_moveit_config/catkin_generated/setup_cached.sh'
 with open(output_filename, 'w') as f:

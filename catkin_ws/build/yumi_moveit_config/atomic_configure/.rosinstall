@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /catkin_ws/devel/.private/yumi_moveit_config/setup.sh
+    local-name: /catkin_ws/devel/setup.sh

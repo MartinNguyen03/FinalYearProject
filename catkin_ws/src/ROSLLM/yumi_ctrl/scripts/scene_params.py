@@ -64,6 +64,12 @@ class SceneParameters:
         self.shoe_param_path = path.join(result_path, 'scene_params.yaml')
         self.read_static_params()
         self.read_dynamic_params(reset)
+        self.target_l1 = self.process_target_pose(self.t_l1, -1)
+        self.target_l2 = self.process_target_pose(self.t_l2, -1)
+        self.target_l3 = self.process_target_pose(self.t_l3, -1)
+        self.target_r1 = self.process_target_pose(self.t_r1, 1)
+        self.target_r2 = self.process_target_pose(self.t_r2, 1)
+        self.target_r3 = self.process_target_pose(self.t_r3, 1)
         self.load_target_poses([[self.target_l1, self.target_l2, self.target_l3], [self.target_r1, self.target_r2, self.target_r3]])
         # self.left_cursor = start_id if start_id%2==0 else start_id-1
         # self.right_cursor = start_id+1 if start_id%2==0 else start_id
@@ -132,7 +138,7 @@ class SceneParameters:
         else:
             """Clears the site the marker is located at."""
             rope_ = self.rope_dict[rope]
-            site = rope.marker_dict[marker]['marker_at']
+            site = rope_.marker_dict[marker]['marker_at']
             if site and self.site_occupancy.get(site) == (rope, marker):
                 del self.site_occupancy[site]
             rope_.marker_dict[marker]['marker_at'] = None
@@ -250,11 +256,9 @@ class SceneParameters:
        
     
         
-    def process_target_pose(self, target, offset):
-        pos = np.array(target[:3]) + np.array(offset)
-        quat = list(target[3:])
-        euler = euler_from_quaternion(quat)
-        return list(pos) + list(euler)  # [x, y, z, roll, pitch, yaw]   
+    def process_target_pose(self, target, side):   
+        return ls_add(target, (self.l_l_offset if side==-1 else self.l_r_offset)+[0,0,0,0])
+        
       
     def read_static_params(self):
         rospy.loginfo('Reading static parameters from file...')
@@ -290,26 +294,20 @@ class SceneParameters:
         table_height = self.table_offset
        
 
-        self.site_poses['site_dl'] = [0.32, 0.085, table_height] # centre of the left section a
-        self.site_poses['site_dd'] = [0.32, 0, table_height] # centre of the left section a
-        self.site_poses['site_dr'] = [0.32, -0.1, table_height] # centre of the right section b
-        self.site_poses['site_ul'] = [0.6, 0.085, table_height] # centre of the left section c
-        self.site_poses['site_ur'] = [0.6, -0.1, table_height] # centre of the right section c
-        self.site_poses['site_uu'] = [0.6, 0, table_height] # centre of the left section d
+        self.site_poses['site_dl'] = [0.32, 0.085, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dd'] = [0.32, 0, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dr'] = [0.32, -0.1, table_height + -0.00735] # centre of the right section b
+        self.site_poses['site_ul'] = [0.6, 0.085, table_height + 0.08] # centre of the left section c
+        self.site_poses['site_ur'] = [0.6, -0.1, table_height + 0.08] # centre of the right section c
+        self.site_poses['site_uu'] = [0.6, 0, table_height + 0.08] # centre of the left section d
         self.e_l_offset = params["e_l_offset"]
         self.e_r_offset = params["e_r_offset"]
-        t_l1 = params['target_l1']
-        t_l2 = params['target_l2']
-        t_l3 = params['target_l3']
-        t_r1 = params['target_r1']
-        t_r2 = params['target_r2']
-        t_r3 = params['target_r3']
-        self.target_l1 = self.process_target_pose(t_l1, self.e_l_offset)
-        self.target_l2 = self.process_target_pose(t_l2, self.e_l_offset)
-        self.target_l3 = self.process_target_pose(t_l3, self.e_l_offset)
-        self.target_r1 = self.process_target_pose(t_r1, self.e_r_offset)
-        self.target_r2 = self.process_target_pose(t_r2, self.e_r_offset)
-        self.target_r3 = self.process_target_pose(t_r3, self.e_r_offset)
+        self.t_l1 = params['target_l1']
+        self.t_l2 = params['target_l2']
+        self.t_l3 = params['target_l3']
+        self.t_r1 = params['target_r1']
+        self.t_r2 = params['target_r2']
+        self.t_r3 = params['target_r3']
         
         
         # self.target_h_l1 = ls_add(self.site_poses['target_l1'], [-self.target_to_holder, 0, 0])

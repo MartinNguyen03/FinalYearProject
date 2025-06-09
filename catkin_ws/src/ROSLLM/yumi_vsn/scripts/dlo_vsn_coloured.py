@@ -237,7 +237,7 @@ class dloVision:
     find_rope_srv = 'detect_ropes'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
-    marker_roi = [380,170,960,730]
+    marker_roi = [380,80,960,750]
     
     
         

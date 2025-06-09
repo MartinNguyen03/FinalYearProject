@@ -77,11 +77,9 @@ dlo:
 	docker container stop fypContainer
 test1:
 	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /execute_behaviour "{action: 'left_place', rope: 'rope_o', marker: 'marker_a', site: 'site_uu'}""
+	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /execute_behaviour "{action: 'right_place', rope: 'rope_o', marker: 'marker_b', site: 'site_uu'}""
 
-test1:
-	docker start fypContainer
-	docker exec -it fypContainer bash -c "source devel/setup.bash && rosservice call /execute_behaviour "{action: 'left_place', rope: 'rope_o', marker: 'marker_a', site: 'site_uu'}""
+
 
 ctrl:
 	docker start fypContainer

@@ -137,9 +137,19 @@ class ScenePrimitives:
         self.add_to_log(f'Executing action: {action} on {rope} {marker} to {site}')
          
         if action == 'left_place':
-            self.left_place(rope, marker, site)
+            if self.left_place(rope, marker, site) == True:
+                res.success = True
+                res.description = f'Left place of {marker} on {rope} to {site} successful.'
+            else:
+                res.success = False
+                res.description = f'Left place of {marker} on {rope} to {site} failed.'
         elif action == 'right_place':
-            self.right_place(rope, marker, site)
+            if self.right_place(rope, marker, site) == True:
+                res.success = True
+                res.description = f'Right place of {marker} on {rope} to {site} successful.'
+            else:
+                res.success = False
+                res.description = f'Right place of {marker} on {rope} to {site} failed.'
         else:
             self.add_to_log(f'Action {action} not recognised.')
             res.success = False
@@ -148,7 +158,7 @@ class ScenePrimitives:
         
         
 
-    def right_pick(self, rope, marker, fine_ori=True):
+    def right_pick(self, rope, marker, fine_ori=False):
         """ pick up the marker with the right gripper """
         # calc pick poses
         if self.pm.check_marker_location(rope, marker)[:4] != 'site':
@@ -159,10 +169,15 @@ class ScenePrimitives:
                 self.add_to_log("Marker is not available for pick up!")
                 return
             
+        if self.pm.check_marker_location(rope, marker)[:6] != 'site_u':
+            vert_offset = self.pm.table_offset + -0.0073
+        else:
+            vert_offset = self.pm.table_offset + 0.08
+            
         marker_pos, yaw = self.get_rope_poses(rope, marker)
-        pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
+        pick_pos = [marker_pos[0], marker_pos[1], vert_offset+self.pm.gp_os]
         pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
-        pick_rot = self.pm.grasp_rot_r
+        pick_rot = self.pm.grasp_rot_r  
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
 
         self.yumi.remove_table()
@@ -172,6 +187,9 @@ class ScenePrimitives:
         self.yumi.right_go_thro(waypoints,"Pick Approach")
         self.yumi.open_right_gripper()
 
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        self.yumi.right_go_thro(waypoints,"Pick Rotate")
         # pick the marker
         waypoints = []
         waypoints.append(ls_concat(pick_pos,pick_rot_fine))
@@ -179,11 +197,11 @@ class ScenePrimitives:
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'right_gripper'
         self.yumi.close_right_gripper()
 
-        self.update_marker_ownership(rope, marker, 'right_gripper')
+        # self.update_marker_ownership(rope, marker, 'right_gripper')
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0,0,self.pm.app_os]),pick_rot_fine))
         self.yumi.right_go_thro(waypoints,"Pick Retract")
         self.yumi.add_table()
 
@@ -197,7 +215,7 @@ class ScenePrimitives:
         if fine_ori:
             self.right_refine_orientation()
 
-    def left_pick(self, rope, marker, fine_ori=True):
+    def left_pick(self, rope, marker, fine_ori=False):
         """ pick up the aglet with the left gripper """
         
         if self.pm.check_marker_location(rope, marker)[:4] != 'site':
@@ -207,8 +225,107 @@ class ScenePrimitives:
             else:
                 self.add_to_log("Marker is not available for pick up!")
                 return
+        
+        if self.pm.check_marker_location(rope, marker)[:6] != 'site_u':
+            vert_offset = self.pm.table_offset + -0.0073
+        else:
+            vert_offset = self.pm.table_offset + 0.08
+            
         # calc pick poses
         marker_pos, yaw = self.get_rope_poses(rope, marker)
+        pick_pos = [marker_pos[0], marker_pos[1], vert_offset+self.pm.gp_os]
+        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
+        pick_rot = self.pm.grasp_rot_l
+        pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
+        
+        self.yumi.remove_table()
+        # approach the aglet
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot))
+        self.yumi.left_go_thro(waypoints,"Pick Approach")
+        self.yumi.open_left_gripper()
+        
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        self.yumi.left_go_thro(waypoints,"Pick Rotate")
+        # pick the aglet
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos,pick_rot_fine))
+        self.yumi.left_go_thro(waypoints,"Pick")
+        self.yumi.close_left_gripper()
+        self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'left_gripper'
+        # self.update_marker_ownership(rope, marker, 'left_gripper')
+
+        # retreat after pick
+        waypoints = []
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0,0,self.pm.app_os]),pick_rot_fine))
+        self.yumi.left_go_thro(waypoints,"Pick Retract")
+
+        self.yumi.add_table()
+        
+        
+        # set section flags
+        current_site = self.pm.check_marker_location(rope, marker)
+        if current_site is not None:
+            self.pm.update_site_occupancy(rope, marker, current_site, False)
+        
+        self.pm.update_site_occupancy(rope, marker, 'left_gripper')
+
+        if fine_ori:
+            self.left_refine_orientation()
+    def right_remove(self, rope, marker):
+        
+        
+        _, _ = self.get_rope_poses(rope, marker)
+        target = self.pm.check_marker_location(rope, marker)
+        target_pos = self.pm.site_poses[target] # Choose target position
+        marker_pos, [_,_,yaw] = target_pos[:3], euler_from_quaternion(target_pos[3:])
+        
+        pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
+        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os]) # Slightly above the marker
+        pick_rot = self.pm.grasp_rot_r
+        pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
+
+        self.yumi.remove_table()
+        # approach the marker
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot))
+        self.yumi.right_go_thro(waypoints,"Pick Approach")
+        self.yumi.open_right_gripper()
+
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        self.yumi.right_go_thro(waypoints,"Pick Rotate")
+        # pick the marker
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos,pick_rot_fine))
+        self.yumi.right_go_thro(waypoints,"Pick")
+        self.yumi.close_right_gripper()
+        self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'right_gripper'
+        # self.update_marker_ownership(rope, marker, 'right_gripper')
+
+        # retreat after pick
+        waypoints = []
+        waypoints.append(ls_concat(ls_add(pick_pos, [0, 2*self.pm.app_os, 0]),pick_rot_fine))
+        self.yumi.right_go_thro(waypoints,"Pick Retract")
+        waypoints = []
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, 2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
+        self.yumi.right_go_thro(waypoints,"Pick Raise")
+        self.yumi.add_table()
+
+        # set section flags
+        current_site = self.pm.check_marker_location(rope, marker)
+        if current_site is not None:
+            self.pm.update_site_occupancy(rope, marker, current_site, False)
+        self.pm.update_site_occupancy(rope, marker, 'right_gripper')
+
+    def left_remove(self, rope, marker):
+         # calc pick poses
+        _, _ = self.get_rope_poses(rope, marker) # Get updated positions
+        target = self.pm.check_marker_location(rope, marker)
+        target_pos = self.pm.site_poses[target] # Choose target position
+        marker_pos, [_,_,yaw] = target_pos[:3], euler_from_quaternion(target_pos[3:])
+        
         pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
         pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
         pick_rot = self.pm.grasp_rot_l
@@ -221,19 +338,25 @@ class ScenePrimitives:
         self.yumi.left_go_thro(waypoints,"Pick Approach")
         self.yumi.open_left_gripper()
 
+        waypoints = []
+        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        self.yumi.left_go_thro(waypoints,"Pick Rotate")
         # pick the aglet
         waypoints = []
         waypoints.append(ls_concat(pick_pos,pick_rot_fine))
         self.yumi.left_go_thro(waypoints,"Pick")
         self.yumi.close_left_gripper()
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'left_gripper'
-        self.update_marker_ownership(rope, marker, 'left_gripper')
+        # self.update_marker_ownership(rope, marker, 'left_gripper')
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos, [0, -2*self.pm.app_os, 0]),pick_rot_fine))
         self.yumi.left_go_thro(waypoints,"Pick Retract")
 
+        waypoints = []
+        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, -2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
+        self.yumi.left_go_thro(waypoints,"Pick Raise")
         self.yumi.add_table()
 
         # set section flags
@@ -242,10 +365,8 @@ class ScenePrimitives:
             self.pm.update_site_occupancy(rope, marker, current_site, False)
         
         self.pm.update_site_occupancy(rope, marker, 'left_gripper')
-
-        if fine_ori:
-            self.left_refine_orientation()
-
+        
+        
     def right_place(self, rope, marker, site='site_dr'):
         """ place down the aglet with the right gripper"""
 
@@ -256,28 +377,16 @@ class ScenePrimitives:
         self.add_to_log("Placing to "+site)
         self.right_pick(rope, marker)
         if site == 'site_dr':
-            self.yumi.right_go_grasp()
             section = self.pm.site_poses['site_dr']
-            self.right_stretch_backward(rope, marker)
-            self.yumi.right_go_grasp()
         elif site == 'site_dd':
-            self.yumi.right_go_grasp()
             section = self.pm.site_poses['site_dd']
-            self.right_stretch_backward(rope, marker)
-            self.yumi.right_go_grasp()
         elif site == 'site_ur':
-            self.yumi.right_go_grasp()
             section = self.pm.site_poses['site_ur']
-            self.right_stretch_forward(rope, marker)
-            self.yumi.right_go_grasp()
         elif site == 'site_uu':
-            self.yumi.right_go_grasp()
             section = self.pm.site_poses['site_uu']
-            self.right_stretch_forward(rope, marker)
-            self.yumi.right_go_grasp()
         else:
             rospy.logerr("No Section is available for placing!")
-            return
+            return False
 
         self.pm.update_site_occupancy(rope, marker, 'right_gripper', False)
        
@@ -287,7 +396,8 @@ class ScenePrimitives:
         # calc place poses
         place_pos = [section[0], section[1], section[2]+self.pm.gp_os]
         place_pos_approach = ls_add(place_pos, [0, -self.pm.app_os, self.pm.app_os])
-        place_rot = self.pm.grasp_rot_r
+        [_,_,yaw] = euler_from_quaternion([0, 0, -0.6934, 0.7206])
+        place_rot = ls_add(self.pm.grasp_rot_r, [0, 0, yaw])
         self.yumi.remove_table()
         # approach the aglet
         waypoints = []
@@ -299,12 +409,15 @@ class ScenePrimitives:
         self.yumi.right_go_thro(waypoints,"Place")
         self.yumi.open_right_gripper(full=True)
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = site
-        self.update_marker_ownership(rope, marker, site)
+        # self.update_marker_ownership(rope, marker, site)
         # retreat after place
         waypoints = []
-        waypoints.append(place_pos_approach+place_rot)
+        waypoints.append(ls_add(place_pos_approach, [0,0,self.pm.app_os])+place_rot)
         self.yumi.right_go_thro(waypoints,"Place Retract")
         self.yumi.add_table()
+        self.yumi.right_go_grasp()
+        self.yumi.close_right_gripper()
+        return True
 
     def left_place(self, rope, marker, site='site_dd'):
         """ place down the marker with the right gripper"""
@@ -318,28 +431,20 @@ class ScenePrimitives:
         self.left_pick(rope, marker)
         
         if site == 'site_dl':
-            self.yumi.left_go_grasp()
             section = self.pm.site_poses['site_dl']
-            self.left_stretch_backward(marker)
-            self.yumi.left_go_grasp()
+            # self.left_stretch_backward(rope, marker)
         elif site == 'site_dd':
-            self.yumi.left_go_grasp()
             section = self.pm.site_poses['site_dd']
-            self.left_stretch_backward(marker)
-            self.yumi.left_go_grasp()
+            # self.left_stretch_backward(rope, marker)
         elif site == 'site_ul':
-            self.yumi.left_go_grasp()
             section = self.pm.site_poses['site_ul']
-            self.left_stretch_forward(marker)
-            self.yumi.left_go_grasp()
+            # self.left_stretch_forward(rope, marker)
         elif site == 'site_uu':
-            self.yumi.left_go_grasp()
             section = self.pm.site_poses['site_uu']
-            self.left_stretch_forward(marker)
-            self.yumi.left_go_grasp()
+            # self.left_stretch_forward(rope, marker)
         else:
             rospy.logerr("No Section is available for placing!")
-            return
+            return False
 
         self.pm.update_site_occupancy(rope, marker, 'left_gripper', False)
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = site
@@ -348,7 +453,8 @@ class ScenePrimitives:
         # calc place poses
         place_pos = [section[0], section[1], section[2]+self.pm.gp_os]
         place_pos_approach = ls_add(place_pos, [0, self.pm.app_os, self.pm.app_os])
-        place_rot = self.pm.grasp_rot_l
+        [_,_,yaw] = euler_from_quaternion([0, 0, 0.6934, 0.7205])
+        place_rot = ls_add(self.pm.grasp_rot_l, [0, 0, yaw])
         self.yumi.remove_table()
         # approach the marker
         waypoints = []
@@ -357,59 +463,55 @@ class ScenePrimitives:
         # place the marker
         waypoints = []
         waypoints.append(place_pos+place_rot)
+        self.yumi.change_speed(0.5)
         self.yumi.left_go_thro(waypoints,"Place")
         self.yumi.open_left_gripper(full=True)
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = site
-        self.update_marker_ownership(rope, marker, site)
+        # self.update_marker_ownership(rope, marker, site)
         # retreat after place
         waypoints = []
-        waypoints.append(place_pos_approach+place_rot)
+        waypoints.append(ls_add(place_pos_approach, [0,0,self.pm.app_os])+place_rot)
         self.yumi.left_go_thro(waypoints,"Place Retract")
         self.yumi.add_table()
+        self.yumi.left_go_grasp()
+        self.yumi.close_left_gripper()
+        return True
 
     def right_insert(self, rope, marker, target, reset=False):
         """
         This primitive inserts the marker (aglet) from inside the object toward the outside
         using only the right gripper.
         """
-        # 1. Parse target info
-        target_group, target_id = self.pm.get_target_id(target)
+        
 
         # 2. Pick up the aglet
-        self.right_pick(rope, marker)
-
+        self.left_pick(rope, marker, True)
+        self.left_to_right_handover()  # Transfer the aglet to the right gripper
         
-        target_pos = self.pm.target_poses[target_id][:3]
-
-        # 5. Define insertion parameters
-        insert_pitch = self.pm.insert_pitch2  # usually ~pi/2 if inserting downwards
-
-        # 6. Compose matrix at hole location
-        target_pose = compose_matrix(translate=target_pos, angles=[0, 0, pi/2])
-
+        insert_pos = self.pm.site_poses[target][:3]
+        [_,_,yaw] = euler_from_quaternion(self.pm.target_poses[target][3:])
+        
+        insert_app_pos = ls_add(insert_pos, [0, self.pm.app_os, 0])  # Slightly above the target
+        insert_rot = self.pm.grasp_rot_r
+        insert_rot_fine = ls_add(insert_rot, [0, 0, yaw])
         # 7. Compute poses (relative to hole frame, inserting from behind)
         # Note: we insert in the X direction, so we back off in -X to approach
-        insert_pose = tf_mat2ls(target_pose @ tf_ls2mat([self.pm.target_radius, 0, 0,
-                                                         insert_pitch, 0, 0]))
-        insert_pose_approach = tf_mat2ls(target_pose @ tf_ls2mat([self.pm.target_radius + self.pm.app_os*2, 0, 0,
-                                                                  insert_pitch, 0, 0]))
-        retract_pose = tf_mat2ls(target_pose @ tf_ls2mat([self.pm.target_radius + self.pm.app_os*4, 0, 0,
-                                                          insert_pitch, 0, 0]))
+        
+        waypoints = []
+        waypoints.append(ls_concat(insert_app_pos, insert_rot_fine))
+        self.yumi.right_go_thro(waypoints, "Insert Approach", eef_step=0.05)
+        
+        waypoints = []
+        waypoints.append(ls_concat(insert_pos, insert_rot))
+        self.yumi.right_go_thro(waypoints, "Insert Marker", eef_step=0.05, velocity_scaling=0.5)
 
-        # 8. Move to pre-insert posture
-        self.yumi.right_go_thro([self.pm.pre_insert_r + [0, pi - insert_pitch, 0]], "Insert Prepare")
-
-        # 9. Execute insertion
-        self.yumi.right_tip_go_thro([insert_pose_approach, insert_pose], "Insert Marker", velocity_scaling=1.5)
-        self.yumi.open_right_gripper(full=1)  # release the marker
-
-        # 10. Retract
-        self.yumi.right_tip_go_thro([insert_pose_approach, retract_pose], "Retract Marker")
-
-        # 11. Final reset and state update
-        self.update_marker_ownership(rope, marker, target)  # no longer held
-        if reset:
-            self.yumi.right_go_observe()
+        self.yumi.open_right_gripper()  # release the marker
+        
+        waypoints = []
+        waypoints.append(ls_add(insert_app_pos, [0, 0, 2* self.pm.app_os]) + insert_rot_fine)
+        self.yumi.right_go_thro(waypoints, "Insert Retract", eef_step=0.05)
+        
+        self.yumi.right_go_observe()
         self.yumi.wait_for_side_thread()
 
 
@@ -421,7 +523,7 @@ class ScenePrimitives:
 
         ''' 1. Pick the aglet with the left gripper '''
         target_group, target_id = self.pm.get_target_id(target)
-        self.left_pick(marker)
+        self.left_pick(rope, marker, True)
 
         
         target_pos = self.pm.target_poses[target_id][:3]
@@ -440,7 +542,7 @@ class ScenePrimitives:
         self.yumi.left_go_thro([ls_concat(self.pm.pre_insert_l, [0, pi - insert_pitch, 0])], "Insert Prepare")
         self.yumi.left_tip_go_thro([insert_pose_approach, insert_pose], "Insert Marker", velocity_scaling=1.5)
         self.yumi.open_left_gripper(full=1)  # release aglet
-        self.update_marker_ownership(rope, marker, target)  # no longer held
+        # self.update_marker_ownership(rope, marker, target)  # no longer held
 
         ''' 6. Retract the gripper '''
         self.yumi.left_tip_go_thro([insert_pose_approach, insert_pose_retract], "Insert Retract")
@@ -451,77 +553,7 @@ class ScenePrimitives:
         self.yumi.wait_for_side_thread()
 
     
-    def right_remove(self, rope, marker):
-        
-        marker_pos, yaw = self.get_rope_poses(rope, marker)
-        pick_pos = [marker_pos[0], marker_pos[1] - 0.01, marker_pos[2]+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os]) # Slightly above the marker
-        pick_rot = self.pm.grasp_rot_r
-        pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
-
-        self.yumi.remove_table()
-        # approach the marker
-        waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot))
-        self.yumi.right_go_thro(waypoints,"Pick Approach")
-        self.yumi.open_right_gripper()
-
-        # pick the marker
-        waypoints = []
-        waypoints.append(ls_concat(pick_pos,pick_rot_fine))
-        self.yumi.right_go_thro(waypoints,"Pick")
-        self.yumi.close_right_gripper()
-        self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'right_gripper'
-        self.update_marker_ownership(rope, marker, 'right_gripper')
-
-        # retreat after pick
-        waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos, [0, 2*self.pm.app_os, 0]),pick_rot_fine))
-        self.yumi.right_go_thro(waypoints,"Pick Retract")
-        self.yumi.add_table()
-
-        # set section flags
-        current_site = self.pm.check_marker_location(rope, marker)
-        if current_site is not None:
-            self.pm.update_site_occupancy(rope, marker, current_site, False)
-        self.pm.update_site_occupancy(rope, marker, 'right_gripper')
-
-    def left_remove(self, rope, marker):
-         # calc pick poses
-        marker_pos, yaw = self.get_rope_poses(rope, marker)
-        pick_pos = [marker_pos[0], marker_pos[1] + 0.01, marker_pos[2]+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
-        pick_rot = self.pm.grasp_rot_l
-        pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
-        
-        self.yumi.remove_table()
-        # approach the aglet
-        waypoints = []
-        waypoints.append(ls_concat(pick_pos_approach,pick_rot))
-        self.yumi.left_go_thro(waypoints,"Pick Approach")
-        self.yumi.open_left_gripper()
-
-        # pick the aglet
-        waypoints = []
-        waypoints.append(ls_concat(pick_pos,pick_rot_fine))
-        self.yumi.left_go_thro(waypoints,"Pick")
-        self.yumi.close_left_gripper()
-        self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = 'left_gripper'
-        self.update_marker_ownership(rope, marker, 'left_gripper')
-
-        # retreat after pick
-        waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos, [0, -2*self.pm.app_os, 0]),pick_rot_fine))
-        self.yumi.left_go_thro(waypoints,"Pick Retract")
-
-        self.yumi.add_table()
-
-        # set section flags
-        current_site = self.pm.check_marker_location(rope, marker)
-        if current_site is not None:
-            self.pm.update_site_occupancy(rope, marker, current_site, False)
-        
-        self.pm.update_site_occupancy(rope, marker, 'left_gripper')
+    
     
     
     def right_refine_orientation(self):
@@ -719,7 +751,7 @@ class ScenePrimitives:
         self.yumi.close_left_gripper()
         self.yumi.open_right_gripper()
         rope, marker = self.get_marker_at('right_gripper')
-        self.update_marker_ownership(rope, marker, 'left_gripper')
+        # self.update_marker_ownership(rope, marker, 'left_gripper')
         # retract right arm
         waypoints = []
         waypoints.append(ls_concat(transfer_point_r_approach, transfer_rot_r))
@@ -757,7 +789,7 @@ class ScenePrimitives:
         self.yumi.close_right_gripper()
         self.yumi.open_left_gripper()
         rope, marker = self.get_marker_at('left_gripper')
-        self.update_marker_ownership(rope, marker, 'right_gripper')
+        # self.update_marker_ownership(rope, marker, 'right_gripper')
         # retract left arm
         waypoints = []
         # waypoints.append([centre[0]+extra_os_x, centre[1]+self.pm.gp_os+0.20, centre[2], pi/2, pi, 0])
@@ -805,14 +837,14 @@ class ScenePrimitives:
         '''
         request = DetectRopeRequest()
         request.rope = rope
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() :
             # get the target pose
             response = self.find_rope(request)
             if response.success == True:
-                if self.yumi.check_command('Satisfied with the result?'):
+                # if self.yumi.check_command('Satisfied with the result?'):
                     break
-                else:
-                    rospy.logwarn('Retrying to find the rope...')
+            #     # else:
+            #     #     rospy.logwarn('Retrying to find the rope...')
         return pose_msg_to_list(response.marker_a_pose), pose_msg_to_list(response.marker_b_pose)
        
     
@@ -888,6 +920,9 @@ class ScenePrimitives:
             print("Unknown marker name!")
             return None, None
         site = self.pm.find_closest_site(rope=rope, marker=marker)
+        if site is None:
+            self.get_rope_poses(rope, marker, initial=initial) 
+            
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = site
         # self.pm.update_site_occupancy(rope, marker, site)
         
@@ -921,13 +956,13 @@ class ScenePrimitives:
             self.pm.heirarchy.append(rope)
         self.pm.img_frame = img
         
-    def update_marker_ownership(self, rope, marker, site):
-        self.pm.rope_dict[rope].marker_dict[marker]['marker_at'] = site
+    # def update_marker_ownership(self, rope, marker, site):
+    #     self.pm.rope_dict[rope].marker_dict['marker_a']['marker_at'] = site
         
-        owner_msg = Int32MultiArray()
-        owner_msg.data = [self.pm.sites_dict[self.pm.aglet_at['aglet_a']]-6, 
-                        self.pm.sites_dict[self.pm.aglet_at['aglet_b']]-6] # left 0, right 1
-        self.aglet_owner_pub.publish(owner_msg)
+    #     owner_msg = Int32MultiArray()
+    #     owner_msg.data = [site-6, 
+    #                     self.pm.sites_dict[self.pm.aglet_at['aglet_b']]-6] # left 0, right 1
+    #     self.aglet_owner_pub.publish(owner_msg)
 
     def get_marker_at(self, site):
         '''

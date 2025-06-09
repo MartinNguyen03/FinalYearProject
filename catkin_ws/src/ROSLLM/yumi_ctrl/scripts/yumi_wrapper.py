@@ -263,18 +263,18 @@ class YumiWrapper(YumiCtrl):
     def both_go_grasp(self):
         self.go_to_angles_both(self.grasp_states, 'Pre-grasp')
     def left_go_grasp(self, main=True):
-        self.go_to_angles_left(self.grasp_states[:7], 'Pre-grasp', main=main)
+        self.go_to_angles_left(self.grasp_states[:7], 'Left Pre-grasp', main=main)
     def left_go_grasp2(self, main=True):
-        self.go_to_angles_left(self.grasp_states2[:7], 'Pre-grasp', main=main)
+        self.go_to_angles_left(self.grasp_states2[:7], 'Left2 Pre-grasp', main=main)
     def left_go_observe(self, main=True):
         self.go_to_angles_left(self.observe_states[:7], 'Observe', main=main)
     def left_go_transfer(self, main=True):
         self.left_tip_go_thro([[0.45, 0, 0.15, 0, 0, -pi/2]], 'Transfer')
 
     def right_go_grasp(self, main=True):
-        self.go_to_angles_right(self.grasp_states[7:], 'Pre-grasp', main=main)
+        self.go_to_angles_right(self.grasp_states[7:], 'Right Pre-grasp', main=main)
     def right_go_grasp2(self, main=True):
-        self.go_to_angles_right(self.grasp_states2[7:], 'Pre-grasp', main=main)
+        self.go_to_angles_right(self.grasp_states2[7:], 'Right2 Pre-grasp', main=main)
     def right_go_observe(self, main=True, cartesian=False):
         if cartesian:
             # self.right_go_thro([[0.5, -0.28, 0.2, -pi/24*7, pi, 0]], 'Observe')
@@ -459,7 +459,7 @@ class YumiWrapper(YumiCtrl):
     def add_collision_objs(self, ws):
         ''' Add table and walls to the MoveIt planing scene '''
         self.table_box = [[ws[1]/2, (ws[3]+ws[2])/2, self.table_offset],            [ws[1], ws[3]-ws[2], .01]]
-        self.test_bed_box = [[ws[1]/2, 0.0, self.table_offset + 0.01],   [0.16, 0.28, 0.01]]
+        self.test_bed_box = [[0.4633, 0.0, self.table_offset + 0.01],   [0.16, 0.28, 0.01]]
         #table_box: ([0.5, 0, table_offdset/height], [1.0, 1.2, 0.01])
         self.add_collision_box('table',     self.table_box[0],                      self.table_box[1])
         
@@ -469,8 +469,8 @@ class YumiWrapper(YumiCtrl):
         # wall 2: ([0.5, 0.6, 0.385], [1.0, 0.01, 0.77])
         
         self.add_collision_box('testbed',   self.test_bed_box[0], self.test_bed_box[1])
-        self.add_collision_box('testbed_wall_l', [ws[1]/2, -0.14, 0.035], [0.16, .01, 0.05])
-        self.add_collision_box('testbed_wall_r', [ws[1]/2, 0.14, 0.035], [0.16, .01, 0.05])
+        self.add_collision_box('testbed_wall_l', [0.4633, -0.14 + 0.005, 0.033], [0.16, .01, 0.05])
+        self.add_collision_box('testbed_wall_r', [0.4633, 0.14 - 0.005, 0.033], [0.16, .01, 0.05])
         self.ceiling_box = [[ws[1]/2, (ws[3]+ws[2])/2, ws[5]], [ws[1], ws[3]-ws[2], .01]]
         
         

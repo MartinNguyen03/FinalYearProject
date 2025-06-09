@@ -20,3 +20,4 @@ orientation:
 shutting down processing monitor...
 ... shutting down proce
 
+rosservice call /execute_behaviour "{action: 'right_place', rope: 'rope_b', marker: 'marker_b', site: 'site_dr'}"
