@@ -45,13 +45,15 @@ from transformers import DistilBertTokenizer
 # Target L_5 -->  | ----------- | <-- Target R_5        Each Marker will have it's own unique colour
 # Target L_6 -->  | ----------- | <-- Target R_6        Each Rope will have it's own unique colour
 # etc.             x        x     x                     X: Free space / intermediate checkpoints (Hardcoded/Or Not) to place rope avoid collision
+  
+ 
 
 
 
 RGB_THRESHOLDS = {
     'purple':   {'lower': rospy.get_param("~purple_lower", [143, 0, 20]),   'upper':    rospy.get_param("~purple_upper", [255, 194, 206])},
-    'magenta':  {'lower': rospy.get_param("~magenta_lower", [133, 0, 190]    ),     'upper':    rospy.get_param("~magenta_upper", [255, 217, 255])},
-    'red':      {'lower': rospy.get_param("~red_lower", [71, 80, 178]),      'upper':    rospy.get_param("~red_upper", [190, 213, 255])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [135, 0, 195]     ),     'upper':    rospy.get_param("~magenta_upper", [255, 237, 255])},
+    'red':      {'lower': rospy.get_param("~red_lower", [80, 75, 155]),      'upper':    rospy.get_param("~red_upper", [173, 210, 255])},
     'pink':     {'lower': rospy.get_param("~pink_lower", [203, 200, 220]),    'upper':    rospy.get_param("~pink_upper", [255, 255, 255])},
     'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 113, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 164])},
     'grey':     {'lower': rospy.get_param("~grey_lower", [177, 191, 118]),   'upper':    rospy.get_param("~grey_upper", [237, 250, 228])},
@@ -237,7 +239,7 @@ class dloVision:
     find_rope_srv = 'detect_ropes'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
-    marker_roi = [380,80,960,750]
+    marker_roi = [380,140,960,1080]
     
     
         
