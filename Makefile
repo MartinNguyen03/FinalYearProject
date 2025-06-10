@@ -37,6 +37,10 @@ description:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_description rviz.launch"
 
+tuner:
+	xhost +si:localuser:root >> /dev/null
+	docker start fypContainer
+	docker exec -e DISPLAY=${DISPLAY} -e ROS_IP="10.0.1.111" -e ROS_MASTER_URI="http://10.0.1.111:11311" -it fypContainer bash -c "source devel/setup.bash && rosrun yumi_vsn colour_tuner.py"
 
 yumi_terminal:
 	xhost +si:localuser:root >> /dev/null
