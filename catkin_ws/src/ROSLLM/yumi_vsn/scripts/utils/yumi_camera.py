@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
-# from ros_numpy import numpify
+from ros_numpy import numpify
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
 
 class RealCamera:

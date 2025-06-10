@@ -129,19 +129,22 @@ class SceneParameters:
         
     def update_site_occupancy(self, rope, marker, site, add_site=True):
         if add_site:
-            if site in self.site_occupancy:
+            if site not in self.site_occupancy:
+                self.site_occupancy[site] = None
+            if  self.site_occupancy[site] is not None:
                 print(f"Site '{site}' already occupied by {self.site_occupancy[site]}")
                 return None
             rope_ = self.rope_dict[rope]
             rope_.marker_dict[marker]['marker_at'] = site
-            self.site_occupancy[site] = (rope, marker)
+            self.site_occupancy[site] = [rope, marker]
         else:
             """Clears the site the marker is located at."""
             rope_ = self.rope_dict[rope]
             site = rope_.marker_dict[marker]['marker_at']
-            if site and self.site_occupancy.get(site) == (rope, marker):
-                del self.site_occupancy[site]
-            rope_.marker_dict[marker]['marker_at'] = None
+            if self.site_occupancy.get(site) is None:
+                if self.site_occupancy[site][0] == rope and self.site_occupancy[site][1] == marker:
+                    self.site_occupancy[site] = None
+                rope_.marker_dict[marker]['marker_at'] = None
             
     def get_marker_at_site(self, site):
         """Returns (rope_name, marker_name) or None."""
@@ -294,12 +297,12 @@ class SceneParameters:
         table_height = self.table_offset
        
 
-        self.site_poses['site_dl'] = [0.32, 0.085, table_height + -0.00735] # centre of the left section a
-        self.site_poses['site_dd'] = [0.32, 0, table_height + -0.00735] # centre of the left section a
-        self.site_poses['site_dr'] = [0.32, -0.1, table_height + -0.00735] # centre of the right section b
-        self.site_poses['site_ul'] = [0.6, 0.085, table_height + 0.08] # centre of the left section c
-        self.site_poses['site_ur'] = [0.6, -0.1, table_height + 0.08] # centre of the right section c
-        self.site_poses['site_uu'] = [0.6, 0, table_height + 0.08] # centre of the left section d
+        self.site_poses['site_dl'] = [0.34, 0.085, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dd'] = [0.34, 0, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dr'] = [0.34, -0.1, table_height + -0.00735] # centre of the right section b
+        self.site_poses['site_ul'] = [0.6, 0.085, table_height + 0.005] # centre of the left section c
+        self.site_poses['site_ur'] = [0.6, -0.1, table_height + 0.005] # centre of the right section c
+        self.site_poses['site_uu'] = [0.6, 0, table_height + 0.005] # centre of the left section d
         self.e_l_offset = params["e_l_offset"]
         self.e_r_offset = params["e_r_offset"]
         self.t_l1 = params['target_l1']

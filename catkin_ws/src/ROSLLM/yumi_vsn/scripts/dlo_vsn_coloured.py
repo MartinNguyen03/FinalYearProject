@@ -49,13 +49,12 @@ from transformers import DistilBertTokenizer
  
 
 
-
 RGB_THRESHOLDS = {
     'purple':   {'lower': rospy.get_param("~purple_lower", [143, 0, 20]),   'upper':    rospy.get_param("~purple_upper", [255, 194, 206])},
     'magenta':  {'lower': rospy.get_param("~magenta_lower", [135, 0, 195]     ),     'upper':    rospy.get_param("~magenta_upper", [255, 237, 255])},
-    'red':      {'lower': rospy.get_param("~red_lower", [80, 75, 155]),      'upper':    rospy.get_param("~red_upper", [173, 210, 255])},
+    'red':      {'lower': rospy.get_param("~red_lower", [73, 41, 184]),      'upper':    rospy.get_param("~red_upper", [178, 206, 255])},
     'pink':     {'lower': rospy.get_param("~pink_lower", [203, 200, 220]),    'upper':    rospy.get_param("~pink_upper", [255, 255, 255])},
-    'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 113, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 164])},
+    'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 186, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 80])},
     'grey':     {'lower': rospy.get_param("~grey_lower", [177, 191, 118]),   'upper':    rospy.get_param("~grey_upper", [237, 250, 228])},
     'green':   {'lower': rospy.get_param("~green_lower", [0, 156, 2] ),    'upper':    rospy.get_param("~green_upper", [245, 255, 133])}
 }
@@ -239,7 +238,7 @@ class dloVision:
     find_rope_srv = 'detect_ropes'
     robot_frame = "yumi_base_link"
     l515_roi = [0, 180, 1280, 720] # 128[0, 0, 125], [110, 110, 0]0*720
-    marker_roi = [380,140,960,1080]
+    marker_roi = [360,140,960,1080]
     
     
         
@@ -572,13 +571,11 @@ class dloVision:
             size = box[1][0]*box[1][1]
             min_side = min(box[1])
             max_side = max(box[1])
-            if min_side<8:
+            if min_side<4.5:
                 continue
-            # if max_side/min_side>3: # ignore the long and thin contours
-            #     continue
             if size>=2000: # ignore the big contours
                 continue
-            if size<=50: # ignore the small contours
+            if size<=15: # ignore the small contours
                 continue
             boxes.append(box)
             sizes.append(size)
