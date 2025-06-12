@@ -49,15 +49,18 @@ class CtrlNode:
         self.scene_ctrl.add_to_log('[Start time] '+ str(start_time))
         bt_construct_time = time()
         self.action_pub.publish(String("Waiting for images and BT service..."))
-        response = self.handleVLMTree()
-        self.action_pub.publish(String("VLM response received."))
-        self.action_pub.publish(String("Generating BT XML..."))
-        if self.debug == False:
-            self.vlm_to_bt(response)
-            bt_construct_time = time() - bt_construct_time
-            rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
-            self.launch_bt_exec()
-            rospy.loginfo("Mission accomplished in {}".format(str(time()-start_time)))
+        # response = self.handleVLMTree()
+        # vlm_time = time() - start_time
+        # rospy.loginfo("VLM response time: {}".format(str(vlm_time)))
+        # self.action_pub.publish(String("VLM response received."))
+        # self.action_pub.publish(String("Generating BT XML..."))
+        
+        # self.vlm_to_bt(response)
+        # bt_construct_time = time() - bt_construct_time
+        # rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
+        # if self.debug == False:
+        self.launch_bt_exec()
+        rospy.loginfo("Mission accomplished in {}".format(str(time()-start_time)))
         
         
         
@@ -76,8 +79,8 @@ class CtrlNode:
                     rospy.loginfo("Image received, proceeding with VLM request.")
                     rospy.loginfo(f"ENter prompt")                     
                     prompt = input("Enter your prompt: ")
-                    if self.debug == False:
-                        prompt = self.init_prompt(prompt) 
+                    
+                    prompt = self.init_prompt(prompt) 
                     # img = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding='bgr8')
                     # comp_img = self.bridge.cv2_to_compressed_imgmsg(img)
                     req = VLMRequest(prompt=prompt, img=self.latest_image)
@@ -128,12 +131,13 @@ class CtrlNode:
                 
         scene_str += f"Here are all the ropes in the image and their current location:\n"
         for rope_name, marker_a_at, marker_a_col, marker_b_at, marker_b_col in scene_desc:
-            scene_desc_str += f"Rope {rope_name}: marker_a ({marker_a_col}) at {marker_a_at}, marker_b ({marker_b_col}) at {marker_b_at}\n"
+            scene_str += f"Rope {rope_name}: marker_a ({marker_a_col}) at {marker_a_at}, marker_b ({marker_b_col}) at {marker_b_at}\n"
             
         scene_str += f"This is the current heirarchy of the ropes from top to bottom:\n"
         for rope in self.scene_ctrl.pm.heirarchy:
             scene_str += f"{rope}\n"
         final_prompt = f"{intro_prompt}\n{scene_str}\n, Here is the task you must complete as follows:\n {task}"
+        rospy.loginfo(f"Final prompt: {final_prompt}")
         return final_prompt
     
     def read_prompt(self, filename):
@@ -205,10 +209,10 @@ class CtrlNode:
         Launches the BT executor with the generated XML file.
         """
         # Ensure the BT XML file is saved before launching
-        cmd = ['rosrun', 'behaviour_executor', 'yumi_tree']
+        cmd = ['rosrun', 'behavior_executor', 'yumi_tree']
         self.bt = subprocess.Popen(cmd)
         self.bt.wait()  # Wait for the process to complete
-        time.sleep(1)
+        rospy.sleep(1)
         
     
         
@@ -222,7 +226,7 @@ if __name__ == "__main__":
 
     # Run the sequence of actions
     scene_ctrl_node = CtrlNode()
-    # scene_ctrl_node.run()
+    scene_ctrl_node.run()
     rospy.spin()
 
 

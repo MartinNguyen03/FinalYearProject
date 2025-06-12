@@ -141,10 +141,9 @@ class SceneParameters:
             """Clears the site the marker is located at."""
             rope_ = self.rope_dict[rope]
             site = rope_.marker_dict[marker]['marker_at']
-            if self.site_occupancy.get(site) is None:
-                if self.site_occupancy[site][0] == rope and self.site_occupancy[site][1] == marker:
-                    self.site_occupancy[site] = None
-                rope_.marker_dict[marker]['marker_at'] = None
+            
+            self.site_occupancy[site] = None
+            rope_.marker_dict[marker]['marker_at'] = None
             
     def get_marker_at_site(self, site):
         """Returns (rope_name, marker_name) or None."""
@@ -300,9 +299,9 @@ class SceneParameters:
         self.site_poses['site_dl'] = [0.34, 0.085, table_height + -0.00735] # centre of the left section a
         self.site_poses['site_dd'] = [0.34, 0, table_height + -0.00735] # centre of the left section a
         self.site_poses['site_dr'] = [0.34, -0.1, table_height + -0.00735] # centre of the right section b
-        self.site_poses['site_ul'] = [0.6, 0.085, table_height + 0.005] # centre of the left section c
-        self.site_poses['site_ur'] = [0.6, -0.1, table_height + 0.005] # centre of the right section c
-        self.site_poses['site_uu'] = [0.6, 0, table_height + 0.005] # centre of the left section d
+        self.site_poses['site_ul'] = [0.57, 0.085, table_height + 0.005] # centre of the left section c
+        self.site_poses['site_ur'] = [0.57, -0.1, table_height + 0.005] # centre of the right section c
+        self.site_poses['site_uu'] = [0.57, 0, table_height + 0.005] # centre of the left section d
         self.e_l_offset = params["e_l_offset"]
         self.e_r_offset = params["e_r_offset"]
         self.t_l1 = params['target_l1']

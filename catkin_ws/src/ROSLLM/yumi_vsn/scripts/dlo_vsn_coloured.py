@@ -50,13 +50,12 @@ from transformers import DistilBertTokenizer
 
 
 RGB_THRESHOLDS = {
-    'purple':   {'lower': rospy.get_param("~purple_lower", [143, 0, 20]),   'upper':    rospy.get_param("~purple_upper", [255, 194, 206])},
-    'magenta':  {'lower': rospy.get_param("~magenta_lower", [135, 0, 195]     ),     'upper':    rospy.get_param("~magenta_upper", [255, 237, 255])},
-    'red':      {'lower': rospy.get_param("~red_lower", [73, 41, 184]),      'upper':    rospy.get_param("~red_upper", [178, 206, 255])},
+    'purple':   {'lower': rospy.get_param("~purple_lower", [136, 85, 124]),   'upper':    rospy.get_param("~purple_upper", [255, 182, 212])},
+    'magenta':  {'lower': rospy.get_param("~magenta_lower", [145, 0, 186]     ),     'upper':    rospy.get_param("~magenta_upper", [255, 200, 255])},
+    'red':      {'lower': rospy.get_param("~red_lower", [110, 76, 190]),      'upper':    rospy.get_param("~red_upper", [155, 178, 255])},
     'pink':     {'lower': rospy.get_param("~pink_lower", [203, 200, 220]),    'upper':    rospy.get_param("~pink_upper", [255, 255, 255])},
-    'cyan':     {'lower': rospy.get_param("~cyan_lower", [210, 186, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 80])},
-    'grey':     {'lower': rospy.get_param("~grey_lower", [177, 191, 118]),   'upper':    rospy.get_param("~grey_upper", [237, 250, 228])},
-    'green':   {'lower': rospy.get_param("~green_lower", [0, 156, 2] ),    'upper':    rospy.get_param("~green_upper", [245, 255, 133])}
+    'cyan':     {'lower': rospy.get_param("~cyan_lower", [190, 150, 0]),    'upper':    rospy.get_param("~cyan_upper", [255, 255, 52])},
+    'green':   {'lower': rospy.get_param("~green_lower", [0, 153, 25] ),    'upper':    rospy.get_param("~green_upper", [247, 255, 104])}
 }
 
 class RopePerceiver:
@@ -571,11 +570,13 @@ class dloVision:
             size = box[1][0]*box[1][1]
             min_side = min(box[1])
             max_side = max(box[1])
-            if min_side<4.5:
+            if min_side<4:
                 continue
-            if size>=2000: # ignore the big contours
+            if max_side/min_side>4.5: # ignore the long and thin contours
                 continue
-            if size<=15: # ignore the small contours
+            if size>=3000: # ignore the big contours
+                continue
+            if size<=30: # ignore the small contours
                 continue
             boxes.append(box)
             sizes.append(size)
@@ -587,7 +588,7 @@ class dloVision:
             for j in range(i):
                 distance = euclidian_distance(boxes[i][0], boxes[j][0])
                 dist_mat[i,j] = dist_mat[j,i] = distance
-                if 25<=distance<=40:
+                if 5<=distance<=35:
                     dist_mat[i,j] = dist_mat[j,i] = 1000 # not needed anymore
                     candidates.append([i, j])
         ids = None

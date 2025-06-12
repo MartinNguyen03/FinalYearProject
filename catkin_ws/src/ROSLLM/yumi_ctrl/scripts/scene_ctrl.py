@@ -133,9 +133,12 @@ class ScenePrimitives:
         rope = req.rope
         marker = req.marker
         site = req.site
-        
+        current_location = self.pm.check_marker_location(rope, marker)
         self.add_to_log(f'Executing action: {action} on {rope} {marker} to {site}')
-         
+        if current_location is not None and current_location == site:
+            res.success = True
+            res.description = f'Marker {marker} on {rope} is already at {site}.'
+            return res
         if action == 'left_place':
             if self.left_place(rope, marker, site) == True:
                 res.success = True
@@ -173,14 +176,14 @@ class ScenePrimitives:
         if self.pm.check_marker_location(rope, marker)[:6] != 'site_u':
             vert_offset = self.pm.table_offset + -0.0073
         else:
-            vert_offset = self.pm.table_offset + 0.008
+            vert_offset = self.pm.table_offset + 0.000
             
         
         marker_pos, yaw = self.get_rope_poses(rope, marker)
         dx = 0.006 * np.cos(yaw)
         dy = 0.006 * np.sin(yaw)
         pick_pos = [marker_pos[0] + dx, marker_pos[1] + dy, vert_offset+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
+        pick_pos_approach = ls_add(pick_pos, [0, 0, 2* self.pm.app_os])
         pick_rot = self.pm.grasp_rot_r  
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
 
@@ -242,7 +245,7 @@ class ScenePrimitives:
         dx = 0.008 * np.cos(yaw)
         dy = 0.008 * np.sin(yaw)
         pick_pos = [marker_pos[0] + dx, marker_pos[1] + dy, vert_offset+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
+        pick_pos_approach = ls_add(pick_pos, [0, 0, 2* self.pm.app_os])
         pick_rot = self.pm.grasp_rot_l
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
         
@@ -290,7 +293,7 @@ class ScenePrimitives:
         marker_pos, [_,_,yaw] = target_pos[:3], euler_from_quaternion(target_pos[3:])
         
         pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os]) # Slightly above the marker
+        pick_pos_approach = ls_add(pick_pos, [0, 0, 2 * self.pm.app_os]) # Slightly above the marker
         pick_rot = self.pm.grasp_rot_r
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
 
@@ -335,7 +338,7 @@ class ScenePrimitives:
         marker_pos, [_,_,yaw] = target_pos[:3], euler_from_quaternion(target_pos[3:])
         
         pick_pos = [marker_pos[0], marker_pos[1], marker_pos[2]+self.pm.gp_os]
-        pick_pos_approach = ls_add(pick_pos, [0, 0, self.pm.app_os])
+        pick_pos_approach = ls_add(pick_pos, [0, 0, 2* self.pm.app_os])
         pick_rot = self.pm.grasp_rot_l
         pick_rot_fine = ls_add(pick_rot, [0, 0, yaw])
         
@@ -404,6 +407,11 @@ class ScenePrimitives:
         self.yumi.rope_dict[rope]['marker_dict'][marker]['marker_at'] = site
         self.pm.update_site_occupancy(rope, marker, site)
 
+        if self.pm.check_marker_location(rope, marker)[:6] != 'site_u':
+            vert_offset = self.pm.table_offset + -0.0073
+        else:
+            vert_offset = self.pm.table_offset - 0.008
+            
         # calc place poses
         place_pos = [section[0], section[1], section[2]+self.pm.gp_os]
         place_pos_approach = ls_add(place_pos, [0, 0, self.pm.app_os])
@@ -418,7 +426,7 @@ class ScenePrimitives:
         waypoints = []
         waypoints.append(place_pos+place_rot)
         self.yumi.right_go_thro(waypoints,"Place")
-        self.yumi.open_right_gripper(full=True)
+        self.yumi.open_right_gripper(full=2)
         # self.update_marker_ownership(rope, marker, site)
         # retreat after place
         waypoints = []
@@ -467,7 +475,7 @@ class ScenePrimitives:
         if self.pm.check_marker_location(rope, marker)[:6] != 'site_u':
             vert_offset = self.pm.table_offset + -0.0068
         else:
-            vert_offset = self.pm.table_offset + 0.0061
+            vert_offset = self.pm.table_offset + 0.007
             
         # calc place poses
         place_pos = [section[0], section[1], vert_offset+self.pm.gp_os]
@@ -484,7 +492,7 @@ class ScenePrimitives:
         waypoints.append(place_pos+place_rot)
         self.yumi.change_speed(0.5)
         self.yumi.left_go_thro(waypoints,"Place")
-        self.yumi.open_left_gripper(full=True)
+        self.yumi.open_left_gripper(full=2)
         # self.update_marker_ownership(rope, marker, site)
         # retreat after place
         waypoints = []
@@ -509,7 +517,7 @@ class ScenePrimitives:
         
         target_position = self.pm.site_poses[target]
         target_pos, [_,_,yaw] = target_position[:3], euler_from_quaternion(target_position[3:])
-        insert_pos = [target_pos[0] + 0.003, target_pos[1] + 0.0025, target_pos[2]+self.pm.gp_os + 0.002]  # Slightly above the target
+        insert_pos = [target_pos[0] + 0.003, target_pos[1] - 0.0025, target_pos[2]+self.pm.gp_os + 0.002]  # Slightly above the target
         insert_app_pos = ls_add(insert_pos, [0, self.pm.app_os, 0])  # Slightly above the target
         insert_rot = self.pm.grasp_rot_r
         insert_rot_fine = ls_add(insert_rot, [0, 0, yaw])

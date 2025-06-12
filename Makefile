@@ -91,9 +91,8 @@ ctrl:
 	docker exec -it fypContainer bash -c "source devel/setup.bash && roslaunch yumi_ctrl ctrl_node.launch"
 	docker container stop fypContainer
 vlm:
-	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer
-	docker exec -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True -it fypContainer bash -c "source devel/setup.bash && roslaunch agent_comm ros_agent.launch"
+	docker exec -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True -e PYTHONPATH=$PYTHONPATH:/home/yumi/FinalYearProject/catkin_ws/src/ROSLLM/agent_comm/scripts -it fypContainer bash -c "source devel/setup.bash && roslaunch agent_comm ros_agent.launch"
 demo:
 	xhost +si:localuser:root >> /dev/null
 	docker start fypContainer

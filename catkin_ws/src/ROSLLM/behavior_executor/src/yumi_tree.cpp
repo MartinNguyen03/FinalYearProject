@@ -132,16 +132,10 @@ int main(int argc, char** argv )
     BehaviorTreeFactory factory;
 
     ROS_INFO("Registering BT nodes...");
-    factory.registerNodeType<PrintValue>("PrintValue");
+    // factory.registerNodeType<PrintValue>("PrintValue");
     RegisterRosService<YumiAction>(factory, "YumiAction", nh);
     RegisterRosService<VisualCheck>(factory, "VisualCheck", nh);
     ROS_INFO("Starting BT executor service...");
-
-    // BT_REGISTER_NODES(factory)
-    // {
-    //     factory.registerNodeType<YumiAction>("YumiAction");
-    //     factory.registerNodeType<VisualCheck>("VisualCheck");
-    // }
     ROS_INFO("BT nodes registered successfully.");
     // Read the XML file into a string
     ROS_INFO("Reading XML file...");
@@ -153,68 +147,33 @@ int main(int argc, char** argv )
     // ROS_INFO("XML content: %s", xml_text.c_str());
     static const char* xml_text = R"(
         <root>
-        <BehaviorTree>
-        <Sequence>
-            <YumiAction service_name = "execute_behavior"
-                        action="left_place"
-                        rope="rope_o"
-                        marker="marker_a"
-                        site="site_ul"
-                        message="{task}" />
-            <PrintValue message="{task}" />
-            <RetryUntilSuccessful num_attempts="4">
-                    <Timeout msec="300">
-                        <VisualCheck service_name="get_vlm"
-                        img="{img}"
-                        response="{vlm_response}"  />
-                    </Timeout>
-            </RetryUntilSuccessful>
-            <PrintValue message="{vlm_response}" />
-            <YumiAction service_name = "execute_behavior"
-                        action="right_place"
-                        rope="rope_o"
-                        marker="marker_a"
-                        site="site_ur"
-                        message="{task}" />
-            <PrintValue message="{task}" />
-            <RetryUntilSuccessful num_attempts="4">
-                    <Timeout msec="300">
-                        <VisualCheck service_name="get_vlm"
-                        img="{img}"
-                        response="{vlm_response}"  />
-                    </Timeout>
-            </RetryUntilSuccessful>
-            <PrintValue message="{vlm_response}" />
-            <YumiAction service_name = "execute_behavior"
-                        action="left_place"
-                        rope="rope_b"
-                        marker="marker_b"
-                        site="site_ll"
-                        message="{task}" />
-            <PrintValue message="{task}" />
-            <RetryUntilSuccessful num_attempts="4">
-                    <Timeout msec="300">
-                        <VisualCheck service_name="get_vlm"
-                        img="{img}"
-                        response="{vlm_response}"  />
-                    </Timeout>
-            </RetryUntilSuccessful>
-            <PrintValue message="{vlm_response}" />
-            <YumiAction service_name = "execute_behavior"
-                        action="right_place"
-                        rope="rope_b"
-                        marker="marker_b"
-                        site="site_lr"
-                        message="{task}" />
-            <PrintValue message="{task}" />
-            </Sequence>
-        </BehaviorTree>
-    </root>       
+            <BehaviorTree>
+            <Sequence>
+                <YumiAction service_name = "execute_behaviour"
+                            action="right_place"
+                            rope="rope_o"
+                            marker="marker_b"
+                            site="site_ur"
+                            message="{task}" />
+                <YumiAction service_name = "execute_behaviour"
+                            action="right_place"
+                            rope="rope_g"
+                            marker="marker_b"
+                            site="target_r3"
+                            message="{task}" />
+                <YumiAction service_name = "execute_behaviour"
+                            action="right_place"
+                            rope="rope_o"
+                            marker="marker_b"
+                            site="target_r2"
+                            message="{task}" />
+                </Sequence>
+            </BehaviorTree>
+        </root>                           
     )";
     auto tree = factory.createTreeFromText(xml_text);
     ROS_INFO("Behavior Tree created successfully.");
-    PublisherZMQ publisher(tree);
-
+    ROS_INFO("Starting Behavior Tree execution...");
     NodeStatus status = NodeStatus::IDLE;
 
     ROS_INFO("Starting BT executor...");

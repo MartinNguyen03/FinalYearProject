@@ -1,5 +1,8 @@
 import sys
 import os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, '..'))  # Adjust as needed
+sys.path.insert(0, project_root)
 import torch
 import rospy
 from transformers import AutoModelForCausalLM
@@ -23,7 +26,6 @@ class VLM:
                                                           torch_dtype=torch.bfloat16).to(device).eval()
 
     def call(self, prompt: str, img_path: str) -> str:
-        prompt = "What is in the image?\n" 
         # Convert ROS image message to OpenCV
 
         
