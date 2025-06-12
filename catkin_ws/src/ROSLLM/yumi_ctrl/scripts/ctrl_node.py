@@ -27,7 +27,7 @@ class CtrlNode:
     
     image_topic = "/yumi_l515/camera/color/image_raw"  # Update with your RealSense topic
     def __init__(self):
-        auto_execution = False
+        auto_execution = True
         reset = True
         self.debug = True
         self.bridge = CvBridge()
@@ -200,6 +200,7 @@ class CtrlNode:
         return xml
     
     def save_bt_xml(self, xml_string: str, path: str = BT_XML_PATH):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as f:
             f.write(xml_string)
         rospy.loginfo(f"BT XML saved to {path}")

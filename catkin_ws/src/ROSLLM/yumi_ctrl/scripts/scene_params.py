@@ -296,9 +296,9 @@ class SceneParameters:
         table_height = self.table_offset
        
 
-        self.site_poses['site_dl'] = [0.34, 0.085, table_height + -0.00735] # centre of the left section a
-        self.site_poses['site_dd'] = [0.34, 0, table_height + -0.00735] # centre of the left section a
-        self.site_poses['site_dr'] = [0.34, -0.1, table_height + -0.00735] # centre of the right section b
+        self.site_poses['site_dl'] = [0.35, 0.085, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dd'] = [0.35, 0, table_height + -0.00735] # centre of the left section a
+        self.site_poses['site_dr'] = [0.35, -0.1, table_height + -0.00735] # centre of the right section b
         self.site_poses['site_ul'] = [0.57, 0.085, table_height + 0.005] # centre of the left section c
         self.site_poses['site_ur'] = [0.57, -0.1, table_height + 0.005] # centre of the right section c
         self.site_poses['site_uu'] = [0.57, 0, table_height + 0.005] # centre of the left section d

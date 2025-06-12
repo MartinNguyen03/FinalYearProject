@@ -23,3 +23,95 @@ shutting down processing monitor...
 rosservice call /execute_behaviour "{action: 'right_place', rope: 'rope_g', marker: 'marker_b', site: 'target_l2'}"
 
 rosservice call /execute_behaviour "{action: 'left_place', rope: 'rope_o', marker: 'marker_a', site: 'site_ul'}"
+Enter your prompt: Handle the appropriate cables so that all cables are not overlapping each other and cable ends are on opposite sites; marker_b in target_r3 has marker_a in target_l3 (example)
+[INFO] [1749737405.740002]: Final prompt: You are controlling a bi-manual robot tasked with manipulating ropes in a structured environment. The robot can perform one of several predefined actions. Each action has associated input parameters and returns whether it was successful along with a description.
+
+Your task is to generate a Behaviour Tree (BT) that achieves the given task by calling the appropriate action nodes with fully specified arguments. Each action node must have clearly defined `action`, `rope`, `marker`, and `site` arguments.
+
+The BT nodes are structured as follows:
+
+YumiAction requires the following:
+
+action:
+- "left_place" (Picks and places object to a site/target with left gripper)
+- "right_place" (Picks and places object to a site/target with right gripper)
+
+rope:
+- "rope_o" (Orange rope)
+- "rope_b" (Blue rope)
+- "rope_g" (Green rope)
+
+marker (Each rope has it's corresponding marker referring to one end of the rope):
+- "marker_a"
+- "marker_b"
+
+site (The target location or placeholder site):
+Left Targets: (1 being the closest, 3 being the furthest)
+- "target_l1" 
+- "target_l2" 
+- "target_l3"
+Right Targets:
+- "target_r1"
+- "target_r2"
+- "target_r3"
+Upper placeholder sites:
+- "site_ul" (Upper Left)
+- "site_ur" (Upper right)
+Lower placeholder sites:
+- "site_dl" (Down left)
+- "site_dr" (Down right)
+
+Illegal Actions:
+Using the Left gripper (left_place), DO NOT select sites on the right hand side (target_rx, site_xr)
+Using the Right Gripper (right_place), DO NOT select sites on the left hand side (target_lx, site_xr)
+When selecting a site to place a marker, to avoid overlapping the cables, try to move the marker to the side the other marker is placed at. For example, if marker_a is located at site target_r3, avoid placing marker_b to anywhere below target_x2, site_dx
+
+VisualCheck: is another node where an image will be returned to you to verify if you would like to proceed to the next action. You must reply with yes or no.
+
+Each node must be formatted as:
+YumiAction action="<action>", rope="<rope>", marker="<marker>", site="<site>"
+
+- Include "" for each input for each node as they are string commands
+
+VisualCheck
+
+
+Example:
+YumiAction action="left_place", rope="rope_o", marker="marker_a", site="target_l3"
+VisualCheck
+YumiAction action="right_place", rope="rope_g", marker="marker_b", site="site_dl"
+YumiAction action="left_place", rope="rope_g", marker="marker_a", site="target_l2"
+VisualCheck
+
+Make sure to seperate each command by a new line to ensure correct formatting to construct the Behaviour Tree
+
+The BT should:
+1. Respect the current location of each rope and marker as provided.
+2. Ensure ropes are placed in their correct target or placeholder locations.
+3. Use checks - `VisualCheck` where needed to verify success, an image will be uploaded to you to verify.
+4. The final locations of the markers should be located in target locations. When placing a marker in a "site_xx" location, it is supposed to be eventually moved to the desired target location.
+5. You DO NOT always need to move both markers of each cable. Logically, if a cable if a cable is already in a desired locaiton, it is best reccomended to not move it.
+6. Avoid Illegal Actions
+
+Use well-structured formatting as described above.
+
+Here are all the ropes in the image and their current location:
+Rope rope_o: marker_a (magenta) at target_l2, marker_b (cyan) at target_r3
+Rope rope_g: marker_a (purple) at target_l3, marker_b (red) at target_r2
+Rope rope_b: marker_a (pink) at target_l1, marker_b (green) at target_r1
+This is the current heirarchy of the ropes from top to bottom:
+rope_b
+rope_o
+rope_g
+
+, Here is the task you must complete as follows:
+ Handle the appropriate cables so that all cables are not overlapping each other and cable ends arer3 has marker_a in target_l3 (example)
+[INFO] [1749737608.951215]: VLM Response:
+YumiAction action="left_place", rope="rope_o", marker="marker_a", site="target_l3"
+VisualCheck
+YumiAction action="right_place", rope="rope_g", marker="marker_b", site="target_r2"
+YumiAction action="left_place", rope="rope_g", marker="marker_a", site="target_l2"
+VisualCheck
+YumiAction action="right_place", rope="rope_b", marker="marker_b", site="target_r1"
+YumiAction action="left_place", rope="rope_o", marker="marker_a", site="target_l1"
+VisualCheck

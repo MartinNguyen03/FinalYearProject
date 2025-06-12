@@ -8,7 +8,7 @@
 #include <rosllm_srvs/ExecuteBehavior.h>
 #include <rosllm_srvs/ExecuteBehaviorRequest.h>
 #include <fstream>
-
+#include <ros/package.h>
 
 using namespace BT;
 class PrintValue : public BT::SyncActionNode
@@ -103,7 +103,8 @@ public:
 
     NodeStatus onResponse(const ResponseType& rep) override
     {
-        ROS_INFO("YuMi Action: Executed");
+        ROS_INFO("YuMi Action: Executed - %s", rep.description.c_str());
+        ros::Duration(1.0).sleep(); // Simulate some processing time
         if (rep.success)
         {
             setOutput<std::string>("message", rep.description);
@@ -139,39 +140,9 @@ int main(int argc, char** argv )
     ROS_INFO("BT nodes registered successfully.");
     // Read the XML file into a string
     ROS_INFO("Reading XML file...");
-    // std::ifstream xml_file("/home/martin/Documents/FinalYearProject/FinalYearProject/catkin_ws/src/ROSLLM/behavior_executor/config/gen_tree.xml");
-    // std::stringstream buffer;
-    // buffer << xml_file.rdbuf();
-    // std::string xml_text = buffer.str();
-    // ROS_INFO("XML file read successfully.");
-    // ROS_INFO("XML content: %s", xml_text.c_str());
-    static const char* xml_text = R"(
-        <root>
-            <BehaviorTree>
-            <Sequence>
-                <YumiAction service_name = "execute_behaviour"
-                            action="right_place"
-                            rope="rope_o"
-                            marker="marker_b"
-                            site="site_ur"
-                            message="{task}" />
-                <YumiAction service_name = "execute_behaviour"
-                            action="right_place"
-                            rope="rope_g"
-                            marker="marker_b"
-                            site="target_r3"
-                            message="{task}" />
-                <YumiAction service_name = "execute_behaviour"
-                            action="right_place"
-                            rope="rope_o"
-                            marker="marker_b"
-                            site="target_r2"
-                            message="{task}" />
-                </Sequence>
-            </BehaviorTree>
-        </root>                           
-    )";
-    auto tree = factory.createTreeFromText(xml_text);
+    std::string pkg_path = ros::package::getPath("behavior_executor");
+    std::string xml_file = pkg_path + "/config/gen_tree.xml";
+    auto tree = factory.createTreeFromFile(xml_file);
     ROS_INFO("Behavior Tree created successfully.");
     ROS_INFO("Starting Behavior Tree execution...");
     NodeStatus status = NodeStatus::IDLE;

@@ -1,24 +1,25 @@
 <root>
     <BehaviorTree>
     <Sequence>
-        <YumiAction service_name = "execute_behavior"
-                    action="right_place"
-                    rope="rope_o"
-                    marker="marker_b"
-                    site="site_ur"
+        <YumiAction service_name = "execute_behaviour"
+                    action="left_place"
+                    rope="rope_b"
+                    marker="marker_a"
+                    site="site_dl"
                     message="{task}" />
-        <YumiAction service_name = "execute_behavior"
-                    action="right_place"
+        <YumiAction service_name = "execute_behaviour"
+                    action="left_place"
                     rope="rope_g"
-                    marker="marker_b"
-                    site="target_r3"
+                    marker="marker_a"
+                    site="target_l2"
                     message="{task}" />
-        <YumiAction service_name = "execute_behavior"
-                    action="right_place"
-                    rope="rope_o"
-                    marker="marker_b"
-                    site="target_r2"
+        <YumiAction service_name = "execute_behaviour"
+                    action="left_place"
+                    rope="rope_b"
+                    marker="marker_a"
+                    site="target_l1"
                     message="{task}" />
+
        
         </Sequence>
     </BehaviorTree>

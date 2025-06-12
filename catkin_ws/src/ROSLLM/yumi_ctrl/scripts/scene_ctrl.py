@@ -143,6 +143,7 @@ class ScenePrimitives:
             if self.left_place(rope, marker, site) == True:
                 res.success = True
                 res.description = f'Left place of {marker} on {rope} to {site} successful.'
+                self.yumi.wait_for_completion_l()
             else:
                 res.success = False
                 res.description = f'Left place of {marker} on {rope} to {site} failed.'
@@ -150,6 +151,7 @@ class ScenePrimitives:
             if self.right_place(rope, marker, site) == True:
                 res.success = True
                 res.description = f'Right place of {marker} on {rope} to {site} successful.'
+                self.yumi.wait_for_completion_r()
             else:
                 res.success = False
                 res.description = f'Right place of {marker} on {rope} to {site} failed.'
@@ -517,7 +519,7 @@ class ScenePrimitives:
         
         target_position = self.pm.site_poses[target]
         target_pos, [_,_,yaw] = target_position[:3], euler_from_quaternion(target_position[3:])
-        insert_pos = [target_pos[0] + 0.003, target_pos[1] - 0.0025, target_pos[2]+self.pm.gp_os + 0.002]  # Slightly above the target
+        insert_pos = [target_pos[0] + 0.003, target_pos[1] + 0.0075, target_pos[2]+self.pm.gp_os + 0.002]  # Slightly above the target
         insert_app_pos = ls_add(insert_pos, [0, self.pm.app_os, 0])  # Slightly above the target
         insert_rot = self.pm.grasp_rot_r
         insert_rot_fine = ls_add(insert_rot, [0, 0, yaw])
@@ -563,7 +565,7 @@ class ScenePrimitives:
         target_position = self.pm.site_poses[target]
         target_pos, [_,_,yaw] = target_position[:3], euler_from_quaternion(target_position[3:])
         
-        insert_pos = [target_pos[0] + 0.0025, target_pos[1] + 0.0025, target_pos[2]+self.pm.gp_os + 0.0027]
+        insert_pos = [target_pos[0] + 0.0025, target_pos[1], target_pos[2]+self.pm.gp_os + 0.0027]
         
         
         insert_app_pos = ls_add(insert_pos, [0, -self.pm.app_os, 0])  # Slightly above the target
