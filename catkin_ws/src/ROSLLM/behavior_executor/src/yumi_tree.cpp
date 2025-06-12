@@ -50,7 +50,7 @@ public:
 
     void sendRequest(RequestType& request) override
     {
-        request.prompt = "Here is the updated scene, would you like to proceed; respond with yes or no";
+        request.prompt = "Here is the updated scene, would you like to proceed; respond with 'yes' or 'no'";
         getInput("img", request.img);
     }
 

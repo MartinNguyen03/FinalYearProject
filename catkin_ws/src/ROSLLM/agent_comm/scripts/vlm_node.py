@@ -4,6 +4,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from rosllm_srvs.srv import VLM as VLMSrv
 from rosllm_srvs.srv import VLMResponse as VLMSrvResponse
+from rosllm_srvs.srv import ObserveScene, ObserveSceneRequest
 from vlm import VLM  # Assuming the VLM class is in this module
 import cv2
 from cv_bridge import CvBridge
@@ -13,6 +14,7 @@ class VLChatNode:
     def __init__(self):
         rospy.init_node("vl_chat_node")
         self.vlm_srv = "get_vlm"
+        self.scene_srv = 'observe_scene'
         self.bridge = CvBridge()
         try:
             self.model_path = rospy.get_param("~model_path", "deepseek-ai/deepseek-vl-7b-chat")
@@ -23,7 +25,7 @@ class VLChatNode:
             return
 
         self.image = None
-
+        rospy.ServiceProxy(self.scene_srv, ObserveScene)
         rospy.Service(self.vlm_srv, VLMSrv, self.handle_service_request)
         # rospy.Subscriber("vlm/prompt", String, self.vlm_prompt_callback)
         # rospy.Subscriber("vlm/image", Image, self.vlm_image_callback)
@@ -55,15 +57,35 @@ class VLChatNode:
         except Exception as e:
             rospy.logerr(f"VLM error: {e}")
             return ""
-
+        
+    def call_scene_srv(self):
+        '''
+        input: None
+        output: list of ropes from top to bottom
+        '''
+        request = ObserveSceneRequest()
+        while not rospy.is_shutdown():
+            # get the target pose
+            response = self.observe_scene(request)
+            if response.success == False:
+                if not self.yumi.check_command('Got empty reply. Try again?'):
+                    print('Cancelled action. Exiting.')
+                    exit()
+            else:
+                # if self.yumi.check_command('Satisfied with the result?'):
+                break
+        return response.img
+            
     def handle_service_request(self, req):
         rospy.loginfo("Received VLM request.")
         resp = VLMSrvResponse()
         if req.img is None:
-            rospy.logwarn("No image received yet!")
-            resp.success = False
-            resp.info = "No image available."
-            return resp
+            rospy.logwarn("No image received yet! Calling Observe Scene")
+            req.img = self.call_scene_srv()
+            if req.img is None:
+                resp.success = False
+                resp.info = "Failed to get image from Observe Scene service."
+                return resp
         #COnvert ROS Image to    type bytes or an ascii string
         self.image = self.bridge.imgmsg_to_cv2(req.img, desired_encoding="passthrough")
         rospy.loginfo(f"Image received, Writing image to {FRAME_PATH}")

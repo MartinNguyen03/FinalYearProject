@@ -24,6 +24,7 @@ PROMPT_PATH = os.path.expanduser('/catkin_ws/src//ROSLLM/agent_comm/prompt/intro
 class CtrlNode:
     bt_srv = 'get_behaviour'
     vlm_srv = 'get_vlm'
+    
     image_topic = "/yumi_l515/camera/color/image_raw"  # Update with your RealSense topic
     def __init__(self):
         auto_execution = False

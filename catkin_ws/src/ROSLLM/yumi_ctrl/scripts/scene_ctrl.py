@@ -314,11 +314,11 @@ class ScenePrimitives:
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos, [0, 2*self.pm.app_os, 0]),pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos, [0, 0, 2*self.pm.app_os]),pick_rot_fine))
         self.yumi.right_go_thro(waypoints,"Pick Retract")
-        waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, 2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
-        self.yumi.right_go_thro(waypoints,"Pick Raise")
+        # waypoints = []
+        # waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, 2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
+        # self.yumi.right_go_thro(waypoints,"Pick Raise")
         self.yumi.add_table()
 
         # set section flags
@@ -359,12 +359,12 @@ class ScenePrimitives:
 
         # retreat after pick
         waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos, [0, -2*self.pm.app_os, 0]),pick_rot_fine))
+        waypoints.append(ls_concat(ls_add(pick_pos, [0, 0, 2*self.pm.app_os]),pick_rot_fine))
         self.yumi.left_go_thro(waypoints,"Pick Retract")
 
-        waypoints = []
-        waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, -2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
-        self.yumi.left_go_thro(waypoints,"Pick Raise")
+        # waypoints = []
+        # waypoints.append(ls_concat(ls_add(pick_pos_approach, [0, -2*self.pm.app_os, self.pm.app_os]), pick_rot_fine))
+        # self.yumi.left_go_thro(waypoints,"Pick Raise")
         self.yumi.add_table()
 
         # set section flags
@@ -510,7 +510,7 @@ class ScenePrimitives:
         target_position = self.pm.site_poses[target]
         target_pos, [_,_,yaw] = target_position[:3], euler_from_quaternion(target_position[3:])
         insert_pos = [target_pos[0] + 0.003, target_pos[1] + 0.0025, target_pos[2]+self.pm.gp_os + 0.002]  # Slightly above the target
-        insert_app_pos = ls_add(insert_pos, [0, self.pm.app_os/2, 0])  # Slightly above the target
+        insert_app_pos = ls_add(insert_pos, [0, self.pm.app_os, 0])  # Slightly above the target
         insert_rot = self.pm.grasp_rot_r
         insert_rot_fine = ls_add(insert_rot, [0, 0, yaw])
         # 7. Compute poses (relative to hole frame, inserting from behind)
@@ -558,7 +558,7 @@ class ScenePrimitives:
         insert_pos = [target_pos[0] + 0.0025, target_pos[1] + 0.0025, target_pos[2]+self.pm.gp_os + 0.0027]
         
         
-        insert_app_pos = ls_add(insert_pos, [0, -self.pm.app_os/2, 0])  # Slightly above the target
+        insert_app_pos = ls_add(insert_pos, [0, -self.pm.app_os, 0])  # Slightly above the target
         insert_rot = self.pm.grasp_rot_l
         insert_rot_fine = ls_add(insert_rot, [0, 0, yaw])
         # 7. Compute poses (relative to hole frame, inserting from behind)

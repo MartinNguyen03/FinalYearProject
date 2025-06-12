@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+    <root>
+        <TreeNodesModel>
+            <Action ID="YumiAction">
+                <input_port name="service_name" type="string" default="execute_behaviour"> </input_port>
+                <input_port name="action" type="string"> </input_port>
+                <input_port name="rope" type="string"> </input_port>
+                <input_port name="marker" type="string"> </input_port>
+                <input_port name="site" type="string"> </input_port>
+                <output_port name="message" type="string"> </output_port>
+            </Action>
+            <Action ID="VisualCheck">
+                <input_port name="service_name" type="string" default="get_vlm"> </input_port>
+                <input_port name="message" type="string"> </input_port>
+                <output_port name="response" type="string"> </output_port>
+            </Action>
+        </TreeNodesModel>
+    </root>
+        
