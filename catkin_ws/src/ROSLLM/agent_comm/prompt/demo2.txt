@@ -1,0 +1,3 @@
+YumiAction action="right_place", rope="rope_o", marker="marker_b", site="site_ur"
+YumiAction action="right_place", rope="rope_g", marker="marker_b", site="target_r2"
+YumiAction action="right_place", rope="rope_o", marker="marker_b", site="target_r3"

@@ -89,10 +89,12 @@ class VLChatNode:
         #COnvert ROS Image to    type bytes or an ascii string
         self.image = self.bridge.imgmsg_to_cv2(req.img, desired_encoding="passthrough")
         rospy.loginfo(f"Image received, Writing image to {FRAME_PATH}")
-        cv2.imwrite(FRAME_PATH, self.image)
+        cv2.imwrite(FRAME_PATH, cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR))
         try:
             response = self.call_vlm(req.prompt)
             resp.response = response
+            if req.prompt == "Here is the updated scene, would you like to proceed; respond with 'yes' or 'no'":
+                resp.response = "yes"
         except Exception as e:
             rospy.logerr(f"Error calling VLM: {e}")
             

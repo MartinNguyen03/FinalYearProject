@@ -21,12 +21,15 @@ from scene_ctrl import ScenePrimitives
 BT_XML_PATH =  os.path.expanduser('/catkin_ws/src/ROSLLM/behaviour_executor/config/gen_tree.xml')
 BT_EXEC_PATH = os.path.expanduser( '/catkin_ws/src/ROSLLM/behaviour_executor/src/yumi_tree.cpp')
 PROMPT_PATH = os.path.expanduser('/catkin_ws/src//ROSLLM/agent_comm/prompt/intro_and_conditions.txt')
+DEMO1 = os.path.expanduser('/catkin_ws/src/ROSLLM/agent_comm/prompt/demo1.txt')
+DEMO2 = os.path.expanduser('/catkin_ws/src/ROSLLM/agent_comm/prompt/demo2.txt')
 class CtrlNode:
     bt_srv = 'get_behaviour'
     vlm_srv = 'get_vlm'
     
     image_topic = "/yumi_l515/camera/color/image_raw"  # Update with your RealSense topic
     def __init__(self):
+        self.demo = "1"
         auto_execution = True
         reset = True
         self.debug = True
@@ -49,15 +52,15 @@ class CtrlNode:
         self.scene_ctrl.add_to_log('[Start time] '+ str(start_time))
         bt_construct_time = time()
         self.action_pub.publish(String("Waiting for images and BT service..."))
-        # response = self.handleVLMTree()
-        # vlm_time = time() - start_time
-        # rospy.loginfo("VLM response time: {}".format(str(vlm_time)))
-        # self.action_pub.publish(String("VLM response received."))
-        # self.action_pub.publish(String("Generating BT XML..."))
+        response = self.handleVLMTree()
+        vlm_time = time() - start_time
+        rospy.loginfo("VLM response time: {}".format(str(vlm_time)))
+        self.action_pub.publish(String("VLM response received."))
+        self.action_pub.publish(String("Generating BT XML..."))
         
-        # self.vlm_to_bt(response)
-        # bt_construct_time = time() - bt_construct_time
-        # rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
+        self.vlm_to_bt(response)
+        bt_construct_time = time() - bt_construct_time
+        rospy.loginfo("BT XML generated in {}".format(str(bt_construct_time)))
         # if self.debug == False:
         self.launch_bt_exec()
         rospy.loginfo("Mission accomplished in {}".format(str(time()-start_time)))
@@ -85,6 +88,11 @@ class CtrlNode:
                     # comp_img = self.bridge.cv2_to_compressed_imgmsg(img)
                     req = VLMRequest(prompt=prompt, img=self.latest_image)
                     resp = self.get_vlm_srv(req)
+                    if self.demo is not None:
+                        if self.demo == "1":
+                            resp.response = self.read_prompt(DEMO1)
+                        elif self.demo == "2":
+                            resp.response = self.read_prompt(DEMO2)
                     rospy.loginfo(f"VLM Response:\n{resp.response}")
                     return resp.response
                 

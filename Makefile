@@ -29,6 +29,16 @@ install-from-hub:
 	docker exec fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
 	docker container stop fypContainer
 	
+install_baseline:
+	git -c ${PWD}/catkin_ws/src/ROSLLM/yumi_vsn/scripts/utils clone https://github.com/lar-unibo/dlo_perceiver.git
+	git -c ${PWD}/catkin_ws/src/ clone https://github.com/BehaviorTree/Groot.git
+	docker start fypContainer
+	sleep 1
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash &&  rosdep install -i -r -y --from-paths . --ignore-src"
+	sleep 1
+	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && catkin build"
+	docker container stop fypContainer
+	
 roscore:
 	docker start fypContainer
 	docker exec -it fypContainer bash -c "source /opt/ros/noetic/setup.bash && roscore"

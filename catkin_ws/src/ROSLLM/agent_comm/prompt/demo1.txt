@@ -1,0 +1,6 @@
+YumiAction action="left_place", rope="rope_g", marker="marker_a", site="site_dl"
+YumiAction action="left_place", rope="rope_b", marker="marker_b", site="target_l1"
+YumiAction action="left_place", rope="rope_o", marker="marker_a", site="target_l3"
+VisualCheck
+YumiAction action="left_place", rope="rope_g", marker="marker_a", site="target_l2"
+VisualCheck
